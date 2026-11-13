@@ -1,4 +1,5 @@
 diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
+index 50078453..d5532b9a 100644
 --- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
 +++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin.kt
 @@ -26,19 +26,19 @@ class TelegramBuildAppPlugin : Plugin<Project> {
@@ -26,6 +27,7 @@ diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildAppPlugin
                  )
  
 diff --git a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
+index 9782c531..2b3a609c 100644
 --- a/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
 +++ b/buildSrc/src/main/kotlin/org/telegram/plugin/TelegramBuildPlugin.kt
 @@ -21,7 +21,7 @@ class TelegramBuildPlugin : Plugin<Project> {

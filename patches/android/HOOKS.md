@@ -14,7 +14,7 @@
 Каждый патч в `patches/android/` описан здесь.
 Патч без записи не принимается: см. docs/UPSTREAM.md, раздел 4.
 
-Текущий апстрим: `DrKLO/Telegram` 13.1.1 (7237), `3de37c8cfb039452be7398909461da6288babf15`. Таблица ниже хранит историю хуков, включая первоначальную базу 12.10.1.
+Текущий апстрим: `DrKLO/Telegram` 13.2.2 (7303), `21f7d109da6ab3506c9e9577f98c6a38771ab335`. Таблица ниже хранит историю хуков, включая первоначальную базу 12.10.1.
 
 | Патч | Файл апстрима | Якорь | Назначение | Добавлено / удалено |
 |---|---|---|---|---|
@@ -977,3 +977,438 @@ alpha/scale самого View. Альбомы и активные ItemAnimator �
 по ID, явный сброс переносимых настроек. Новые ключи зарегистрированы в каталоге.
 Методы ботов сериализуются по публичной MTProto-схеме; `check-bot-api.py` проверяет
 порядок полей и варианты ответов, но не заменяет проверку авторизованным ботом.
+
+### 0257 — цвет профиля на всю страницу
+
+`0257-profile-page-color-cards.patch`, `ProfileActivity.java`: после установки фона
+списка, в `updatedPeerColor` и при смене темы вызывается
+`NebulaProfileStyle.page(listView, peerColor, …)`. При включённом стиле профиля цвет
+профиля или коллекционного подарка продолжается ниже шапки на всю страницу, карточки
+секций и кнопки действий становятся полупрозрачными плашками этого цвета, фотобаннер
+перетекает в него же. Без цвета фон остаётся `windowBackgroundGray`. Строка ID
+показывает «ID: 1 694 811 956» и дата-центр («DC: 2, Venus, NLD (Amsterdam)»), по
+значку календаря открывается дата регистрации; настройка `profile_dc` теперь включена
+по умолчанию. `TextDetailCell`, `ProfileHoursCell`, `ProfileLocationCell`: флаг
+`nebulaNoDivider` гасит линию-разделитель на карточках профиля, в остальных списках
+поведение прежнее. `AboutLinkCell`: на такой карточке не рисуются сплошная заливка под «ещё»
+и нижняя тень текста — на полупрозрачном фоне они проступали тёмной полосой.
+Проверка: `check-profile-banner.py` компилирует шапку и кнопки.
+
+поведение прежнее. Проверка: `check-profile-banner.py` компилирует шапку и кнопки.
+
+### Результаты в поле ввода (без нового патча)
+
+Порт «inline results» exteraGram 13.1.1 обходится существующими хуками `0181`
+в `ChatActivityEnterView.java`: `nebulaMathHint.update(charSequence)` в
+`onTextChanged` и `nebulaMathHint.draw(this, canvas)` в `onDraw` поля ввода.
+Номера 0260–0269 зарезервированы за этой работой, но не заняты.
+`NebulaMathHint` при первой отрисовке сам вешает свой `TextWatcher` на то же
+поле: пробел сразу после «=» заменяется серым результатом, Backspace сразу после
+вставки возвращает выражение вместе со спанами. Движок чистый Java:
+`NebulaMath` (скобки, степени, функции, проценты, 5k/2m, hex/bin/oct/dec),
+`NebulaInlineCurrency` (курсы open.er-api.com раз в сутки, без крипты и звёзд),
+`NebulaInlineUnits`, `NebulaInlineTime`. Главный переключатель остаётся
+`inline_math`, новые ключи `inline_*` есть в каталоге. Экран
+`NebulaInlineResultsFragment` открывается из «Чатов» и из поиска (раздел -62).
+Проверка: `check-inline-results.py` исполняет движок и подсказку на реальных примерах.
+
+### 0270 — фильтры медиа в поиске по чату
+
+`0270-chat-search-media-filters.patch`. `MediaDataController.searchMessagesInChat`:
+оба `messages.search` (основной и счётчик объединённого диалога) берут фильтр из
+`NebulaSearchMediaFilters.filter(currentAccount, guid)` вместо
+`TL_inputMessagesFilterEmpty`. `ChatActivity.createSearchContainer` (кроме
+`MODE_SEARCH`) добавляет в `chatInputViewsContainer` ряд чипов «Фото и видео /
+Файлы / Ссылки / Музыка / Голосовые / GIF»; он сам держится над панелью поиска через
+pre-draw и повторяет её видимость и прозрачность. Выбор — один фильтр (схема
+принимает один `MessagesFilter`): `PhotoVideo`, `Document`, `Url`, `Music`,
+`RoundVoice`, `Gif`. Он сочетается с «от пользователя» и с текстом запроса; без
+текста поиск идёт по одному фильтру. Состояние привязано к паре аккаунт + `classGuid`,
+так что поиск в другом чате того же аккаунта его не наследует; `onSearchCollapse`
+сбрасывает его без запроса. Проверка: `check-exera-features.py`.
+
+### 0271 — поиск по картинке во встроенном браузере
+
+`0271-photo-viewer-image-search.patch`, `PhotoViewer.java`: пункт меню
+`gallery_menu_nebula_image_search` (id 270) «Поиск по картинке», виден для фото
+(не видео) с загруженным кадром — проверка в `onShowSubMenu`. Своего поиска по
+картинке до этого не было. `NebulaImageSearch` спрашивает Google Lens или Яндекс
+Картинки, только после выбора пережимает показанный кадр в JPEG ≤1280 px, закрывает
+просмотрщик и загружает: Lens — multipart `encoded_image` на `/v3/upload`, берётся
+`Location` редиректа (только https-хосты google.com); Яндекс — сырой JPEG на
+`images-apphost/image-download`, из JSON берутся `url` и `cbir_id`. Результат
+открывается через `Browser.openInTelegramBrowser`. Это неофициальные эндпоинты; с
+машины разработки их ответ проверить не удалось, поэтому при любом отказе
+открывается страница загрузки самого сервиса. Разбор ответов —
+`NebulaImageSearchLinks`, его проверяет `check-exera-features.py`.
+
+### 0272 — наборы эмодзи из реакций и кнопок
+
+`0272-message-menu-emoji-packs.patch`, `ChatActivity.createMenu`: строка «Сообщение
+содержит эмодзи из N наборов» теперь учитывает и кастомные реакции сообщения, и
+иконки (`KeyboardButtonStyle.icon`) его инлайн- и обычных кнопок —
+`NebulaEmojiPacks.addExtra` после наборов из текста, без дублей. Берутся только уже
+загруженные документы (`AnimatedEmojiDrawable.findDocument`), меню ничего не
+запрашивает. Долгое нажатие на строку — список «Обновить все наборы» и по набору:
+`messages.getStickerSet` с `hash = 0` и `putStickerSet`, итог в булетине.
+
+### «Отправлено с» для голосовых и кружков (без патча)
+
+Полностью в overlay: `NebulaMessageDetails` (Инструменты Nebula → Подробности)
+добавляет поле «Отправлено с» для голосовых и кружков. Платформы в протоколе нет,
+`NebulaSentFromRules` смотрит только атрибуты документа, как их собирают исходники
+на нашем пине: кружок Android — `supports_streaming` и нет имени файла; кружок iOS —
+`FileName "video.mp4"` и нет `supports_streaming`; остальное — «не определить».
+Голосовые Android и iOS одинаковы (`audio/ogg`, waveform, без имени файла), поэтому
+различаем лишь «запись в приложении Telegram» и «нестандартную загрузку» (нет
+waveform, есть имя файла или не ogg — боты, скрипты, сторонние клиенты). Форки
+наследуют отпечаток своего приложения; Desktop и Web не сверялись. Проверка:
+`check-exera-features.py`.
+
+### 0280 — плеер Material 3 Expressive
+
+`0280-expressive-music-player.patch`, `AudioPlayerAlert.java`: в конце конструктора
+`NebulaMusicPlayer.install(this, containerView, optionsButton, repeatButton, account)`
+кладёт поверх листа полноэкранный слой, если включена настройка
+`expressive_player` (`nebula_media_settings`, по умолчанию выключена). Возвращает
+`null`, если настройка выключена, — тогда лист Telegram не меняется. В `onMeasure`
+слой получает тот же отрицательный отступ, что и `blurredView`; в
+`onInterceptTouchEvent` касание по слою не считается касанием вне листа; `dismiss()`
+снимает подписки слоя. Воспроизведение, очередь, меню «Ещё» и порядок треков остаются
+у Telegram: кнопки слоя вызывают `MediaController` и открывают `optionsButton` /
+`repeatButton`. Кнопка «Очередь» показывает исходный лист с плашкой «Плеер» для
+возврата.
+
+Слой: фон-градиент из `Palette` обложки с анимацией 650 мс между треками, обложка во
+всю ширину с углами 28 dp (сжимается на паузе), волновая шкала
+`NebulaWaveSeekBar` (волна только во время игры), кнопка воспроизведения меняет
+форму квадрат ↔ пилюля. Тексты: `NebulaMusicService` → lrclib.net (`/api/get` по
+исполнителю, названию и длительности, затем `/api/search`), синхронный LRC
+разбирает `NebulaLrc`, `NebulaLyricsView` центрирует и подсвечивает текущую строку,
+нажатие на строку перематывает. Обложки: iTunes Search API, совпадение по названию,
+исполнителю и длительности (±10 с), 1200×1200. **Живые обложки Apple Music не
+реализованы:** анимированная обложка доступна только через Apple Music API с
+токеном разработчика, поэтому используется статичная обложка высокого разрешения.
+Оба сетевых запроса — отдельные тумблеры `player_lyrics` и `player_apple_covers`,
+выключены по умолчанию, в настройках указано, куда уходит запрос; ответы и промахи
+(промах — на 3 дня) кэшируются в `cacheDir/nebula_music`.
+Проверка: `check-music-lyrics.py` (LRC, смещения, запросы и ответы lrclib, выбор обложки iTunes).
+
+### 0281 — встроенный просмотр PDF
+
+`0281-pdf-viewer.patch`, `AndroidUtilities.java`: `openDocument`,
+`openForView(MessageObject, …)` и `openForView(File, …)` сначала вызывают
+`NebulaPdfViewer.open(…)`. Он берёт файл, только если включена настройка
+`pdf_viewer` (по умолчанию включена), имя или MIME говорят о PDF и файл начинается с
+`%PDF-`; иначе возвращает `false` и Telegram открывает файл как раньше.
+`NebulaPdfViewerFragment`: `PdfRenderer` на одном фоновом потоке, страницы в
+`RecyclerView` рендерятся лениво в `LruCache` (1/6 памяти), щипок и двойное касание
+масштабируют до 4×, после приближения страницы перерисовываются в двойном разрешении,
+счётчик страниц внизу, в шапке «Поделиться» и «Открыть в другом приложении». Для
+сообщений с `noforwards` эти кнопки скрыты и окно получает `FLAG_SECURE`. Защищённый
+паролем или повреждённый PDF открывается внешним приложением, как раньше.
+
+### Перевод через Google, Microsoft и Яндекс (без патча)
+
+Только overlay: `NebulaWebTranslation` подключён в `NebulaTranslationClient` как ещё три
+движка живого перевода (`live_translation_web`). Google получает каждый стилевой
+отрезок отдельно; Microsoft (`textType=html`) и Яндекс (`format=html`) — одно
+сообщение с отрезками в `<span id="nN">`, которое переводится целиком с контекстом.
+Сущности (жирный, курсив, ссылки, премиум-эмодзи) переносятся через
+`NebulaTranslationFormat`; если сервис переставил или потерял `span`, перевод
+повторяется по отрезкам. Проверка: `check-web-translation.py`.
+
+### 0290–0293 — возможности exteraGram 13.1.1
+
+`0290-menu-drag-select.patch`: `ActionBarPopupWindow` после каждого показа
+(`showAsDropDown` ×2, `showAtLocation`) зовёт `NebulaMenuDrag.shown(this)`;
+`LaunchActivity.dispatchTouchEvent` отдаёт касание `NebulaMenuDrag.intercept`.
+Если меню показано, пока палец на экране (удержание сообщения, `ItemOptions`,
+долгое нажатие на кнопку), сдвиг дальше 10 dp отменяет касание экрана под меню,
+подсвечивает `ActionBarMenuSubItem` под пальцем и нажимает его при отпускании
+обычным `performClick`. Отпускание без сдвига оставляет меню открытым, как раньше.
+`ActionBarMenuItem`: протяжка вниз от кнопки с подменю открывает его для всех
+кнопок, а не только с `showSubmenuByMove`. Настройка `menu_drag_select` (вкл.).
+
+`0291-tab-bar-springs-and-scroll.patch`: `GlassTabView` масштабирует подложку
+выбора и нажатую вкладку пружинами `SpringAnimation` (`NebulaTabSpring`,
+настройка `tab_springs`, вкл.); цвет по-прежнему ведёт аниматор Telegram.
+`DialogsActivity`: прокрутка первой страницы списка идёт в `NebulaTabScroll`,
+а `checkUi_mainTabsVisible` учитывает его. В апстриме 13.1.1 панель при прокрутке
+не прячется вовсе, поэтому скрытие — опция `tabs_hide_on_scroll` (выкл.) с порогом:
+72 dp непрерывно вниз, чтобы спрятать, 32 dp назад или начало списка — чтобы
+показать; смена направления обнуляет путь. Подписи вкладок (`tab_labels`) не тронуты.
+
+`0292-tablet-resizable-panes.patch`: `AndroidUtilities.getTabletLeftFragmentSize`
+передаёт свою ширину в `NebulaTabletPanes.leftWidth`; без сохранённой доли она не
+меняется. Корневая раскладка планшета в `LaunchActivity` перехватывает касание в
+10 dp от границы панелей и тянет её (`NebulaTabletPanes.Divider`), рисуя ручку.
+Хранится доля ширины содержимого (`tablet_left_fraction`), зажатая в 0.22–0.62 и
+так, чтобы левая панель была не уже 280 dp, а правая — 360 dp.
+
+`0293-round-camera2-zoom-slider.patch`: в Telegram 13.1.1 новый движок кружков
+`InstantCameraView2` (`RoundVideoSession`) сделан на Camera2, не на CameraX;
+зависимость CameraX у NebulaGram своя и прежний движок уже ходит через
+`NebulaCameraXSession`. Экспозиция в новом движке уже была; теперь у него и
+`NebulaZoomSlider`: диапазон 1…`getMaximumZoomRatio()`, значение уходит в
+`session.setZoom` долей, щипок Telegram синхронизирует ползунок.
+
+Без патчей, в overlay: кнопки профиля пилюлями Material 3 с тональной заливкой
+(`profile_m3_buttons`, выкл.; поверх тона цвета профиля из `NebulaProfileArt.Actions`)
+и лента выбранных каналов (`NebulaFeed*`): вкладки категорий, порядок
+перетаскиванием, глазок скрытия, выбор каналов; хранится на устройстве.
+Проверка: `check-extera-ui.py`.
+
+### 0258 — панель форматирования по требованию
+
+`0258-formatting-toolbar-on-demand.patch`, `ChatActivityEnterView.java`: рядом с созданием
+`NebulaFormattingToolbar` в `messageEditTextContainer` добавляется кнопка «Aa»;
+`ChatActivityEditTextCaption.onSelectionChanged` сообщает панели о выделении;
+`updateFieldRight` ставит «Aa» сразу за текстом и сужает поле на её ширину, только пока она
+видна. Панель больше не стоит постоянно над открытой клавиатурой: она выезжает, когда
+выделен текст, или по нажатию «Aa». Ручное открытие сбрасывается после отправки и при
+скрытии клавиатуры. Уже применённые к выделению форматы подсвечены.
+
+### 0259 — тон страницы из фотобаннера
+
+`0259-profile-banner-page-tone.patch`, `ProfileActivity.java`, инициализатор шапки
+`NebulaProfileArt.Hero`: шапка передаёт снимок баннера в
+`NebulaProfileStyle.bannerPage`. У профиля без своего цвета, но с фотобаннером, страница,
+карточки и переход баннера берут тон из среднего цвета снимка (ночью затемнённый, днём
+высветленный). Пересчёт идёт только при смене снимка; цвет профиля всегда главнее.
+
+### 0294 — адаптивная шапка везде, разделённое меню, размытые сообщения
+
+`0294-adaptive-header-split-menu-message-blur.patch`:
+
+- `ChatActivity.java`, аватар чата: при адаптивной шапке нажатие на аватар открывает меню
+  чата и в «Избранном». `NebulaChatStyle.header` включает плавающую шапку для «Избранного»
+  (классическая остаётся только без адаптивной шапки). Комментарии, подчаты «Избранного» и
+  отложенные сообщения передают `avatarContainer` в `setChatAvatarContainer` — компактная
+  центрированная капсула названия между отдельными «назад» и меню, как в треде комментариев.
+- `ChannelAdminLogActivity.java`: журнал действий получает ту же капсулу названия.
+- `ChatActivity.java`, нижняя панель канала: центральная кнопка открывает обсуждение, только
+  пока на ней написано «Обсуждение» (`nebulaDiscussionShown`). Раньше данные чата могли
+  прийти между раскладкой и нажатием, и «Выключить звук» уводил в комментарии.
+- `ChatActivity.java`, меню сообщения: `NebulaMessageMenuSplit.row` выносит «Ответить»,
+  «Копировать», «Изменить», «Переслать» и «Копировать ссылку» в строку иконок под списком
+  (минимум две иконки и хотя бы один пункт в списке, иначе меню прежнее). Пропущенные ячейки
+  `scrimPopupWindowItems` теперь допускают `null` при смене темы. `NebulaMenuPop` —
+  появление в стиле Cherrygram: масштаб 0.72→1 с лёгкой пружиной от края, ближайшего к
+  сообщению, и проявление; при нём жидкий морф выключен. Оба переключаются в «Меню сообщения».
+- `MessageDrawable.draw`: при включённых «Размытых сообщениях» заливка пузыря заменяется
+  размытыми обоями (`Theme.getNebulaServiceBitmap()` — та же размытая копия, что у служебных
+  плашек) и полупрозрачным цветом пузыря. Без обоев-картинки/градиента или в Lite-режиме
+  копии нет, и пузыри остаются сплошными. Быстрый путь с кэшированным фоном в этом режиме
+  пропускается.
+
+Без нового патча: `NebulaDeletedArchive.protectedPeer` дочитывает группу/канал из базы, если
+он ещё не загружен в память; раньше удалённые сообщения таких чатов молча не сохранялись.
+`NebulaBadgeSheet` — нижний лист значка вместо диалога; добавлены значки «Донатер»,
+«Спонсор», «Модератор» (`design/badges/roles.json`, Android и iOS генерируются вместе).
+
+## 2026-11-08 — Telegram 13.2.1 (7291)
+
+Пин `vendor/telegram-android` переведён с `3de37c8c` (13.1.1) на `7be672ea` (13.2.1).
+Серия собрана коммитами поверх 13.1.1 и перенесена `git rebase --onto` с трёхсторонним
+слиянием; файлы патчей сгенерированы заново из перебазированных коммитов.
+
+Что изменил апстрим и как это учтено:
+
+- «Стекло» переписано: `blur3/source/*` и `BlurredBackgroundDrawableRenderNode` удалены,
+  источники теперь `org.telegram.utils.glass.source.GlassSource*`, обводку рисует `GlassRim`.
+  Оверлей переведён на `GlassSourceColor` / `GlassSourceRenderNode` (API совпадает).
+  `0080-reuse-blur-effects` и хук силы размытия из `0062`/`0083` перенесены в новый
+  `0295-glass-blur-settings-13-2.patch` (`GlassSourceRenderNode.setBlur`: своя сила, лимит
+  облегчённого стекла, кэш эффекта). Защита от обводки нулевой ширины из `0202` не нужна:
+  `GlassRim.hasStroke` сам пропускает ширину ≤ 0,05.
+- `0138-home-glass-initial-capture` удалён: апстрим перестроил захват главного экрана.
+- `SectionsScrollView` переписан (интервалы, маска углов): в `0013` заново добавлены
+  `setSectionRadius` и `setSectionBackground`; при своей отрисовке секций маска углов не рисуется.
+- `ActionBar.dispatchDraw` получил ветку `centerTitleAndGlass` (простые экраны на стекле);
+  вся наша логика стеклянной капсулы шапки живёт в её `else`.
+- В профиле `nameTextView`/`onlineTextView` больше не массивы; хуки значков, ширины имени
+  и цвета страницы перенесены на одиночные виды, цвета темы — в `themeDelegateThemeColors`.
+- Цвета привязаны через `ThemeBind`: наши цвета применяются поверх.
+- `LiquidGlassEffect` держит пул эффектов по фазе пикселя: при выключенном преломлении
+  обновляются только униформы, эффект публикуется один раз при включении.
+
+`0296-telegram-13-2-adaptations.patch` — правки, которые нельзя было вписать в старые патчи
+без каскада конфликтов: потерянные при слиянии скобки (`ChatActivity`, `ProfileActivity`,
+`PopupSwipeBackLayout`, `BlurredBackgroundDrawable`), блок захвата нижних папок перед
+`setupRenderNodes`, ветка стеклянной капсулы шапки целиком, `nameTextView[...]` → вид.
+Регрессии обновлены под новые сигнатуры (`ChatMessageTransitionParams`, `LiquidGlassEffect.update`,
+ширина статьи с боковым меню `SIDE_MENU_WIDTH + 4`).
+
+
+### 0297 — размытый номер в профиле
+
+`ProfileActivity`: строки «Телефон» (`phoneRow`) и «Номер» (`numberRow`) больше не убираются
+настройкой `hide_profile_phone` («Размывать номера телефонов»): номер стоит на месте и размыт
+(`NebulaPhoneBlur`: `RenderEffect` на Android 12+, `BlurMaskFilter` раньше). Первое нажатие
+показывает номер на 15 секунд, следующее работает как обычно. Перед привязкой любой
+`TextDetailCell` размытие снимается, чтобы переиспользованная ячейка не осталась размытой.
+
+Без патча: кнопка «A» форматирования ставится между текстом и смайликом в поле «как в iOS»
+(`NebulaComposerStyle.prepare` находит её через `registerFormatToggle`);
+раньше она стояла по родному отступу поля и ложилась на смайлик. Ролевые значки нарисованы
+заново в одном стиле (печать с волнистым краем, цвет роли, белый символ), описания значков —
+без точки в конце.
+
+### 0298 — компиляция на 13.2.1
+
+Первая полная сборка 13.2.1 нашла обращения к удалённому API: обновление размытия в
+`ChatActivity` и `DialogsActivity` идёт через `GlassEngine.invalidate()` (вместо
+`invalidateMergedVisibleBlurredPositionsAndSources` и `blur3_InvalidateBlur`), стеклянные кнопки
+профиля берут `scrimBlur3Factory` (фабрики `iBlur3FactoryLiquidGlass` в профиле больше нет),
+`MediaActivity` — полное имя `Canvas`, в `RecyclerListView` возвращён открытый `setSections`
+с собственной отрисовкой секций для карточек профиля. Оверлей: движок кружков читает
+`InstantCameraViewBase.isCamera2Enabled`, флага `roundVideoRecorder2Allowed` больше нет.
+`buildSrc/settings.gradle.kts` (оверлей) берёт инструменты Kotlin из Maven Central.
+
+### 0299 — свои углы у карточек профиля
+
+В 13.2.1 профиль переведён на `BitmapSectionsItemDecoration`: она закрашивает углы секций
+цветом фона темы, а под окрашенной страницей NebulaGram это давало чёрные квадраты за
+скруглением карточки. При включённом стиле профиля список остаётся на прежней отрисовке
+секций (`setLegacySections(true)`), где скругление рисует сама карточка `NebulaProfileArt.Surface`.
+
+Без патча: значок у имени в профиле стал крупнее (20 dp) и получил фон, как в exteraGram, —
+мягкое «дышащее» свечение цвета значка и три искорки на медленной орбите; при выключенных
+системных анимациях рисуется неподвижно.
+
+Без патча (8 ноября, позже): «A» больше не стоит в поле ввода. Это круглая плавающая
+кнопка над правым краем поля (`NebulaFormattingToolbar.FloatingOpener`, живёт в
+`SizeNotifierFrameLayout` экрана чата и на каждом кадре встаёт над полем ввода). По нажатию
+панель форматирования раскрывается из-под кнопки влево с лёгкой пружиной (скруглённая
+маска растёт от правого края), кнопка становится «✕»; повторное нажатие сворачивает панель
+обратно. Полю ввода больше не нужно уступать место кнопке.
+
+### 0300 — заголовок профиля в границах экрана
+
+`0300-profile-title-bounds.patch`, `ProfileActivity.java`: центрирование названия и подписи в
+`needLayout` и в расчёте после анимации открытия не даёт им уйти левее 16 dp от края экрана;
+во втором расчёте ширина текста ограничена экраном так же, как в первом. Раньше заголовок
+группы с длинной подписью мог съехать влево и обрезаться.
+
+### 0301 — «A» над кнопкой голосового
+
+`0301-formatting-opener-anchor.patch`, `ChatActivityEnterView.java`: рядом с созданием панели
+форматирования передаёт ей `sendButtonContainer` как опору. Плавающая «A» встаёт ровно по
+центру над кнопкой отправки/голосового, а не со сдвигом от края поля.
+
+### 0302 — медиа на цвете страницы профиля
+
+`0302-profile-media-on-page-colour.patch`, `SharedMediaLayout.java`, `MediaPage.drawPageBackground`:
+сплошная заливка `windowBackgroundGray` пропускается, когда страница профиля окрашена
+(`NebulaProfileStyle.pageColor` не ноль). Цвет профиля идёт под вкладками и сеткой медиа без
+перехода в чёрный; на обычном профиле заливка прежняя.
+
+### 0303 — стекло профиля видит цвет страницы
+
+`0303-profile-glass-sees-page-colour.patch`, `ProfileActivity.java`: в снимок для стекла шапки
+сначала рисуется цветной фон страницы (`NebulaProfileStyle.PageBackground`), а заливки перехода
+к медиа (`gapPaint`, `captureFillPaint`) берут цвет страницы вместо `windowBackgroundGray`. Раньше
+стекло над цветной страницей размывало пустоту и резко темнело при прокрутке.
+
+### 0304 — общая подложка кнопок выбора
+
+`0304-selection-actions-solid.patch`, `ActionBar.java`, после `nebulaSelectionGlass.drawActions`:
+поверх стекла кнопок действий рисуется плотная подложка цвета меню (`NebulaMenuPalette.surface`,
+86 %). Кнопки «изменить / скопировать / удалить» больше не перекрашиваются в цвет того, что под
+ними, и не чернеют над тёмными обоями.
+
+### 0305 — ряд плавающей «A»
+
+`0305-formatting-opener-row.patch`, `ChatActivityEnterView.java`: `calculateIslandTotalHeight` и
+`getNebulaFormattingHeight` добавляют `NebulaFormattingToolbar.openerRow()` — ряд «A» над полем,
+ещё не занятый самой панелью. Список сообщений поднимается на эту высоту, и кнопка не ложится
+поверх последнего сообщения. Отступ поля (`nebulaFormattingHeight`) и проверка анимации вылета
+текста от ряда не зависят.
+
+## 2026-11-12 — Telegram 13.2.2 (7303)
+
+Пин `vendor/telegram-android` переведён с `7be672ea` (13.2.1) на `21f7d109` (13.2.2).
+Серия из 273 патчей собрана коммитами на 13.2.1 и перенесена ребейзом; все файлы
+патчей перегенерированы из этой истории. Апстрим вынес исходники `twidget` и
+`widget-sandbox` в подмодули, добавил отдельный процесс движка виджетов и анимацию
+заголовка профиля из шапки чата. Конфликты:
+
+- 0002 — `NebulaLink.init` стоит после нового раннего выхода для процесса
+  `WidgetEngineService`: ядро не запускается в изолированном процессе.
+- 0013 — масштаб имени при открытии профиля идёт от размера заголовка чата
+  (`getPreviousHeaderTextScale`) к `NebulaProfileStyle.titleScale(1f, …)`,
+  в остальное время — `titleScale(diff, …)`.
+- 0062, 0176, 0294 — после `showAtLocation` меню сообщения сохраняется новый
+  `keepScrimPopupAboveKeyboard`, наши анимации появления остаются следом.
+- 0186 — в `RoundVideoCameraController` апстрим убрал `previewSize`; поле и
+  присваивание выпали, `nebulaOptions` остался.
+- 0239 — анимация входящего заголовка берёт новую `titleAlpha` апстрима.
+
+### 0310 — акцент из аватарки или обоев
+
+`0310-picture-accent-watch.patch`, `LaunchActivity.java`, `onCreate`, сразу после
+`NebulaTheme.applyMaterialYou(this)`: вызов `NebulaPictureTheme.start()`. Он подписывается на
+`didSetNewWallpapper`, `activeAccountChanged` и на `updateInterfaces` / `mainUserInfoChanged` /
+`fileLoaded` аккаунтов, чтобы при смене аватарки или обоев заново прогнать androidx Palette и
+обновить акцент. Сам акцент передаётся Telegram прежним путём Material You
+(`NebulaTheme.applyMaterialYou` → `ThemeAccent.accentColor`), только источником выступает
+картинка; выбор цвета — `NebulaPictureAccent`, проверка — `scripts/check-picture-accent.py`.
+
+### 0320 — повтор отложенного сообщения не теряется
+
+`0320-schedule-repeat-survives-callers.patch`. В 13.2.1 окно даты (`AlertsCreator.createScheduleDatePickerDialog`)
+уже предлагает повтор, и сервер принимает его в `schedule_repeat_period` (только Premium — замок в окне
+остаётся штатным). Но стикеры, геопозиция, опросы, контакты, фото из пикера, голосовые и ответы инлайн-ботов
+передают дальше только дату. `AlertsCreator.java`, перед `didSelectDate`: выбор запоминается в
+`NebulaScheduleRepeat.remember` (0, если чип повтора не показан). `SendMessagesHelper.sendMessage(SendMessageParams)`:
+`scheduleRepeatPeriod` берётся из `NebulaScheduleRepeatNotice.forSend` — запомненный выбор, если вызывающий передал 0,
+а сообщение идёт в тот же диалог на ту же секунду в течение 10 минут после выбора. У `messages.sendMultiMedia` поля
+повтора в схеме нет: для элементов альбома (`params.groupId`) повтор обнуляется, чтобы на них не рисовался значок
+повтора, и всплывает сообщение, что альбом уйдёт один раз. Проверка: `check-schedule-repeat.py`.
+
+### 0321 — кнопка «Запланировать публикацию»
+
+`0321-story-schedule-sheet.patch`, `StoryPrivacyBottomSheet.java`: в `Page` под кнопками добавлена
+`nebulaScheduleButton`; она видна на странице `PAGE_TYPE_SHARE`, если `nebulaAllowSchedule(true)`, и не в правке
+и не в эфире. Нажатие открывает окно даты (`NebulaStorySchedule.pick`) и затем вызывает тот же `onButton1Click`,
+что и «Опубликовать». Обычная кнопка сначала вызывает `NebulaStorySchedulePlan.disarm()`.
+
+### 0322 — StoryRecorder откладывает вместо отправки
+
+`0322-story-schedule-recorder.patch`, `StoryRecorder.java`: в цепочке окна публикации
+`.nebulaAllowSchedule(NebulaStorySchedule.schedulable(outputEntry))`; в `uploadInternal` выбранное время
+(`NebulaStorySchedulePlan.take`) отдаёт каждую историю в `NebulaStorySchedule.schedule` вместо `uploadStory`.
+У `stories.sendStory` в схеме нет `schedule_date`, поэтому история хранится черновиком Telegram и публикуется телефоном.
+
+### 0323 — черновики отложенных историй отдельно
+
+`0323-story-schedule-drafts.patch`, `DraftsController.load`: черновик, записанный в очередь, забирает
+`NebulaStorySchedule.adopt` и не показывает в общем списке; после чтения базы — `NebulaStorySchedule.draftsLoaded`.
+
+### 0324 — будильник публикации
+
+`0324-story-schedule-wake.patch`: `AndroidManifest.xml` — `SCHEDULE_EXACT_ALARM` и приёмник
+`NebulaStoryScheduleReceiver` (свой будильник, `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`);
+`LaunchActivity.onResume` — `NebulaStorySchedule.onWake()` переставляет будильник и публикует пропущенное.
+Проверка: `check-story-schedule.py`.
+
+### 0330 — локальные заметки в профиле
+
+`0330-profile-local-notes.patch`, `ProfileActivity.java`: строка `nebulaNoteRow` после родной
+`noteRow` у пользователей и после `nebulaIdRow` у групп и каналов (`NebulaNotes.row`). Заметка
+хранится на устройстве для каждого аккаунта отдельно и по желанию синхронизируется страницами
+`#NebulaGramNotesV1` в «Избранном» (`NebulaNoteDocument`, своя метка, не пересекается с
+`#NebulaGramSettingsV1`). Контакты используют родную заметку Telegram: пустая строка открывает
+`ContactAddActivity` с `focus_notes`, а при уже заданной родной заметке своя строка не показывается.
+Тип ячейки, привязка, клик, долгое нажатие и `fillPositions` повторяют родную `noteRow`.
+
+### 0331 — «Кратко о пропущенном»
+
+`0331-chat-missed-summary.patch`, `ChatActivity.java`: после `floatingDateView` создаётся
+`NebulaMissed.attach` — плашка над сообщениями при 30+ непрочитанных (состояние диалога
+снимается при открытии). `updateChatListViewTopPadding` ставит её на высоту плавающей даты и
+прячет, пока дата видна; `onFragmentDestroy` отменяет запросы. Функция выключена по умолчанию
+(`missed_summary` в настройках ИИ), отправляет только текст и подписи — не медиа — не больше
+200 сообщений и 12 000 символов (`NebulaMissedPrompt`) через `NebulaAiReplacements.request`, а без
+настроенного сервиса открывает настройки ИИ.

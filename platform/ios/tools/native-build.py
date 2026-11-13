@@ -171,7 +171,10 @@ def build(tree, jobs):
     # --keep_going: одна неудача — один отчёт обо всех сломанных целях.
     # Иначе каждая следующая ошибка компиляции стоит отдельного часового прогона.
     command.common_build_args += ['--jobs=' + str(jobs), '--local_resources=memory=HOST_RAM*0.65',
-                                  '--color=no', '--keep_going']
+                                  '--color=no', '--keep_going',
+                                  # Предупреждения TelegramCore занимают больше мегабайта, и Bazel
+                                  # выбрасывал вывод целиком — вместе с самой ошибкой компиляции.
+                                  '--experimental_ui_max_stdouterr_bytes=-1']
     command.set_configuration('debug_sim_arm64')
     command.set_disable_provisioning_profiles()
     command.set_build_number('1')

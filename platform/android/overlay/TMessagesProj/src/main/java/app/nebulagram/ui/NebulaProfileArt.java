@@ -38,6 +38,10 @@ public final class NebulaProfileArt {
     private static int surface(Theme.ResourcesProvider provider) {
         return Theme.getColor(Theme.key_windowBackgroundWhite);
     }
+    /** Ночная тема — по светлоте фона карточек, без обращения к глобальной теме. */
+    private static boolean dark(Theme.ResourcesProvider provider) {
+        return ColorUtils.calculateLuminance(surface(provider) | 0xff000000) < .5;
+    }
     private static int ink(Theme.ResourcesProvider provider) {
         return Theme.getColor(Theme.key_windowBackgroundWhiteBlackText, provider);
     }
@@ -54,8 +58,14 @@ public final class NebulaProfileArt {
         private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Path path = new Path();
         private final float[] radii = new float[8];
+        private final java.util.function.IntSupplier page;
         public Surface(Context context, Theme.ResourcesProvider provider) {
+            this(context, provider, null);
+        }
+        /** page — цвет страницы профиля под карточкой; 0 — обычный фон. */
+        public Surface(Context context, Theme.ResourcesProvider provider, java.util.function.IntSupplier page) {
             this.provider = provider;
+            this.page = page;
             material = NebulaTheme.of(context);
         }
 
@@ -68,6 +78,13 @@ public final class NebulaProfileArt {
             path.rewind();
             path.addRoundRect(rect, radii, Path.Direction.CW);
             paint.setStyle(Paint.Style.FILL);
+            if (page != null && page.getAsInt() != 0) {
+                // На цветной странице карточка — затемнённый тон того же цвета
+                // ночью и почти белая плашка днём; текст темы читается на обеих.
+                paint.setColor(Theme.multAlpha(dark(provider) ? 0x42000000 : 0xebffffff, alpha));
+                canvas.drawPath(path, paint);
+                return;
+            }
             paint.setColor(Theme.multAlpha(ColorUtils.blendARGB(surfaceColor(), accentColor(), .065f), alpha));
             canvas.drawPath(path, paint);
             paint.setStyle(Paint.Style.STROKE);
@@ -92,6 +109,14 @@ public final class NebulaProfileArt {
         private final int[] savedRadii = new int[4];
         private final int[] squareRadii = new int[4];
         private float foregroundAlpha;
+        private java.util.function.IntSupplier page;
+
+        /** Цвет страницы профиля: баннер перетекает в него, а не в серый фон. */
+        public void page(java.util.function.IntSupplier value) { page = value; }
+
+        private java.util.function.Consumer<ImageReceiver> bannerPhoto;
+        /** Фото баннера: из него берётся цвет страницы, если у профиля нет своего. */
+        public void bannerPhoto(java.util.function.Consumer<ImageReceiver> value) { bannerPhoto = value; }
 
         public void draw(Canvas canvas, int width, View avatar, SimpleTextView title,
                          View subtitle, View actions, BackupImageView galleryPhoto, float headerBottom,
@@ -121,6 +146,7 @@ public final class NebulaProfileArt {
             if (!banner) return;
             final ImageReceiver collapsedReceiver = (collapsedPhoto != null ? collapsedPhoto : galleryPhoto).getImageReceiver();
             final ImageReceiver galleryReceiver = galleryPhoto != null ? galleryPhoto.getImageReceiver() : collapsedReceiver;
+            if (bannerPhoto != null) bannerPhoto.accept(collapsedReceiver);
             final float expansion = clamp(expanded);
             final NebulaTheme material = NebulaTheme.of(avatar.getContext());
             final int accent = accent(provider);
@@ -137,7 +163,8 @@ public final class NebulaProfileArt {
                 previousStart = start; previousEnd = base; previousWidth = width;
                 previousTop = top; previousBottom = bottom;
             }
-            final int page = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+            final int pageColor = page != null ? page.getAsInt() : 0;
+            final int page = pageColor != 0 ? pageColor : Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
             final float fadeTop = Math.max(0, bottom - dp(148));
             if (bottomFade == null || previousFadeColor != page || previousFadeTop != fadeTop
                     || previousFadeBottom != bottom) {
@@ -261,6 +288,25 @@ public final class NebulaProfileArt {
         }
     }
 
+    /** Кнопки действий профиля пилюлями Material 3 с тональной заливкой. */
+    public static boolean materialButtons() {
+        try {
+            return NebulaMessagePreferences.enabled("profile_m3_buttons", false);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    /** secondaryContainer: акцент, растворённый в фоне страницы. */
+    static int materialTonal(Theme.ResourcesProvider provider) {
+        return ColorUtils.blendARGB(surface(provider), accent(provider), dark(provider) ? .30f : .20f);
+    }
+
+    /** onSecondaryContainer: тот же акцент, сдвинутый к контрасту с заливкой. */
+    static int materialOnTonal(Theme.ResourcesProvider provider) {
+        return ColorUtils.blendARGB(accent(provider), dark(provider) ? Color.WHITE : Color.BLACK, dark(provider) ? .62f : .55f);
+    }
+
     /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
         private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -283,11 +329,12 @@ public final class NebulaProfileArt {
                     !active && nativeHasColorById);
         }
         @Override protected boolean hasCustomActionSurface(Canvas canvas) {
-            return NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
+            return materialButtons() || NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
         }
-        @Override public float getRoundRadius() { return dp(18); }
+        @Override public float getRoundRadius() { return materialButtons() ? dp(28) : dp(18); }
         @Override protected int actionTextColor(int color) {
-            return bannerActive?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
+            if (materialButtons() && !bannerActive && !nativeHasColorById) return materialOnTonal(provider);
+            return bannerActive||nativeHasColorById?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
         }
 
         private void captureBanner(Hero hero, ImageReceiver collapsed, ImageReceiver gallery, RectF bounds, float expansion) {
@@ -300,11 +347,24 @@ public final class NebulaProfileArt {
         }
 
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
+            if (materialButtons()) {
+                // Material 3: заполненная тональная пилюля. Цвет профиля сохраняется —
+                // на нём пилюля становится светлым тоном того же цвета.
+                actionFill.setColor(bannerActive ? 0x882b3337 : nativeHasColorById
+                        ? (dark(provider) ? 0x38ffffff : 0x40ffffff) : materialTonal(provider));
+                actionFill.setAlpha(Math.round(android.graphics.Color.alpha(actionFill.getColor()) * alpha));
+                float pill = rect.height() / 2f;
+                canvas.drawRoundRect(rect, pill, pill, actionFill);
+                return;
+            }
             if (!NebulaMenuStyle.enabled()) return;
             if (bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported()) {
                 glass.draw(canvas, rect, key, radius, alpha, getX(), getY());
             } else {
-                actionFill.setColor(bannerActive?0x882b3337:Theme.getColor(Theme.key_windowBackgroundGray,provider));
+                // На цветном профиле кнопки — полупрозрачный тон цвета, а не
+                // чёрные плашки поверх него.
+                actionFill.setColor(bannerActive?0x882b3337:nativeHasColorById?(dark(provider)?0x42000000:0x2e000000)
+                        :Theme.getColor(Theme.key_windowBackgroundGray,provider));
                 actionFill.setAlpha(Math.round(android.graphics.Color.alpha(actionFill.getColor())*alpha));
                 canvas.drawRoundRect(rect,radius,radius,actionFill);
             }

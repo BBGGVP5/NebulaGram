@@ -1,0 +1,15 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 87735b71..56f5e723 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -4225,7 +4225,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 updateBottomButtonY();
+             }
+         };
+-        listView.setLegacySections(false);
++        // NebulaGram: the styled profile paints its own rounded cards; the bitmap
++        // decoration would mask their corners with the theme background (black here).
++        listView.setLegacySections(app.nebulagram.ui.NebulaAppearance.profileStyle());
+         app.nebulagram.ui.NebulaProfileStyle.sections(listView, resourcesProvider); // NebulaGram
+         listView.applyPaddingToSections = false;
+         // the rows above the list's top go under the header's blur, with their cards

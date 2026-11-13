@@ -62,6 +62,6 @@ assert constructor < emoji.index('this.shouldDrawBackground = shouldDrawBackgrou
 assert 'final boolean shouldDrawBackground = drawBackground && !nebulaGlassPanel;' in emoji
 assert 'glassDesign = glassDesign || nebulaGlassPanel;' in emoji
 assert 'nebulaPanelClip.addRoundRect(0, 0, getWidth(), getHeight(), dp(22), dp(22), Path.Direction.CW);' in panel_draw
-assert 'contentView::drawList' in chat, 'Chat glass must not capture the emoji panel recursively'
+assert 'contentView::drawList' in chat or 'contentView.mDrawList' in chat, 'Chat glass must not capture the emoji panel recursively'
 assert 'updateColors();' in method(emoji[emoji.index('setBlurredBackgroundDrawableFactory(blurredBackgroundDrawableFactory);'):], 'if (nebulaGlassPanel)')
 print('Early transparent child construction and separate chat capture are wired')

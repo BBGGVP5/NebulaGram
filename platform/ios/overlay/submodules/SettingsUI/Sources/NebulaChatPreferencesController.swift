@@ -10,7 +10,8 @@ final class NebulaChatPreferencesController: UITableViewController {
     private let theme: PresentationTheme
     private let ru: Bool
     private var order: [NebulaSwipeAction] { store.swipeActions }
-    private let keys = ["inline_math", "channel_forward_count", "folder_unmuted_only", "sticker_time_style"]
+    private let keys = ["inline_math", "inline_units", "inline_currency", "inline_timezones", "inline_default_currency", "channel_forward_count", "folder_unmuted_only", "sticker_time_style"]
+    private static let currencies = ["USD", "EUR", "RUB", "UAH", "BYN", "KZT", "UZS", "GBP", "TRY", "CNY", "JPY", "INR", "GEL", "AMD", "AZN", "KGS", "PLN", "CHF", "AED", "ILS"]
     private lazy var hero = NebulaSettingsHero(symbol: "💬", title: title ?? "", summary: t("Детали сообщений и действия жестов", "Message details and gesture actions"), context: context, theme: theme)
     init(context: AccountContext) {
         self.context = context
@@ -33,17 +34,19 @@ final class NebulaChatPreferencesController: UITableViewController {
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? { [t("Отображение", "Presentation"), t("Порядок действий свайпа", "Swipe action order"), t("Добавить действие", "Add action")][section] }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
         if section == 1 { return t("Потяните сообщение влево, затем ведите палец вниз для выбора действия. Отпустите для выполнения. Порядок меняется кнопкой «Править». Доступность зависит от сообщения и прав в чате.", "Swipe a message left, then move down to choose an action. Release to perform it. Use Edit to reorder. Availability depends on the message and chat permissions.") }
-        return section == 0 ? t("Вычисления не меняют текст. Фильтр счётчиков не меняет состав папок. Оформление сообщений обновится при открытии чата.", "Arithmetic keeps your draft unchanged. Badge filtering keeps folder membership unchanged. Message appearance updates when opening a chat.") : nil
+        return section == 0 ? t("Вычисления и пересчёт не меняют текст; курсы валют загружаются с open.er-api.com раз в день. Фильтр счётчиков не меняет состав папок. Оформление сообщений обновится при открытии чата.", "Arithmetic and conversions keep your draft unchanged; currency rates come from open.er-api.com once a day. Badge filtering keeps folder membership unchanged. Message appearance updates when opening a chat.") : nil
     }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         if indexPath.section == 0 {
             let key = keys[indexPath.row]
-            cell.textLabel?.text = (ru ? ["Вычисления при наборе", "Количество пересылок", "Счётчики только со звуком", "Время у стикеров"] : ["Inline arithmetic", "Forward count", "Unmuted folder counters", "Sticker time"])[indexPath.row]
+            cell.textLabel?.text = (ru ? ["Вычисления при наборе", "Единицы измерения при наборе", "Валюты при наборе", "Часовые пояса при наборе", "Валюта по умолчанию", "Количество пересылок", "Счётчики только со звуком", "Время у стикеров"] : ["Inline arithmetic", "Unit conversion while typing", "Currency conversion while typing", "Time zones while typing", "Default currency", "Forward count", "Unmuted folder counters", "Sticker time"])[indexPath.row]
             if key == "sticker_time_style" {
                 cell.detailTextLabel?.text = timeNames[store.stickerTimeStyle]; cell.accessoryType = .disclosureIndicator
+            } else if key == "inline_default_currency" {
+                cell.detailTextLabel?.text = store.inlineDefaultCurrency.isEmpty ? t("Авто", "Auto") : store.inlineDefaultCurrency; cell.accessoryType = .disclosureIndicator
             } else {
-                let toggle = NebulaSwitchControl(); toggle.isOn = [store.inlineArithmetic, store.channelForwardCount, store.folderUnmutedOnly][indexPath.row]
+                let toggle = NebulaSwitchControl(); toggle.isOn = ["inline_math": store.inlineArithmetic, "inline_units": store.inlineUnits, "inline_currency": store.inlineCurrency, "inline_timezones": store.inlineTimezones, "channel_forward_count": store.channelForwardCount, "folder_unmuted_only": store.folderUnmutedOnly][key] ?? false
                 toggle.accessibilityIdentifier = key; toggle.accessibilityLabel = cell.textLabel?.text; toggle.isEnabled = !store.hasLoadError
                 toggle.addTarget(self, action: #selector(change(_:)), for: .valueChanged); cell.accessoryView = toggle; cell.selectionStyle = .none
             }
@@ -59,7 +62,10 @@ final class NebulaChatPreferencesController: UITableViewController {
     private var timeNames: [String] { ru ? ["Обычно", "Сбоку", "Без времени"] : ["Default", "Beside sticker", "Hide time"] }
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
-        if indexPath.section == 0 && indexPath.row == 3 {
+        if indexPath.section == 0 && keys[indexPath.row] == "inline_default_currency" {
+            let codes = [""] + Self.currencies
+            NebulaChoiceController.show(from: self, title: t("Валюта по умолчанию", "Default currency"), choices: [t("Авто", "Auto")] + Self.currencies, selected: codes.firstIndex(of: store.inlineDefaultCurrency) ?? 0, russian: ru, theme: theme) { [weak self] value in self?.save(.string(codes[max(0, min(codes.count - 1, value))]), key: "inline_default_currency") }
+        } else if indexPath.section == 0 && keys[indexPath.row] == "sticker_time_style" {
             NebulaChoiceController.show(from: self, title: t("Время у стикеров", "Sticker time"), choices: timeNames, selected: store.stickerTimeStyle, russian: ru, theme: theme) { [weak self] value in self?.save(.integer(value), key: "sticker_time_style") }
         } else if indexPath.section == 2 {
             let action = NebulaSwipeAction.allCases.filter { !order.contains($0) }[indexPath.row]; saveOrder(order + [action])

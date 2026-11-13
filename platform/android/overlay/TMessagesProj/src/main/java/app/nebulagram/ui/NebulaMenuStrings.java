@@ -64,6 +64,9 @@ public final class NebulaMenuStrings {
         TEXTS.put("nl_reset", new String[]{"Сбросить настройки NebulaLink", "Reset NebulaLink settings"});
         TEXTS.put("nl_route_calls", new String[]{"Звонки через NebulaLink", "Calls through NebulaLink"});
         TEXTS.put("nl_route_calls_sub", new String[]{"Медиа звонка идёт через ваш сервер, без сторонних релеев", "Call media goes through your server, with no third-party relays"});
+        TEXTS.put("nl_routing", new String[]{"Маршрутизация", "Routing"});
+        TEXTS.put("nl_routing_info", new String[]{"Правила настраиваются на отдельном экране", "Rules are edited on their own screen"});
+        TEXTS.put("nl_routing_sub", new String[]{"Что идёт напрямую, что через прокси, что блокируется", "What goes direct, through the proxy or nowhere"});
         TEXTS.put("nl_search", new String[]{"Поиск", "Search"});
         TEXTS.put("nl_search_sub", new String[]{"По имени сервера или источника", "By server or source name"});
         TEXTS.put("nl_sec_actions", new String[]{"ДЕЙСТВИЯ", "ACTIONS"});

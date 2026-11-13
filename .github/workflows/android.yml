@@ -175,6 +175,7 @@ jobs:
           python3 scripts/check-tab-release.py vendor/telegram-android
           python3 scripts/check-menu-colors.py vendor/telegram-android
           python3 scripts/check-menu-drag.py vendor/telegram-android
+          python3 scripts/check-extera-ui.py vendor/telegram-android
           python3 scripts/check-menu-preview.py
           python3 scripts/check-menu-state.py vendor/telegram-android
           python3 scripts/check-message-preview.py vendor/telegram-android
@@ -228,6 +229,7 @@ jobs:
           python3 scripts/check-icon-packs.py
           python3 scripts/check-browser-adblock.py
           python3 scripts/check-extera-preferences.py vendor/telegram-android
+          python3 scripts/check-inline-results.py vendor/telegram-android
           python3 scripts/check-ai-protocol.py
           python3 scripts/check-audio-protocol.py
           python3 scripts/check-draft-voice.py
@@ -236,6 +238,8 @@ jobs:
           python3 scripts/check-audio-setup.py vendor/telegram-android
           python3 scripts/check-local-audio.py
           python3 scripts/check-ai-availability.py
+          python3 scripts/check-missed-summary.py vendor/telegram-android
+          python3 scripts/check-local-notes.py vendor/telegram-android
           python3 scripts/check-private-features.py
           python3 scripts/check-settings-design.py
           python3 scripts/check-nano-state.py
@@ -246,6 +250,8 @@ jobs:
           python3 scripts/check-auto-translation.py
           python3 scripts/check-translation-text.py
           python3 scripts/check-translation-format.py
+          python3 scripts/check-web-translation.py
+          python3 scripts/check-music-lyrics.py
           python3 scripts/check-draft-original.py
           python3 scripts/check-translation-api.py
           python3 scripts/check-local-translation-lifecycle.py
@@ -271,6 +277,8 @@ jobs:
           python3 scripts/check-forward-editing.py
           python3 scripts/check-protected-copies.py
           python3 scripts/check-theme-toggle.py
+          python3 scripts/check-picture-accent.py vendor/telegram-android
+          python3 scripts/check-settings-backup.py
           python3 scripts/check-selection-capsule.py vendor/telegram-android
           python3 scripts/check-selection-actions.py vendor/telegram-android
           python3 scripts/check-saved-header-material.py vendor/telegram-android
@@ -299,6 +307,9 @@ jobs:
           python3 scripts/check-home-button-contours.py vendor/telegram-android
           python3 scripts/check-telegram-updates.py
           python3 scripts/check-update-sheet.py
+          python3 scripts/check-exera-features.py vendor/telegram-android
+          python3 scripts/check-schedule-repeat.py vendor/telegram-android
+          python3 scripts/check-story-schedule.py vendor/telegram-android
 
       - name: Настройка доступа к Telegram API
         env:

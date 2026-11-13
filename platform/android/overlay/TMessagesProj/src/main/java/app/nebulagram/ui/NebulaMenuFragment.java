@@ -269,7 +269,9 @@ public class NebulaMenuFragment extends BaseFragment {
             case "nav":
                 view.subtitle(hint, false).trailing(NebulaRow.TRAIL_CHEVRON);
                 String target = row.optString("screen");
-                view.setOnClickListener(v -> presentFragment(new NebulaMenuFragment(target)));
+                // Список правил не ложится в схему строк — у маршрутизации свой экран.
+                view.setOnClickListener(v -> presentFragment("nebulalink.routing".equals(target)
+                        ? new NebulaRoutingFragment() : new NebulaMenuFragment(target)));
                 break;
 
             case "switch":

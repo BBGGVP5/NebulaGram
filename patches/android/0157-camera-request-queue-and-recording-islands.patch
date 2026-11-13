@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-index cedaa76d..73d3bc25 100644
+index eac52ba5..26bf509d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -20,6 +20,7 @@ import android.media.ImageReader;
@@ -28,7 +28,7 @@ index cedaa76d..73d3bc25 100644
  
      private final Size previewSize;
  
-@@ -358,18 +359,46 @@ public class Camera2Session {
+@@ -387,18 +388,46 @@ public class Camera2Session {
      }
  
      private final Rect cropRegion = new Rect();
@@ -82,7 +82,7 @@ index cedaa76d..73d3bc25 100644
      }
  
      private boolean flashing;
-@@ -409,6 +438,7 @@ public class Camera2Session {
+@@ -438,6 +467,7 @@ public class Camera2Session {
  
      public void destroy(boolean async, Runnable afterCallback) {
          isClosed = true;
@@ -90,7 +90,7 @@ index cedaa76d..73d3bc25 100644
          if (async) {
              handler.post(() -> {
                  if (captureSession != null) {
-@@ -486,6 +516,11 @@ public class Camera2Session {
+@@ -515,6 +545,11 @@ public class Camera2Session {
      }
  
      private void updateCaptureRequest() {
@@ -102,7 +102,7 @@ index cedaa76d..73d3bc25 100644
          if (cameraDevice == null || surface == null || captureSession == null) return;
          try {
              int template;
-@@ -511,21 +546,7 @@ public class Camera2Session {
+@@ -540,21 +575,7 @@ public class Camera2Session {
                  captureRequestBuilder.set(CaptureRequest.CONTROL_CAPTURE_INTENT, CaptureRequest.CONTROL_CAPTURE_INTENT_VIDEO_RECORD);
              }
  
@@ -161,10 +161,10 @@ index 59a3727e..61a4dedb 100644
          setZoom(Math.min(1f, (best + .001f) / (ratios.size() - 1)));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 92d88e01..f88d5645 100644
+index 27f78313..a590efc1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14588,6 +14588,27 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14809,6 +14809,27 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          nebulaComposerStyle.restoreInsets();
@@ -193,7 +193,7 @@ index 92d88e01..f88d5645 100644
                  && !isRecordingAudioVideo()
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
-index 6f0205c1..72ec2715 100644
+index fb2ad0e9..3e112056 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -340,7 +340,7 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

@@ -1,27 +1,21 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+index 1be3cebc..00da7de4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
-@@ -304,6 +304,10 @@ public class ProfileActionsView extends View {
-                         action.rect.width() / 2.0f * (1.0f - action.getScale()),
-                         action.rect.height() / 2.0f * (1.0f - action.getScale())
-                     );
-+                    if (hasCustomActionSurface(canvas)) {
-+                        drawActionSurface(canvas, AndroidUtilities.rectTmp, action.key, r, action.getAlpha() * alphaFraction1);
-+                        continue;
-+                    }
-                     int wasAlpha = paint.getAlpha();
-                     int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha);
-                     paint.setAlpha((int) (newAlpha * (radialGradient != null ? 0.1f : 1f)));
-@@ -329,7 +333,7 @@ public class ProfileActionsView extends View {
+@@ -303,7 +303,11 @@ public class ProfileActionsView extends View {
+                 action.rect.width() / 2.0f * (1.0f - action.getScale()),
+                 action.rect.height() / 2.0f * (1.0f - action.getScale())
+             );
+-            if (glassFactory != null) {
++            if (hasCustomActionSurface(canvas)) {
++                drawActionSurface(canvas, AndroidUtilities.rectTmp, action.key, r, action.getAlpha() * alphaFraction1);
++                continue;
++            }
++            if (glassFactory != null && !hasCustomActionSurface(canvas)) { // NebulaGram: a banner surface replaces the glass
+                 drawGlass(canvas, AndroidUtilities.rectTmp, r, action.getAlpha() * alphaFraction1);
+                 continue;
              }
-         }
- 
--        drawRenderNode(canvas);
-+        if (!hasCustomActionSurface(canvas)) drawRenderNode(canvas);
- 
-         float alphaFraction2 = Utilities.clamp01((fraction - 0.4f) / 0.6f);
-         if (alphaFraction2 > 0f) {
-@@ -513,6 +517,7 @@ public class ProfileActionsView extends View {
+@@ -472,6 +476,7 @@ public class ProfileActionsView extends View {
      }
  
      // NebulaGram: drawing extension points; native actions and geometry stay owned here.
@@ -30,9 +24,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActio
      protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) { }
      protected int actionTextColor(int color) { return color; }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index f0b5a698..1f33ad7c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5305,10 +5305,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5256,10 +5256,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
              CanvasButton canvasButton;
  

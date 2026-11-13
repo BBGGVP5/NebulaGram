@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 1397b33c..5b2ceb6f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -6316,6 +6316,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6443,6 +6443,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      expandAnimator.cancel();
                  }
                  setAvatarExpandProgress(1f);

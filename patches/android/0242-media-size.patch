@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 9fdde0e1..4633b9a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -9732,19 +9732,30 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -9051,19 +9051,30 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                      }
                      String filter;
                      if (messageObject.isAnimatedEmoji() || messageObject.isDice()) {
@@ -39,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                          }
                      }
                      Object parentObject = messageObject;
-@@ -9891,6 +9902,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -9210,6 +9221,14 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                          }
                      }
                      photoHeight = photoWidth + dp(100);

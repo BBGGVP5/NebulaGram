@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+index 3163c702..0a7512a3 100644
 --- a/TMessagesProj/src/main/AndroidManifest.xml
 +++ b/TMessagesProj/src/main/AndroidManifest.xml
-@@ -862,6 +862,9 @@
+@@ -869,6 +869,9 @@
              <meta-data android:name="android.app.shortcuts" android:resource="@xml/shortcuts" />
          </activity-alias>
  
@@ -12,9 +13,10 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
  
  </manifest>
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+index ea658d8a..578c59e8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
-@@ -201,6 +201,7 @@ public class TranslateController extends BaseController {
+@@ -202,6 +202,7 @@ public class TranslateController extends BaseController {
      }
  
      public boolean isTranslateDialogHidden(long dialogId) {
@@ -22,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          if (hideTranslateDialogs.contains(dialogId)) {
              return true;
          }
-@@ -224,6 +225,7 @@ public class TranslateController extends BaseController {
+@@ -225,6 +226,7 @@ public class TranslateController extends BaseController {
      }
  
      public boolean isTranslatingDialog(long dialogId) {
@@ -30,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          return isFeatureAvailable(dialogId) && translatingDialogs.get(dialogId, isChatAutoTranslated(dialogId));
      }
  
-@@ -232,6 +234,13 @@ public class TranslateController extends BaseController {
+@@ -233,6 +235,13 @@ public class TranslateController extends BaseController {
      }
  
      public boolean toggleTranslatingDialog(long dialogId, boolean value) {
@@ -44,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          boolean currentValue = isTranslatingDialog(dialogId), notified = false;
          if (value && !currentValue) {
              translatingDialogs.put(dialogId, true);
-@@ -263,6 +272,7 @@ public class TranslateController extends BaseController {
+@@ -264,6 +273,7 @@ public class TranslateController extends BaseController {
      }
  
      public String getDialogTranslateTo(long dialogId) {
@@ -52,7 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          String lang = translateDialogLanguage.get(dialogId);
          if (lang == null) {
              lang = TranslateAlert2.getToLanguage();
-@@ -277,6 +287,10 @@ public class TranslateController extends BaseController {
+@@ -278,6 +288,10 @@ public class TranslateController extends BaseController {
      }
  
      public void setDialogTranslateTo(long dialogId, String language) {
@@ -63,7 +65,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          if (TextUtils.equals(getDialogTranslateTo(dialogId), language)) {
              return;
          }
-@@ -579,6 +593,11 @@ public class TranslateController extends BaseController {
+@@ -580,6 +594,11 @@ public class TranslateController extends BaseController {
          }
  
          final long dialogId = messageObject.getDialogId();
@@ -76,9 +78,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          if (onScreen && messageObject.messageOwner.summarizedOpen && messageObject.messageOwner.summaryText == null && !isTranslatingDialog(messageObject.getDialogId())) {
              final MessageObject finalMessageObject = messageObject;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+index 3875fcbc..3dd0ab4b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -122,7 +122,7 @@ public class UserConfig extends BaseController {
+@@ -123,7 +123,7 @@ public class UserConfig extends BaseController {
      }
  
      public static int getMaxAccountCount() {
@@ -88,9 +91,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
  
      public int getNewMessageId() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index 0cd706d2..42d338d7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-@@ -796,7 +796,7 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -953,7 +953,7 @@ public class ActionBarMenuItem extends FrameLayout {
              ((ViewGroup) popupLayout.getParent()).removeView(popupLayout);
          }
          ViewGroup container = popupLayout;
@@ -100,9 +104,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
          }
          app.nebulagram.ui.NebulaMenuStyle.styleRows(popupLayout, resourcesProvider);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
+index d4448846..6711e4a7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.java
-@@ -1389,6 +1389,16 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
+@@ -1564,6 +1564,16 @@ public class BottomSheet extends Dialog implements BaseFragment.AttachedSheet {
              containerView.setBackgroundDrawable(shadowDrawable);
              containerView.setPadding(backgroundPaddingLeft, (applyTopPadding ? dp(8) : 0) + backgroundPaddingTop - 1, backgroundPaddingLeft, (applyBottomPadding ? dp(8) : 0));
          }
@@ -120,12 +125,13 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BottomSheet.j
          container.addView(containerView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM));
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 3a8a0311..59ca11a5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -4914,6 +4914,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
- 
+@@ -4355,6 +4355,13 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @Override
      public boolean onTouchEvent(MotionEvent event) {
+         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) lastTouchDownTime = event.getDownTime();
 +        if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
 +            if (event.getAction() == MotionEvent.ACTION_UP) {
 +                app.nebulagram.ui.NebulaMessageFilter.reveal(currentMessageObject); invalidate();
@@ -134,9 +140,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
 +        }
 +
          if (currentMessageObject == null || delegate != null && !delegate.canPerformActions() || animationRunning) {
-             if (currentMessageObject != null && currentMessageObject.preview) {
-                 return checkTextSelection(event);
-@@ -20209,8 +20216,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+             if (currentMessageObject != null && currentMessageObject.richLayout != null
+                     && (event.getActionMasked() == MotionEvent.ACTION_UP || event.getActionMasked() == MotionEvent.ACTION_CANCEL)) {
+@@ -17366,8 +17373,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @SuppressLint("WrongCall")
      @Override
      protected void onDraw(Canvas canvas) {
@@ -152,7 +158,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
      private Paint nebulaDeletedPaint;
      private int nebulaDeletedPaintKey;
  
-@@ -26708,6 +26722,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -23220,6 +23234,15 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
  
      @Override
      public boolean performAccessibilityAction(int action, Bundle arguments) {
@@ -168,7 +174,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          if (delegate != null && delegate.onAccessibilityAction(action, arguments)) {
              return false;
          }
-@@ -26805,6 +26828,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -23325,6 +23348,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -181,9 +187,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
  
      @Override
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index a31ef551..cf789834 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -30582,6 +30582,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31187,6 +31187,7 @@ public class ChatActivity extends BaseFragment implements
  
      @Override
      public void onPause() {
@@ -191,7 +198,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          clearNebulaAlbumPreview();
          super.onPause();
          scrolling = false;
-@@ -34007,6 +34008,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -34693,6 +34694,9 @@ public class ChatActivity extends BaseFragment implements
          }
          boolean preserveDim = false;
          switch (option) {
@@ -201,7 +208,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              case 7911:
                  if (app.nebulagram.ui.NebulaAiAvailability.available()) presentFragment(new app.nebulagram.ui.NebulaAiFragment(selectedObject.messageOwner.message));
                  break;
-@@ -46554,6 +46558,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -46916,6 +46920,11 @@ public class ChatActivity extends BaseFragment implements
              options.add(7911);
          }
  
@@ -214,9 +221,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
          boolean allowEdit = !isEphemeral && message.canEditMessage(currentChat) && !chatActivityEnterView.hasAudioToSend() && message.getDialogId() != mergeDialogId && message.type != MessageObject.TYPE_STORY && message.type != MessageObject.TYPE_POLL;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index e2bc8bca..5d1a5e92 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1565,6 +1565,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1607,6 +1607,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  return false;
              }
          }
@@ -226,7 +234,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          boolean nebulaUpdateLink = !restore && (flags & Intent.FLAG_ACTIVITY_LAUNCHED_FROM_HISTORY) == 0
                  && app.nebulagram.ui.NebulaTelegramUpdates.isUpdateLink(intent.getDataString());
          if (nebulaUpdateLink) intent.setData(null);
-@@ -3386,6 +3389,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -3430,6 +3433,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          }
  
          intent.setAction(null);
@@ -239,6 +247,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
              AndroidUtilities.runOnUIThread(() -> checkAppUpdate(true, progress));
              return true;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+index 11cdd1dd..2503b70c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 @@ -44,6 +44,12 @@ public class MainTabsLayout extends AnimatedLinearLayout {
@@ -267,9 +276,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
          if (getLayerType() != layerType) {
              setLayerType(layerType, null);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index 1e4ad20e..55aabcac 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -5856,6 +5856,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -5855,6 +5855,9 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
          videoItem.setOnMenuDismiss(byClick -> checkProgress(0, false, false));
  
          menuItem = menu.addItem(0, R.drawable.media_more);

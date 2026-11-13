@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 400d2eaa..e206b8d8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -14144,6 +14144,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13761,6 +13761,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              chatInputViewsContainer.getFadeView().setAlpha(factor);
              chatInputViewsContainer.getFadeView().setVisibility(factor > 0 ? View.VISIBLE : View.GONE);
          }
@@ -13,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      }
  
      private void checkUi_topPanelVisible() {
-@@ -14421,9 +14426,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14029,9 +14034,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (initialDialogsType != DIALOGS_TYPE_FORWARD || !onlySelect
                  || !app.nebulagram.ui.NebulaFolderTabs.bottom()
                  || filterTabsView == null || filterTabsView.getVisibility() != View.VISIBLE) return 0;

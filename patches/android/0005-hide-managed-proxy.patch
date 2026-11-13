@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
-index d222504b..3370f1cb 100644
+index 271182cc..1e960677 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProxyListActivity.java
-@@ -88,6 +88,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -91,6 +91,7 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
      private boolean useProxySettings;
  
      private int rowCount;
@@ -10,7 +10,7 @@ index d222504b..3370f1cb 100644
      @Keep
      private int useProxyRow;
      private int useProxyShadowRow;
-@@ -593,6 +594,24 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -611,6 +612,24 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
      private void updateRows(boolean notify) {
          rowCount = 0;
@@ -35,7 +35,7 @@ index d222504b..3370f1cb 100644
          useProxyRow = rowCount++;
          if (useProxySettings && SharedConfig.currentProxy != null && SharedConfig.proxyList.size() > 1 && IS_PROXY_ROTATION_AVAILABLE) {
              rotationRow = rowCount++;
-@@ -617,7 +636,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -635,7 +654,11 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
          if (notify) {
              proxyList.clear();
@@ -48,7 +48,7 @@ index d222504b..3370f1cb 100644
  
              boolean checking = false;
              if (!wasCheckedAllList) {
-@@ -864,7 +887,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -882,7 +905,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
                  }
                  case VIEW_TYPE_INFO: {
                      TextInfoPrivacyCell cell = (TextInfoPrivacyCell) holder.itemView;
@@ -59,7 +59,7 @@ index d222504b..3370f1cb 100644
                          cell.setText(getString(R.string.ProxyRotationTimeoutInfo));
                      }
                      break;
-@@ -1006,6 +1031,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
+@@ -1024,6 +1049,9 @@ public class ProxyListActivity extends BaseFragment implements NotificationCente
  
          @Override
          public int getItemViewType(int position) {

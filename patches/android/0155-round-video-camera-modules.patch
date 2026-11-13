@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index 541c5366..942ec811 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -83,6 +83,10 @@ public class Camera2Session {
@@ -30,6 +31,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
          return !isError && isSuccess && !isClosed;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+index 0fce9400..59a3727e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 @@ -478,6 +478,35 @@ public class CameraSession {
@@ -69,6 +71,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSes
          currentZoom = value;
          if (isVideo && Camera.Parameters.FLASH_MODE_ON.equals(currentFlashMode)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index c777070a..1e4d3cb6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -266,6 +266,11 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

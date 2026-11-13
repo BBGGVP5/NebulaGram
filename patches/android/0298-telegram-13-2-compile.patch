@@ -1,0 +1,102 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 814c5e81..b39ddbdc 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -18344,7 +18344,7 @@ public class ChatActivity extends BaseFragment implements
+             if (glassBackgroundSourceRenderNode != null) glassBackgroundSourceRenderNode.invalidateDisplayListForDrawables();
+             if (glassBackgroundSourceFrostedRenderNode != null) glassBackgroundSourceFrostedRenderNode.invalidateDisplayListForDrawables();
+             if (actionBar != null) actionBar.invalidate();
+-            if (invalidateBlurredSourcesView != null) invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_SCROLL);
++            getGlassEngine().invalidate();
+             if (chatActivityFadeView != null) {
+                 chatActivityFadeView.setOverlayColor(isCompactMode() ? getThemedColor(Theme.key_chat_compact_backgroundGradient) : 0);
+                 chatActivityFadeView.invalidate();
+@@ -19794,7 +19794,7 @@ public class ChatActivity extends BaseFragment implements
+             notifyHeightChanged();
+ 
+             checkUi_topFade();
+-            if (changed) invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_CLIP);
++            if (changed) getGlassEngine().invalidate();
+         }
+ 
+         private void setNonNoveTranslation(float y) {
+@@ -31196,7 +31196,7 @@ public class ChatActivity extends BaseFragment implements
+         }
+         if (contentView != null) {
+             contentView.onResume();
+-            contentView.post(() -> invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_POSITIONS | BLUR_INVALIDATE_FLAG_CLIP));
++            contentView.post(() -> getGlassEngine().invalidate());
+         }
+         checkChecksHint();
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+index 6c3b4cd9..468764ed 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+@@ -193,7 +193,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
+                 }
+                 return super.dispatchTouchEvent(ev);
+             }
+-            @Override protected void dispatchDraw(Canvas canvas) {
++            @Override protected void dispatchDraw(android.graphics.Canvas canvas) {
+                 if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
+                 super.dispatchDraw(canvas);
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
+index 16b5939c..5748b0cc 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecyclerListView.java
+@@ -3537,6 +3537,18 @@ public class RecyclerListView extends RecyclerView implements IBlur3Capture {
+         setSections(isSectionView, isViewTypeSection, padding, roundRadius, this::drawBackgroundRect, topPadding);
+     }
+ 
++    // NebulaGram: sections painted by the caller (profile cards).
++    public void setSections(
++            Utilities.CallbackReturn<View, Boolean> isSectionView,
++            int padding,
++            float roundRadius,
++            Utilities.Callback5<Canvas, RectF, Float, Float, Float> drawSectionBackground,
++            boolean topPadding
++    ) {
++        final Pair<Utilities.CallbackReturn<View, Boolean>, Utilities.CallbackReturn<Integer, Boolean>> callbacks = cachedIsViewTypeShadow(this, isSectionView);
++        setSections(callbacks.first, callbacks.second, padding, roundRadius, drawSectionBackground, topPadding);
++    }
++
+     private void setSections(
+             Utilities.CallbackReturn<View, Boolean> isSectionView,
+             Utilities.CallbackReturn<Integer, Boolean> isViewTypeSection,
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 9ab77d57..a06aba6d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -7139,7 +7139,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+     public void onResume() {
+         super.onResume();
+         updateNebulaAiShortcut();
+-        if (fragmentView != null) fragmentView.post(this::blur3_InvalidateBlur);
++        if (fragmentView != null) fragmentView.post(() -> glassEngine.invalidate());
+         checkUi_searchFieldVisibility();
+         if (fragmentView != null) {
+             setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 6aff0dee..87735b71 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -3511,7 +3511,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         if (app.nebulagram.ui.NebulaAppearance.profileStyle()) {
+             // Keep edit and overflow actions as separate glass controls over the
+             // profile artwork, using the same source as the profile's menus.
+-            actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
++            actionBar.setupGlass(scrimBlur3Factory, BlurredBackgroundProviderImpl.topPanel(resourcesProvider));
+             actionBar.setNebulaHomeGlass(true);
+             actionBar.setNebulaProfileGlass(true);
+         }
+@@ -4080,7 +4080,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         otherItem.addView(ttlIconView, LayoutHelper.createFrame(12, 12, Gravity.CENTER_VERTICAL | Gravity.LEFT, 8, 2, 0, 0));
+         otherItem.setContentDescription(LocaleController.getString(R.string.AccDescrMoreOptions));
+         otherItem.setBlurredBackgroundFactory(
+-                app.nebulagram.ui.NebulaMenuStyle.enabled() ? iBlur3FactoryLiquidGlass : scrimBlur3Factory,
++                scrimBlur3Factory,
+                 app.nebulagram.ui.NebulaMenuStyle.enabled() ? app.nebulagram.ui.NebulaMenuStyle.provider(resourceProvider)
+                         : BlurredBackgroundProviderImpl.messageMenuBackground(resourceProvider));
+ 

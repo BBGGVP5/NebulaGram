@@ -1,0 +1,32 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 56f5e723..ac19bdef 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -9155,6 +9155,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 final float onlinePadding = !hasFallbackPhoto && onlineTextView.getExactWidth() <= onlineMaxWidth - onlineTextView.getPaddingLeft() - onlineTextView.getPaddingRight() ? onlineTextView.getPaddingLeft() : 0;
+                 float onlineX = viewportWidth / 2f - (params2.leftMargin + onlinePadding + Math.min(onlineTextView.getExactWidth(), onlineMaxWidth) * 0.5f);
+ 
++                // NebulaGram: заголовок и подпись не уходят за левый край экрана.
++                nameX = Math.max(nameX, dp(16) - params1.leftMargin);
++                onlineX = Math.max(onlineX, dp(16) - params2.leftMargin - onlinePadding);
+                 this.nameX = nameX;
+                 this.onlineX = onlineX;
+                 onlineTextRatingPadding = onlinePadding;
+@@ -9222,9 +9225,15 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+         float nameScale = app.nebulagram.ui.NebulaProfileStyle.titleScale(1f, isInLandscapeMode);
+         FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();
+-        nameX = listView.getMeasuredWidth() / 2f - (params.leftMargin + nameTextView.getExactWidth() * nameScale * 0.5f);
++        // NebulaGram: ширина ограничена экраном, как и в needLayout, иначе
++        // длинный заголовок после анимации открытия съезжал за левый край.
++        final int nebulaViewport = listView.getMeasuredWidth();
++        final float nebulaNameWidth = Math.min(nameTextView.getExactWidth() * nameScale, Math.max(0, nebulaViewport - dp(36)));
++        nameX = Math.max(nebulaViewport / 2f - (params.leftMargin + nebulaNameWidth * 0.5f), dp(16) - params.leftMargin);
+         params = (FrameLayout.LayoutParams) onlineTextView.getLayoutParams();
+-        onlineX = listView.getMeasuredWidth() / 2f - (params.leftMargin + (hasFallbackPhoto ? 0 : onlineTextView.getPaddingLeft()) + onlineTextView.getExactWidth() * 0.5f);
++        final float nebulaOnlinePad = hasFallbackPhoto ? 0 : onlineTextView.getPaddingLeft();
++        final float nebulaOnlineWidth = Math.min(onlineTextView.getExactWidth(), Math.max(0, nebulaViewport - dp(36)));
++        onlineX = Math.max(nebulaViewport / 2f - (params.leftMargin + nebulaOnlinePad + nebulaOnlineWidth * 0.5f), dp(16) - params.leftMargin - nebulaOnlinePad);
+         onlineTextRatingPadding = hasFallbackPhoto ? 0 : onlineTextView.getPaddingLeft();
+ 
+         if (playProfileAnimation != 2)

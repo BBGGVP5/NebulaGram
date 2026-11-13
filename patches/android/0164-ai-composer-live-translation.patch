@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 180ef50e..7311f61b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -637,6 +637,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -638,6 +638,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      private LinearLayout attachLayout;
      private ViewPropertyAnimator attachButtonAnimator;
      private ImageView attachButton;
@@ -10,9 +11,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private AiButtonDrawable aiButtonIcon;
      private ImageView aiButton;
      private ImageView richButton;
-@@ -5846,6 +5848,27 @@ public class ChatActivityEnterView extends FrameLayout implements
-         messageEditText.setCursorColor(getThemedColor(Theme.key_chat_messagePanelCursor));
-         messageEditText.setHandlesColor(getThemedColor(Theme.key_chat_TextSelectionCursor));
+@@ -5904,6 +5906,27 @@ public class ChatActivityEnterView extends FrameLayout implements
+         ThemeBind.cursorColor(messageEditText, Theme.key_chat_messagePanelCursor, resourcesProvider);
+         ThemeBind.editHandlesColor(messageEditText, Theme.key_chat_TextSelectionCursor, resourcesProvider);
          messageEditTextContainer.addView(messageEditText, 1, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.BOTTOM, 52, 0, isChat ? 50 : 2, 1.5f));
 +        if (parentFragment != null && isChat) {
 +            nebulaToolsButton = new ImageView(getContext());
@@ -38,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
          richDraftPreview = new RichMessageLayout.PreviewView(getContext(), currentAccount, resourcesProvider);
          richDraftPreview.setAllowActions(false);
-@@ -5940,6 +5963,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -5998,6 +6021,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
              @Override
              public void onTextChanged(CharSequence charSequence, int start, int before, int count) {
@@ -46,7 +47,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  if (ignorePrevTextChange) {
                      return;
                  }
-@@ -6517,6 +6541,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6616,6 +6640,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public void onDestroy() {
@@ -54,7 +55,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (audioTimelineView != null) {
              audioTimelineView.destroy();
          }
-@@ -6638,6 +6663,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6742,6 +6767,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      private Runnable hideKeyboardRunnable;
  
      public void onPause() {
@@ -62,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          isPaused = true;
          if (senderSelectPopupWindow != null) {
              senderSelectPopupWindow.setPauseNotifications(false);
-@@ -6693,6 +6719,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6797,6 +6823,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public void setDialogId(long id, int account) {
@@ -70,7 +71,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          dialog_id = id;
          if (currentAccount != account) {
              notificationsLocker.unlock();
-@@ -8823,9 +8850,20 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8937,9 +8964,20 @@ public class ChatActivityEnterView extends FrameLayout implements
          }
      }
  
@@ -91,7 +92,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (messageEditText == null || (editingMessageObject != null && !editingMessageObject.needResendWhenEdit())) {
              return;
          }
-@@ -8852,6 +8890,21 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8966,6 +9004,21 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
              layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
          }
@@ -113,7 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (oldRightMargin != layoutParams.rightMargin) {
              messageEditText.setLayoutParams(layoutParams);
          }
-@@ -14714,6 +14767,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14935,6 +14988,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -123,9 +124,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
+index 0147d8e2..d72adc46 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranslateButton.java
-@@ -374,13 +374,20 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
+@@ -394,13 +394,20 @@ public class TranslateButton extends FrameLayout implements Theme.Colorable {
              popupWindow.dismiss();
              showCocoonAlert(getContext(), resourcesProvider);
          });

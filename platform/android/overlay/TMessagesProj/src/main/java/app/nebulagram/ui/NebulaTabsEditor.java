@@ -19,7 +19,7 @@ import org.telegram.ui.Components.glass.GlassTabView;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.impl.BlurredBackgroundProviderImpl;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.utils.glass.source.GlassSourceColor;
 
 /** Native Telegram tabs with NebulaGram's tap/drag organization gestures. */
 public class NebulaTabsEditor extends FrameLayout {
@@ -57,7 +57,7 @@ public class NebulaTabsEditor extends FrameLayout {
         int padding = AndroidUtilities.dp(DialogsActivity.MAIN_TABS_MARGIN + 4);
         tabs.setPadding(padding, padding, padding, padding);
         tabs.setMaxWidth(AndroidUtilities.dp(328 + DialogsActivity.MAIN_TABS_MARGIN * 2));
-        BlurredBackgroundSourceColor source = new BlurredBackgroundSourceColor();
+        GlassSourceColor source = new GlassSourceColor();
         source.setColor(Theme.getColor(Theme.key_windowBackgroundWhite));
         BlurredBackgroundDrawable background = new BlurredBackgroundDrawableViewFactory(source)
                 .create(tabs, BlurredBackgroundProviderImpl.mainTabs(null));

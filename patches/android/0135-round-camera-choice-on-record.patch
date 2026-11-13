@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 866c83bf..0a4e47d8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -891,12 +891,34 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -899,12 +899,34 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private boolean recordAudioVideoRunnableStarted;
      private boolean calledRecordRunnable;
@@ -36,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              delegate.onPreAudioVideoRecord();
              calledRecordRunnable = true;
              recordAudioVideoRunnableStarted = false;
-@@ -2990,6 +3012,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3048,6 +3070,8 @@ public class ChatActivityEnterView extends FrameLayout implements
                  if (isLiveComment) return false;
                  createRecordCircle();
                  if (motionEvent.getAction() == MotionEvent.ACTION_DOWN) {
@@ -45,7 +46,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      if (recordCircle.isSendButtonVisible()) {
                          if (!hasRecordVideo || calledRecordRunnable) {
                              startedDraggingX = -1;
-@@ -3061,6 +3085,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3119,6 +3143,10 @@ public class ChatActivityEnterView extends FrameLayout implements
                      }
                      return true;
                  } else if (motionEvent.getAction() == MotionEvent.ACTION_UP || motionEvent.getAction() == MotionEvent.ACTION_CANCEL) {

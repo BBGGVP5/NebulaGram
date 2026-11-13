@@ -71,6 +71,12 @@ def check(temp, vendor, revision):
     ui = (temp / 'submodules/NebulaLinkUI/Sources/NebulaLinkController.swift').read_text(encoding='utf-8')
     for command in ['onboarding.import', 'servers.list', 'server.select', 'tunnel.start', 'tunnel.stop', 'probe.url', 'subscription.refreshAll']:
         assert '"' + command + '"' in ui
+    for command in ['auto.status', 'auto.set', 'auto.check']:
+        assert '"' + command + '"' in ui, command
+    routing_ui = (temp / 'submodules/NebulaLinkUI/Sources/NebulaRoutingController.swift').read_text(encoding='utf-8')
+    for command in ['routing.get', 'routing.set', 'routing.preset']:
+        assert '"' + command + '"' in routing_ui, command
+    assert 'telegram_follows_rules' in routing_ui and 'NebulaRoutingController(russian: ru)' in ui
     assert 'String(describing: error)' not in service + ui
     shared = (temp / 'submodules/TelegramUI/Sources/SharedAccountContext.swift').read_text(encoding='utf-8')
     assert 'NebulaLinkService.shared.configure(accountManager: accountManager)' in shared

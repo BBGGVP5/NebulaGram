@@ -1,0 +1,73 @@
+diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
+index 4946d83..230ede7 100644
+--- a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
++++ b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
+@@ -288,6 +288,7 @@ public final class HorizontalTabsComponent: Component {
+     public let layout: Layout
+     public let nebulaPanelStyle: Int
+     public let nebulaOutline: Bool
++    public let nebulaTabButtons: Bool
+     public let liftWhileSwitching: Bool
+     
+     public init(
+@@ -299,7 +300,8 @@ public final class HorizontalTabsComponent: Component {
+         layout: Layout = .fill,
+         liftWhileSwitching: Bool = true,
+         nebulaPanelStyle: Int = 0,
+-        nebulaOutline: Bool = false
++        nebulaOutline: Bool = false,
++        nebulaTabButtons: Bool = false
+     ) {
+         self.context = context
+         self.theme = theme
+@@ -309,11 +311,12 @@ public final class HorizontalTabsComponent: Component {
+         self.layout = layout
+         self.nebulaPanelStyle = nebulaPanelStyle
+         self.nebulaOutline = nebulaOutline
++        self.nebulaTabButtons = nebulaTabButtons
+         self.liftWhileSwitching = liftWhileSwitching
+     }
+     
+     public static func ==(lhs: HorizontalTabsComponent, rhs: HorizontalTabsComponent) -> Bool {
+-        if lhs.nebulaPanelStyle != rhs.nebulaPanelStyle || lhs.nebulaOutline != rhs.nebulaOutline { return false }
++        if lhs.nebulaPanelStyle != rhs.nebulaPanelStyle || lhs.nebulaOutline != rhs.nebulaOutline || lhs.nebulaTabButtons != rhs.nebulaTabButtons { return false }
+         if lhs.theme !== rhs.theme {
+             return false
+         }
+@@ -901,6 +904,15 @@ public final class HorizontalTabsComponent: Component {
+                     }
+                     itemTransition.setFrame(view: itemRegularView, frame: itemFrame)
+                     itemTransition.setFrame(view: itemSelectedView, frame: itemFrame)
++                    // NebulaGram "Profile tabs as buttons": every tab gets its own tinted capsule under
++                    // the label; the native lens still marks the selected one and moves as before.
++                    if component.nebulaTabButtons {
++                        itemRegularView.backgroundColor = component.theme.list.itemPrimaryTextColor.withAlphaComponent(0.06)
++                        itemRegularView.layer.cornerRadius = itemFrame.height * 0.5
++                    } else if itemRegularView.backgroundColor != nil {
++                        itemRegularView.backgroundColor = nil
++                        itemRegularView.layer.cornerRadius = 0.0
++                    }
+                     
+                     if tabId == self.reorderingItem {
+                         itemTransition.setSublayerTransform(view: itemRegularView, transform: CATransform3DMakeScale(1.2, 1.2, 1.0))
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
+index 7fc781e..a1842eb 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
+@@ -1,5 +1,6 @@
+ import Foundation
+ import UIKit
++import NebulaSettingsContract
+ import AsyncDisplayKit
+ import Display
+ import SwiftSignalKit
+@@ -1381,7 +1382,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+                 selectedTab: self.currentPaneKey.flatMap { HorizontalTabsComponent.Tab.Id($0) },
+                 isEditing: false,
+                 layout: .fit,
+-                liftWhileSwitching: deviceMetrics.type != .tablet
++                liftWhileSwitching: deviceMetrics.type != .tablet,
++                nebulaTabButtons: NebulaShapePreferences.profileTabButtons()
+             )),
+             environment: {},
+             containerSize: tabsContainerSize

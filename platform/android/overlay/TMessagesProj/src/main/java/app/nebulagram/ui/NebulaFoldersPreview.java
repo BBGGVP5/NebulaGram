@@ -16,9 +16,9 @@ public final class NebulaFoldersPreview extends FrameLayout {
     private static final int SAMPLE_HEIGHT_DP = 136, INSET_DP = 8;
     private final FilterTabsView tabs;
     private final View sampleChats;
-    private final org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor glassSource =
-            new org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor();
-    private final org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode capturedChats;
+    private final org.telegram.utils.glass.source.GlassSourceColor glassSource =
+            new org.telegram.utils.glass.source.GlassSourceColor();
+    private final org.telegram.utils.glass.source.GlassSourceRenderNode capturedChats;
     private final org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable glass;
     private int style = -1;
     private boolean hidden, counters;
@@ -51,7 +51,7 @@ public final class NebulaFoldersPreview extends FrameLayout {
         addView(sampleChats, LayoutHelper.createFrame(-1, SAMPLE_HEIGHT_DP, Gravity.TOP));
         tabs = new FilterTabsView(c, null);
         if (android.os.Build.VERSION.SDK_INT >= 31) {
-            capturedChats = new org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode(glassSource);
+            capturedChats = new org.telegram.utils.glass.source.GlassSourceRenderNode(glassSource);
         } else {
             capturedChats = null;
         }

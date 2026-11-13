@@ -17,6 +17,7 @@ def main():
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_text(text, encoding='utf-8')
         put('app/nebulagram/ui/NebulaTheme.java', SOURCE.read_text(encoding='utf-8'))
+        put('app/nebulagram/ui/NebulaPictureAccent.java', (SOURCE.parent / 'NebulaPictureAccent.java').read_text(encoding='utf-8'))
         put('app/nebulagram/ui/NebulaMonetPalette.java', (SOURCE.parent / 'NebulaMonetPalette.java').read_text(encoding='utf-8'))
         put('app/nebulagram/ui/NebulaText.java', 'package app.nebulagram.ui; public class NebulaText {public static String text(String ru,String en){return en;}}')
         colors = sorted(set(re.findall(r'android.R.color.(\w+)', SOURCE.read_text(encoding='utf-8'))))
@@ -168,6 +169,29 @@ def main():
                     eq(app.nebulagram.ui.NebulaMonetPalette.resource(c,42),42);
                     NebulaTheme.setMaterialYouEnabled(true); apply(c);
                     eq(day.getAccent(false).accentColor,0xff229955);
+                    // A picture accent works below Android 12 and outranks Material You.
+                    int seed=0xff1e5bd8; Theme.dark=true;
+                    p.putInt("picture_accent_source",2); p.putInt("picture_accent_seed",seed);
+                    NebulaTheme.refreshAccentSource(c);
+                    eq(day.getAccent(false).accentColor,app.nebulagram.ui.NebulaPictureAccent.tone(seed,true));
+                    Theme.dark=false; apply(c);
+                    eq(day.getAccent(false).accentColor,app.nebulagram.ui.NebulaPictureAccent.tone(seed,false));
+                    // Turning Material You off keeps the picture accent.
+                    NebulaTheme.setMaterialYouEnabled(false);
+                    eq(day.getAccent(false).accentColor,app.nebulagram.ui.NebulaPictureAccent.tone(seed,false));
+                    // An unknown source value is treated as off.
+                    p.putInt("picture_accent_source",7); eq(NebulaTheme.pictureSource(),0);
+                    // Turning the picture off restores the accent from before any override.
+                    p.putInt("picture_accent_source",0); NebulaTheme.refreshAccentSource(c);
+                    eq(day.getAccent(false).accentColor,0xff229955);
+                    eq((int)p.values.keySet().stream().filter(k->k.startsWith("accent_before_material_you")).count(),0);
+                    // With Material You on (Android 12+), turning the picture off goes back to the wallpaper.
+                    android.os.Build.VERSION.SDK_INT=36; NebulaTheme.setMaterialYouEnabled(true);
+                    p.putInt("picture_accent_source",1); NebulaTheme.refreshAccentSource(c);
+                    eq(day.getAccent(false).accentColor,app.nebulagram.ui.NebulaPictureAccent.tone(seed,false));
+                    p.putInt("picture_accent_source",0); NebulaTheme.refreshAccentSource(c);
+                    eq(day.getAccent(false).accentColor,ContextCompat.wallpaper);
+                    NebulaTheme.setMaterialYouEnabled(false); eq(day.getAccent(false).accentColor,0xff229955);
                     System.out.println(checks+" palette/accent restoration checks passed");
                 }
             }''')

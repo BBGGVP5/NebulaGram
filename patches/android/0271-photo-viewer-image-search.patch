@@ -1,0 +1,41 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index 3fcb8a9e..bdc501cc 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+@@ -2188,6 +2188,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+     private final static int gallery_menu_chromecast = 24;
+     private final static int gallery_menu_create_sticker = 25;
+     private final static int gallery_menu_delete2 = 26;
++    private final static int gallery_menu_nebula_image_search = 270;
+ 
+     private final static int ads_sponsor_info = 101;
+     private final static int ads_about = 102;
+@@ -5726,6 +5727,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+                         thumb = null;
+                     }
+                     placeProvider.openPhotoForEdit(f.getAbsolutePath(), thumb, isVideo);
++                } else if (id == gallery_menu_nebula_image_search) {
++                    app.nebulagram.ui.NebulaImageSearch.choose(parentActivity, centerImage.getBitmap(), resourcesProvider, () -> closePhoto(true, false));
+                 } else if (id == gallery_menu_translate) {
+                     if (switchingToIndex < 0 || switchingToIndex >= imagesArr.size()) {
+                         return;
+@@ -5925,6 +5928,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+         menuItem.addSubItem(gallery_menu_masks2, R.drawable.msg_sticker, getString(R.string.ShowStickers)).setColors(0xfffafafa, 0xfffafafa);
+         //menuItem.addSubItem(gallery_menu_edit_avatar, R.drawable.photo_paint, LocaleController.getString(R.string.EditPhoto)).setColors(0xfffafafa, 0xfffafafa);
+         menuItem.addSubItem(gallery_menu_set_as_main, R.drawable.msg_openprofile, getString(R.string.SetAsMain)).setColors(0xfffafafa, 0xfffafafa);
++        menuItem.addSubItem(gallery_menu_nebula_image_search, R.drawable.msg_search, app.nebulagram.ui.NebulaImageSearch.title()).setColors(0xfffafafa, 0xfffafafa);
+         menuItem.addSubItem(gallery_menu_translate, R.drawable.msg_translate, getString(R.string.TranslateMessage)).setColors(0xfffafafa, 0xfffafafa);
+         menuItem.addSubItem(gallery_menu_hide_translation, R.drawable.msg_translate, getString(R.string.HideTranslation)).setColors(0xfffafafa, 0xfffafafa);
+         menuItem.addSubItem(gallery_menu_delete, R.drawable.msg_delete, getString(R.string.Delete)).setColors(0xfffafafa, 0xfffafafa);
+@@ -5941,6 +5945,11 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+                 if (videoPlayerControlVisible && isPlaying) {
+                     AndroidUtilities.cancelRunOnUIThread(hideActionBarRunnable);
+                 }
++                if (!isCurrentVideo && centerImage.getBitmap() != null) {
++                    menuItem.showSubItem(gallery_menu_nebula_image_search);
++                } else {
++                    menuItem.hideSubItem(gallery_menu_nebula_image_search);
++                }
+             }
+ 
+             @Override

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-index 5fcb6b54..a4c336d4 100644
+index 795ba70f..37a4d761 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -1189,6 +1189,11 @@ public class FilterTabsView extends FrameLayout {
+@@ -1190,6 +1190,11 @@ public class FilterTabsView extends FrameLayout {
  
      private void applyNebulaPanelStyle() {
          if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.GLASS) {
@@ -15,10 +15,10 @@ index 5fcb6b54..a4c336d4 100644
          } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
              setBackground(new android.graphics.drawable.InsetDrawable(
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 5942c424..65245778 100644
+index 277a2924..fbde82d6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -14354,7 +14354,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13970,7 +13970,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final int actionBarHeight = actionBar.getMeasuredHeight()
              + dp(nebulaSearchSlotHeight())
              + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
@@ -27,10 +27,11 @@ index 5942c424..65245778 100644
              + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
              + ((int) scrollYOffset);
  
-@@ -14379,6 +14379,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
-             hasBottomBlur = true;
-         }
+@@ -13997,6 +13997,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
+             scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
+         }
++
 +        // Reuse the second capture region for folders, even with the main bar hidden.
 +        // Use translated view bounds so slide/search transitions sample the same pixels
 +        // that the drawable's ViewPositionWatcher reads. Capture only chat lists.
@@ -47,7 +48,6 @@ index 5942c424..65245778 100644
 +            }
 +            hasBottomBlur = true;
 +        }
-+
-         scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
          scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
+     }
  

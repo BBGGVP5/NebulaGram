@@ -63,9 +63,7 @@ public final class NebulaCameraFragment extends BaseFragment {
         body.addView(NebulaFormUi.note(c,text("Применяется при следующем открытии камеры. Недоступное разрешение заменяется ближайшим поддерживаемым.","Applies the next time the camera opens. Unavailable resolution falls back to a supported size.")));
 
         NebulaCard round = new NebulaCard(c);
-        boolean modern = SharedSettings.roundVideoCamera2Enabled.isSet()
-            ? SharedSettings.roundVideoCamera2Enabled.get()
-            : AppGlobalConfig.getInstance(UserConfig.selectedAccount).roundVideoRecorder2Allowed.get();
+        boolean modern = org.telegram.ui.Components.InstantCameraViewBase.isCamera2Enabled(UserConfig.selectedAccount);
         round.add(new NebulaRow(c).title(text("Новый движок кружков","New round-video engine"))
             .subtitle(text("Camera2 · запись, пауза и монтаж Telegram","Camera2 · Telegram recording, pause and trimming"),false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(modern).withClick(v -> {

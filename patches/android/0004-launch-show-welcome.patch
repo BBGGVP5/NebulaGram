@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 1dd2ffee..928e8b7e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1092,6 +1092,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1123,6 +1123,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          if (LoginActivity.loadCurrentState(false, currentAccount).getInt("currentViewNum", 0) != 0) {
              return new LoginActivity();
          }

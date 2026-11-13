@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index a4bfdb34..d9d88cba 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-@@ -544,6 +544,12 @@ public abstract class BaseFragment {
+@@ -670,6 +670,12 @@ public abstract class BaseFragment {
      @CallSuper
      public void onResume() {
          isPaused = false;

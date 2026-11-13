@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index fc9281f3..92d0234a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -562,6 +562,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -548,6 +548,11 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          });
          actionBarLayout.setDelegate(this);
          app.nebulagram.ui.NebulaTheme.applyMaterialYou(this);
@@ -13,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          Theme.loadWallpaper(true);
  
          checkCurrentAccount();
-@@ -1560,6 +1565,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1602,6 +1607,9 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  return false;
              }
          }
@@ -23,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          boolean pushOpened = false;
          long push_user_id = 0;
          long push_chat_id = 0;
-@@ -3378,6 +3386,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -3422,6 +3430,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          }
  
          intent.setAction(null);
@@ -34,7 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          return pushOpened;
      }
  
-@@ -6082,102 +6094,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -6128,102 +6140,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          return foundContacts;
      }
  
@@ -139,6 +140,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
  
      public Dialog showAlertDialog(AlertDialog.Builder builder) {
 diff --git a/TMessagesProj/src/main/res/xml/provider_paths.xml b/TMessagesProj/src/main/res/xml/provider_paths.xml
+index 4bb92699..f71dfb6a 100644
 --- a/TMessagesProj/src/main/res/xml/provider_paths.xml
 +++ b/TMessagesProj/src/main/res/xml/provider_paths.xml
 @@ -4,4 +4,5 @@
@@ -149,6 +151,7 @@ diff --git a/TMessagesProj/src/main/res/xml/provider_paths.xml b/TMessagesProj/s
  </paths>
 \ No newline at end of file
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
+index 348b49d6..d5267e42 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
 @@ -142,7 +142,9 @@ android {

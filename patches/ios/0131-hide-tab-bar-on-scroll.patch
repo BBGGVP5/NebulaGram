@@ -1,0 +1,56 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index 66fc3db..59a4cfd 100644
+--- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
++++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+@@ -2263,10 +2263,51 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+         }
+     }
+     
++    // NebulaGram: hide the bottom bar while the chat list is scrolled down (Android NebulaTabScroll).
++    private var nebulaTabScroll = NebulaTabScroll()
++    private var nebulaLastListOffset: CGFloat?
++
++    private func nebulaUpdateTabBarScroll(offset: ListViewVisibleContentOffset, listView: ListView) {
++        guard let controller = self.controller, let tabBarController = controller.parent as? TabBarController else {
++            return
++        }
++        let transition: ContainedViewLayoutTransition = .animated(duration: 0.3, curve: .spring)
++        guard NebulaTabScroll.enabled(), !controller.isSearchActive else {
++            if self.nebulaTabScroll.hidden {
++                self.nebulaTabScroll.reset()
++                if !controller.isSearchActive {
++                    tabBarController.updateIsTabBarHidden(false, transition: transition)
++                }
++            }
++            self.nebulaLastListOffset = nil
++            return
++        }
++        var current: CGFloat?
++        var atTop = false
++        switch offset {
++        case let .known(value):
++            current = value
++            atTop = value <= 0.0
++        case .none:
++            atTop = true
++        case .unknown:
++            break
++        }
++        let dy = current.flatMap { value in self.nebulaLastListOffset.map { value - $0 } } ?? 0.0
++        self.nebulaLastListOffset = current
++        let manual = listView.isTracking || listView.isDragging || listView.scroller.isDecelerating
++        if self.nebulaTabScroll.scrolled(dy: Double(dy), atTop: atTop, manual: manual) {
++            tabBarController.updateIsTabBarHidden(self.nebulaTabScroll.hidden, transition: transition)
++        }
++    }
++
+     private func contentOffsetChanged(offset: ListViewVisibleContentOffset, listView: ListView, isPrimary: Bool) {
+         guard let containerLayout = self.containerLayout else {
+             return
+         }
++        if isPrimary {
++            self.nebulaUpdateTabBarScroll(offset: offset, listView: listView)
++        }
+         self.updateNavigationScrolling(navigationHeight: containerLayout.navigationBarHeight, transition: self.tempNavigationScrollingTransition ?? .immediate)
+         
+         if listView.isDragging {

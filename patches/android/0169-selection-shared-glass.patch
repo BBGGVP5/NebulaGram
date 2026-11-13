@@ -1,9 +1,10 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index c6edf5b6..a544199d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2614,6 +2614,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                 right = Math.min(menuLeft - dp(4), titleRight + dp(12));
-                 if (right <= left) { left = leftDefault; right = rightDefault; }
+@@ -2865,6 +2865,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     glassDrawable.draw(canvas);
+                 }
              }
 +            // Selection actions share one continuous glass surface with the counter.
 +            // Keep normal header controls without separate background plates.
@@ -11,6 +12,6 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +                left = lerp(left, 0, actionModeFactor);
 +                right = lerp(right, getWidth(), actionModeFactor);
 +            }
-             glassDrawable.setBounds(left, t, right, b);
-             if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
-                 glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+         }
+         final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || nebulaHomeTabsGlass
+                 || nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader;

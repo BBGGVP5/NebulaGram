@@ -28,6 +28,7 @@ public final class NebulaFeatureControls {
     public static void general(BaseFragment host, LinearLayout parent) {
         NebulaCard card = new NebulaCard(parent.getContext());
         card.add(toggle(parent, "smooth_fade", "Плавное затухание", "Smooth fading", "Плавнее менять прозрачность при переходах", "Smooth opacity during navigation transitions"));
+        card.add(toggle(parent, "menu_drag_select", "Выбор протягиванием", "Press and drag in menus", "Нажмите, протяните палец к пункту меню и отпустите", "Press, slide to a menu item and release"));
         if (android.os.Build.VERSION.SDK_INT >= 34) card.add(toggle(parent, "predictive_back", "Predictive Back", "Predictive Back", "Предпросмотр возврата системным жестом", "Preview navigation with the system back gesture"));
         add(parent, card);
         parent.addView(NebulaCard.header(parent.getContext(), text("Уведомления", "Notifications")));
@@ -128,9 +129,9 @@ public final class NebulaFeatureControls {
         card.add(toggle(parent, "quote_full_reply", "Цитировать ответы", "Quote replies", "Цитировать текст сообщения в пределах лимита Telegram. Не работает в топиках", "Quote the message text up to Telegram's limit. Unavailable in topics"));
         card.add(toggle(parent, "selection_without_author", "Кнопка «Без авторства»", "Without-author button", "Вместо «Ответить» при выделении сообщений. По умолчанию — стандартные кнопки Telegram", "Replace Reply when selecting messages. Standard Telegram buttons by default"));
         card.add(toggle(parent, "disable_chat_vibration", "Отключить вибрацию чатов", "Disable chat haptics", "Отключает отклик жестов и действий в переписке", "Turns off gesture and action feedback in conversations"));
-        card.add(new NebulaRow(parent.getContext()).title(text("Вычисления при наборе", "Inline arithmetic"))
-            .subtitle(text("Показывать результат рядом с выражением, сохраняя текст", "Show the result beside an expression, keeping your text"), false)
-            .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.math()).withClick(v -> NebulaChatPreferences.set("inline_math", ((NebulaRow)v).toggleChecked())));
+        card.add(new NebulaRow(parent.getContext()).title(text("Результаты в поле ввода", "Inline results"))
+            .subtitle(NebulaChatPreferences.math() ? text("Вкл. · калькулятор, валюты, единицы, часовые пояса", "On · calculator, currencies, units, time zones") : text("Выкл.", "Off"), NebulaChatPreferences.math())
+            .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> host.presentFragment(new NebulaInlineResultsFragment())));
         card.add(new NebulaRow(parent.getContext()).title(text("Количество пересылок", "Forward count"))
             .subtitle(text("Рядом с просмотрами постов каналов", "Beside channel post views"), false)
             .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaChatPreferences.forwardCount()).withClick(v -> NebulaChatPreferences.set("channel_forward_count", ((NebulaRow)v).toggleChecked())));

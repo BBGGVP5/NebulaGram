@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 3d263059..53fc1ae5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -240,7 +240,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -247,7 +247,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              // of placing it inside the title capsule.
              params.leftMargin = dp(8);
              params.rightMargin = dp(8);
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              nebulaChatAvatarContainer.setLayoutParams(params);
          } else {
              restoreNebulaAvatarLayout();
-@@ -255,7 +255,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -262,7 +262,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              params.width = nebulaAvatarWidth;
              params.leftMargin = nebulaAvatarLeftMargin;
              params.rightMargin = nebulaAvatarRightMargin;
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              nebulaChatAvatarContainer.setLayoutParams(params);
          }
          nebulaAvatarWidth = Integer.MIN_VALUE;
-@@ -2285,11 +2285,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2490,11 +2490,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private boolean nebulaFloatingChatHeader;
  
      private boolean nebulaChatMenuHidden;
@@ -37,20 +38,22 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  menu.setVisibility(hideMenu ? GONE : VISIBLE);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 92e199bd..c8dec8af 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4346,6 +4346,7 @@ public class ChatActivity extends BaseFragment implements
-                 userFull = getMessagesController().getUserFull(currentUser.id);
-             }
+@@ -4278,6 +4278,7 @@ public class ChatActivity extends BaseFragment implements
+             createTopicsPanelItem(menu);
              headerItem = menu.addItem(chat_menu_options, otherIcon);
+             updateTopicsPanelItem();
 +            app.nebulagram.ui.NebulaChatStyle.savedMessagesMenuIcon(headerItem, UserObject.isUserSelf(currentUser));
              headerItem.setSubMenuDelegate(new ActionBarMenuItem.ActionBarSubMenuItemDelegate() {
                  @Override
                  public void onShowSubMenu() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 7202a663..04db760b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14610,7 +14610,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14832,7 +14832,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -60,9 +63,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 255a2182..94eee872 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -757,11 +757,27 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -761,11 +761,27 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
  
      private boolean glassMode;
      private boolean nebulaCenteredTitle;

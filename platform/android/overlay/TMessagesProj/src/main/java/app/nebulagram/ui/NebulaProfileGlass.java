@@ -10,13 +10,13 @@ import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundProvider;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 
 /** One backdrop for all profile actions; never captures the controls or the full window. */
 @android.annotation.TargetApi(31)
 final class NebulaProfileGlass {
-    private final BlurredBackgroundSourceRenderNode source;
+    private final GlassSourceRenderNode source;
     private final BlurredBackgroundDrawableViewFactory factory;
     private final SparseArray<BlurredBackgroundDrawable> buttons = new SparseArray<>();
     private final BlurredBackgroundProvider material;
@@ -27,9 +27,9 @@ final class NebulaProfileGlass {
     }
 
     NebulaProfileGlass(Theme.ResourcesProvider provider) {
-        BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
+        GlassSourceColor fallback = new GlassSourceColor();
         fallback.setColor(Theme.getColor(Theme.key_windowBackgroundGray, provider));
-        source = new BlurredBackgroundSourceRenderNode(fallback);
+        source = new GlassSourceRenderNode(fallback);
         factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());
         // The photograph supplies colour; the neutral veil keeps the native white

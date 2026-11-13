@@ -26,6 +26,10 @@ public final class NebulaExtras {
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(false))));
         card.add(new NebulaRow(c).icon(R.drawable.nebula_cupertino_person).title(text("Закругление аватарок", "Avatar corners"))
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaDesignFragment(true))));
+        // The shape page was only linked from an unused hub and could not be opened.
+        card.add(new NebulaRow(c).icon(R.drawable.msg_customize).title(text("Форма", "Shape"))
+                .subtitle(text("Скругления меню, карточек и фото профиля", "Corners of menus, cards and profile photos"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> f.presentFragment(new NebulaShapeFragment())));
         content.addView(card);
         content.addView(NebulaCard.header(c, text("Главная и заголовки", "Home and titles")));
         card = new NebulaCard(c);

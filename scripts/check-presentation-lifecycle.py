@@ -32,7 +32,7 @@ class PaletteCheck {
  static class ColorStateList {static Object valueOf(int c){return c;}}
  static class InsetDrawable {GradientDrawable tile;InsetDrawable(GradientDrawable tile,int inset){this.tile=tile;}}
  static class RippleDrawable {GradientDrawable tile;RippleDrawable(Object c,InsetDrawable tile,Object mask){this.tile=tile.tile;}}
- static class View {int color,padding=11;Object background;void setBackground(Object b){background=b;padding=3;}void setPadding(int l,int t,int r,int b){if(l!=t||l!=r||l!=b)throw new AssertionError("Uneven icon inset");padding=l;}}
+ static class View {int color,padding=11;Object background;boolean isSelected(){return false;}void setBackground(Object b){background=b;padding=3;}void setPadding(int l,int t,int r,int b){if(l!=t||l!=r||l!=b)throw new AssertionError("Uneven icon inset");padding=l;}}
  static class TextView extends View {void setTextColor(int n){color=n;}}
  static class ImageView extends View {void setColorFilter(int n){color=n;}}
  static class Row {View[]items={new TextView(),new ImageView()};int getChildCount(){return items.length;}View getChildAt(int n){return items[n];}}

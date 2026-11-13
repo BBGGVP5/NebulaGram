@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+index 2507ae35..2c6b0f07 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
-@@ -514,8 +514,14 @@ public class ViewPagerFixed extends FrameLayout {
+@@ -559,8 +559,14 @@ public class ViewPagerFixed extends FrameLayout {
  
      }
  
@@ -17,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
              return false;
          }
          if (!canScroll(ev)) {
-@@ -528,7 +534,7 @@ public class ViewPagerFixed extends FrameLayout {
+@@ -573,7 +579,7 @@ public class ViewPagerFixed extends FrameLayout {
              return false;
          }
  
@@ -26,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
              return false;
          }
  
-@@ -543,7 +549,7 @@ public class ViewPagerFixed extends FrameLayout {
+@@ -588,7 +594,7 @@ public class ViewPagerFixed extends FrameLayout {
  
          notificationsLocker.lock();
          animatingForward = forward;
@@ -36,9 +37,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
          if (viewPages[1] != null) {
              if (forward) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index d1189fdb..9142b532 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -763,15 +763,29 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -781,15 +781,29 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
      }
  
@@ -72,9 +74,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+index ad848695..fd237eab 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
-@@ -138,6 +138,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
+@@ -143,6 +143,10 @@ public abstract class ViewPagerActivity extends BaseFragment {
          return true;
      }
  
@@ -85,7 +88,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java 
      @Override
      public ActionBar createActionBar(Context context) {
          return null;
-@@ -481,6 +485,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
+@@ -520,6 +524,11 @@ public abstract class ViewPagerActivity extends BaseFragment {
              return ViewPagerActivity.this.canScrollForward(e);
          }
  

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index e2fb0155..4dc2816c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-@@ -2737,6 +2737,26 @@ public class MessagesStorage extends BaseController {
+@@ -2855,6 +2855,26 @@ public class MessagesStorage extends BaseController {
      private LongSparseArray<Integer> dialogsWithMentions = new LongSparseArray<>();
      private LongSparseArray<Integer> dialogsWithUnread = new LongSparseArray<>();
  
@@ -28,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
      private void calcUnreadCounters(boolean apply) {
          SQLiteCursor cursor = null;
          try {
-@@ -2952,6 +2972,12 @@ public class MessagesStorage extends BaseController {
+@@ -3070,6 +3090,12 @@ public class MessagesStorage extends BaseController {
                          flags |= MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED;
                      }
                  }
@@ -42,17 +43,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
                  if ((flags & MessagesController.DIALOG_FILTER_FLAG_CONTACTS) != 0) {
                      if ((flags & MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED) == 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 6672794f..54cc689c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11533,7 +11533,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-                         (getContactsController().contactsDict.size() != 0 || !getContactsController().isLoadingContacts())) {
-                     nameTextView[a].setText(PhoneFormat.getInstance().format("+" + user.phone));
-                 } else {
--                    nameTextView[a].setText(newString);
-+                    // Р—РЅР°С‡РѕРє РїРѕРґРґРµСЂР¶Р°РІС€РµРіРѕ РґРѕРїРёСЃС‹РІР°РµС‚СЃСЏ Рє РёРјРµРЅРё СЃРїР°РЅРѕРј: СЃРїСЂР°РІР° РѕС‚
-+                    // РёРјРµРЅРё Р¶РёРІСѓС‚ РѕС‚РјРµС‚РєР° РїСЂРѕРІРµСЂРµРЅРЅРѕРіРѕ Р°РєРєР°СѓРЅС‚Р° Рё СЌРјРѕРґР·Рё-СЃС‚Р°С‚СѓСЃ.
-+                    nameTextView[a].setText(app.nebulagram.ui.NebulaBadges.decorate(
-+                            newString, user.id, nameTextView[a].getTextPaint()));
+@@ -11816,7 +11816,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 avatarImage.setAnimateFromImageReceiver(fromAvatarImage.getImageReceiver());
+             }
+             {
+-                nameTextView.setText(newString);
++                // NebulaGram: the supporter badge is appended to the name as a span;
++                // verification and emoji status keep their places on the right.
++                nameTextView.setText(app.nebulagram.ui.NebulaBadges.decorate(newString, user.id, nameTextView.getTextPaint()));
+                 if (simpleActionBar != null) {
+                     simpleActionBar.setTitle(newString);
                  }
-                 if (a == 0 && onlineTextOverride != null) {
-                     onlineTextView[a].setText(onlineTextOverride);

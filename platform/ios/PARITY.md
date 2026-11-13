@@ -1,5 +1,9 @@
 # iOS implementation inventory — 2026-10-13
 
+## November 8: Android 25134250 parity (patch 0122)
+
+Ported from Android: split message menu (icon row Reply/Copy/Edit/Forward/Copy link below the list), Cherrygram-style menu entrance from the message, blurred message bubbles with 35/55/75 % tint, badge information sheet (meaning, how to get it, all badges, Support), and the grouped NebulaGram settings root (Interface / Features / Accounts and security / NebulaGram). The adaptive glass header already reaches Saved Messages, threads, scheduled messages and Recent actions on iOS through the shared `ChatNavigationBarTitleView` (0064); tapping the avatar opens the profile and holding it opens the chat menu, as is native on iOS. A full inventory of remaining Android-only features is kept in the session notes; the largest are the Shape page, chat cards, custom fonts, chat history tools, channel feed and My bots. Verified only by bootstrap checks; full IPA build and iPhone acceptance are pending.
+
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
 ## October 12: complete chat-list toolbar and explicit clipboard import
@@ -82,6 +86,7 @@ This section supersedes older pending-source statements below. Source implementa
 | Home title and deletion protection | Chats/NebulaGram title with live refresh. Explicit nondestructive Face ID/Touch ID/passcode test, including while the deletion toggle is off. |
 | Peer IDs | Tap-to-copy user/group/channel IDs in profiles; Telegram/Bot API format in General. Bot API channel IDs use the numeric 1,000,000,000,000 offset, including short IDs; secret-chat internal IDs are not exposed. |
 | NebulaLink refresh | Pull-to-refresh on overview and subscription list invokes the same `subscription.refreshAll` core operation, with busy gating, aggregate outcome and spinner cleanup on success/failure. No connection or server change is implicit. |
+| NebulaLink auto and routing | "Auto — the fastest" row uses the same `auto.status`/`auto.set`/`auto.check` core methods as Android and shows the picked server with its ping; connecting with auto on sends `tunnel.start` without an id. The native Routing screen edits rules, the default action and presets through `routing.get`/`routing.set`/`routing.preset`; lifting the Telegram-through-proxy guarantee needs a confirmation. Parsed in bootstrap; full typecheck in ios-native.yml. |
 | App branding | 0089 fixes the actual Bazel-generated main app display name. 0087 only changed the separate Xcode plist; device build 89 exposed this gap. The verified unsigned delivery has NebulaGram as its display name. |
 
 Platform adaptations (not equivalent Android switches): native extracted-menu viewport/scrolling replaces percentage-height and below-message placement controls; native navigation/keyboard dismissal replaces Predictive Back and Android keyboard swipe sensitivity; UIKit/Telegram material and navigation components own the home header glass. Face ID/passcode selection belongs to LocalAuthentication, not an Android “prefer PIN” switch. Volume-button playback, Android recording audio focus, Material You and Android font substitution are not emulated. Camera engines/lenses/recording controls/phone-camera preview remain explicitly excluded by the user. These are documented differences, not hidden unfinished consumers.

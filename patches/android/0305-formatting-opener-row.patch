@@ -1,0 +1,24 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index a290cbc5..7b4bfdde 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -240,7 +240,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+     private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
+     private int nebulaFormattingHeight;
+     private boolean nebulaFormattingKeyboardVisible;
+-    public int getNebulaFormattingHeight() { return nebulaFormattingHeight; }
++    public int getNebulaFormattingHeight() { return nebulaFormattingHeight + nebulaOpenerRow(); }
++    /** Ряд плавающей «A»: поднимает список сообщений, но не поле ввода. */
++    private int nebulaOpenerRow() { return nebulaFormattingToolbar == null ? 0 : nebulaFormattingToolbar.openerRow(); }
+     private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
+ 
+     private int commonInputType;
+@@ -16420,7 +16422,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+             (animatorTopViewVisibility.getValue() ? 1 : 0):
+             animatorTopViewVisibility.getFloatValue();
+ 
+-        return nebulaFormattingHeight + fieldHeight + (topView != null ? topView.getMeasuredHeight() : 0) * topViewVisibility;
++        return nebulaFormattingHeight + nebulaOpenerRow() + fieldHeight + (topView != null ? topView.getMeasuredHeight() : 0) * topViewVisibility;
+     }
+ 
+ 

@@ -2,6 +2,7 @@ import UIKit
 import Postbox
 import TelegramCore
 import TelegramPresentationData
+import NebulaSettingsContract
 
 final class NebulaMessageDetailsController: UITableViewController {
     struct Field { let title: String; let value: String }
@@ -34,6 +35,17 @@ final class NebulaMessageDetailsController: UITableViewController {
             if !file.mimeType.isEmpty { fields.append(Field(title: "MIME", value: file.mimeType)) }
             if let size = file.size, size > 0, size != .max {
                 fields.append(Field(title: russian ? "Размер файла" : "File size", value: ByteCountFormatter.string(fromByteCount: size, countStyle: .file) + " · \(size) " + (russian ? "байт" : "bytes")))
+            }
+            // Which client recorded a voice note or round video, guessed from upload attributes.
+            for attribute in file.attributes {
+                switch attribute {
+                case let .Audio(isVoice, _, _, _, waveform) where isVoice:
+                    fields.append(Field(title: russian ? "Отправлено с" : "Sent from", value: NebulaSentFrom.voice(mimeType: file.mimeType, fileName: file.fileName, waveform: waveform).label(russian: russian)))
+                case let .Video(_, _, flags, _, _, _) where flags.contains(.instantRoundVideo):
+                    fields.append(Field(title: russian ? "Отправлено с" : "Sent from", value: NebulaSentFrom.round(fileName: file.fileName, supportsStreaming: flags.contains(.supportsStreaming)).label(russian: russian)))
+                default:
+                    break
+                }
             }
         }
         self.fields = fields

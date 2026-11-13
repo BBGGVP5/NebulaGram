@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 048e0dbc..85c2b421 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -1427,6 +1427,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
@@ -17,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                              dx = Math.abs(x);
                              if (animatingForward) {
                                  tabsAnimation.playTogether(
-@@ -6802,9 +6804,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6724,9 +6726,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void updateNebulaFolderTitle() {
@@ -33,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -6818,6 +6824,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6740,6 +6746,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              return;
          }
          MessagesController.DialogFilter filter = getMessagesController().getDialogFilters().get(viewPages[a].selectedType);

@@ -30,6 +30,10 @@ type Options struct {
 	// them Xray refuses to start any configuration that mentions geoip: or
 	// geosite:, which panels use constantly, so Normalize strips those rules.
 	GeoAssets bool
+
+	// Routing is the user's routing table (see RoutingRules). The zero value
+	// sends everything through the proxy.
+	Routing model.Routing
 }
 
 // Defaults returns the options NebulaGram ships with.
@@ -75,9 +79,9 @@ func Build(s model.Server, o Options) ([]byte, error) {
 			// the upstream resolver is blocked — which is exactly where a
 			// tunnel is needed.
 			"domainStrategy": "AsIs",
-			"rules": []any{
+			"rules": append([]any{
 				map[string]any{"type": "field", "outboundTag": "block", "protocol": []string{"bittorrent"}},
-			},
+			}, RoutingRules(o.Routing, o.GeoAssets)...),
 		},
 	}
 	// With AsIs routing the client resolves nothing itself, so a DNS section is

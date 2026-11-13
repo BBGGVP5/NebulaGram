@@ -57,12 +57,16 @@ public final class NebulaRichText {
         for (TLRPC.MessageEntity entity : source.entities) ranges.add(new NebulaTranslationFormat.Range(
             entity.offset, entity.offset + entity.length, protectedEntity(entity)));
         boolean local = NebulaTranslationSettings.local();
-        int budget = NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO ? 900 : 3500;
+        String web = NebulaTranslationSettings.web();
+        // Web translators without HTML support translate each style run on its own.
+        boolean structured = web.isEmpty() ? !local : NebulaWebTranslation.markup(web);
+        int budget = !web.isEmpty() ? NebulaWebTranslation.chunkLimit(web)
+            : NebulaTranslationSettings.global().getInt("provider", 0) == NebulaAiClient.NANO ? 900 : 3500;
         NebulaTranslationFormat.Result result = NebulaTranslationFormat.translate(source.text, ranges,
             new NebulaTranslationFormat.Translator() {
                 public String translate(String text) throws Exception { return client.translate(text, language, interactive, progress); }
                 public String translateStructured(String text) throws Exception { return client.translate(text, language, interactive, progress, true); }
-            }, !local, budget);
+            }, structured, budget);
         return remap(source, result);
     }
     public static TLRPC.TL_textWithEntities transform(TLRPC.TL_textWithEntities source,

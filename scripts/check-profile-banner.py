@@ -23,7 +23,7 @@ assert 'avatarsViewPager.getCurrentItemView()' in header and 'nebulaHero.clear(a
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(actionsView,')
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(musicView,')
 actions = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java').read_text(encoding='utf-8')
-assert 'if (!hasCustomActionSurface(canvas)) drawRenderNode(canvas)' in actions
+assert 'if (glassFactory != null && !hasCustomActionSurface(canvas))' in actions
 assert 'drawActionEmoji' not in actions, 'profile actions must retain native icon rendering'
 assert actions.index('if (hasCustomActionSurface(canvas)) {') < actions.index('int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha)')
 
@@ -61,6 +61,7 @@ contracts = {
  'app/nebulagram/ui/NebulaTheme.java': """package app.nebulagram.ui;public class NebulaTheme {
  public static NebulaTheme of(android.content.Context c){return new NebulaTheme();}public boolean isDynamic(){return false;}public int surfaceContainer(){return 0xff112233;}}""",
  'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled(){return true;}}',
+ 'app/nebulagram/ui/NebulaMessagePreferences.java': 'package app.nebulagram.ui;public class NebulaMessagePreferences {public static boolean enabled(String key,boolean fallback){return fallback;}}',
  'app/nebulagram/ui/NebulaProfileGlass.java': """package app.nebulagram.ui;class NebulaProfileGlass {
  static boolean enabled=true;static int captures,ends,draws;static CanvasSize last;static android.graphics.Canvas lastCanvas;
  static class CanvasSize {int w,h;CanvasSize(int w,int h){this.w=w;this.h=h;}}

@@ -19,7 +19,7 @@ import org.telegram.ui.Components.ChatActivityEnterViewAnimatedIconView;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
 import org.telegram.ui.Components.blur3.drawable.color.BlurredBackgroundColorProviderThemed;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
+import org.telegram.utils.glass.source.GlassSourceColor;
 
 /** The real composer's resources and dimensions, without chat/keyboard side effects. */
 public final class NebulaComposerPreview extends FrameLayout {
@@ -59,7 +59,7 @@ public final class NebulaComposerPreview extends FrameLayout {
         if (self != null) sender.setForUserOrChat(self, new org.telegram.ui.Components.AvatarDrawable(self));
         addView(sender);
 
-        BlurredBackgroundSourceColor source = new BlurredBackgroundSourceColor();
+        GlassSourceColor source = new GlassSourceColor();
         source.setColor(NebulaTheme.of(context).surface());
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
         BlurredBackgroundColorProviderThemed colors =

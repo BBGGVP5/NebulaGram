@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 83bd8187..24e8c9d6 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -5259,7 +5259,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         avatarContainer2 = new FrameLayout(context) {
+ 
+             final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
+-            { nebulaHero.page(() -> app.nebulagram.ui.NebulaProfileStyle.pageColor(listView)); } // NebulaGram
++            { // NebulaGram: страница в цвете профиля или, без него, в тоне фотобаннера
++                nebulaHero.page(() -> app.nebulagram.ui.NebulaProfileStyle.pageColor(listView));
++                nebulaHero.bannerPhoto(photo -> app.nebulagram.ui.NebulaProfileStyle.bannerPage(listView, photo, resourcesProvider));
++            }
+             private boolean nebulaForegroundDrawn;
+             CanvasButton canvasButton;
+ 

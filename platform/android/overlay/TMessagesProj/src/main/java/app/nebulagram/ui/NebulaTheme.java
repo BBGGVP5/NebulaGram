@@ -207,7 +207,10 @@ public final class NebulaTheme {
     private static boolean applying;
 
     public static void applyMaterialYou(Context context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !materialYouEnabled()) {
+        // A picture accent (avatar or chat wallpaper) outranks the system one:
+        // the user picked it on purpose, and it works below Android 12 too.
+        int picture = pictureAccent(Theme.isCurrentThemeDark());
+        if (picture == 0 && (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || !materialYouEnabled())) {
             return; // нечего брать или пользователь отказался
         }
         // Guard synchronous callbacks. Queued callbacks stop at the accent equality
@@ -217,7 +220,7 @@ public final class NebulaTheme {
             applying = true;
             // This opt-in affects Telegram, never the independent settings palette.
             Context application = context == null ? ApplicationLoader.applicationContext : context.getApplicationContext();
-            int accent = new NebulaTheme(application == null ? context : application,
+            int accent = picture != 0 ? picture : new NebulaTheme(application == null ? context : application,
                     Theme.isCurrentThemeDark(), true).primary();
             Theme.ThemeInfo active = Theme.getActiveTheme();
             if (active == null) {
@@ -294,6 +297,48 @@ public final class NebulaTheme {
         materialYou = value;
         if (!value) {
             restoreAccent(prefs);
+            // The picture accent stays: it never depended on Material You.
+            if (pictureSource() != 0) applyMaterialYou(ApplicationLoader.applicationContext);
+        }
+    }
+
+    /** 0 — off, 1 — own avatar, 2 — chat wallpaper. */
+    public static final String KEY_PICTURE_SOURCE = "picture_accent_source";
+    /** The seed colour last extracted from that picture; 0 until one is known. */
+    public static final String KEY_PICTURE_SEED = "picture_accent_seed";
+
+    public static int pictureSource() {
+        try {
+            SharedPreferences prefs = ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0);
+            int source = prefs.getInt(KEY_PICTURE_SOURCE, 0);
+            return source == 1 || source == 2 ? source : 0;
+        } catch (Throwable e) {
+            return 0;
+        }
+    }
+
+    /** The accent the chosen picture gives this theme, or 0 when none is in effect. */
+    public static int pictureAccent(boolean dark) {
+        if (pictureSource() == 0) return 0;
+        try {
+            int seed = ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0).getInt(KEY_PICTURE_SEED, 0);
+            return NebulaPictureAccent.tone(seed, dark);
+        } catch (Throwable e) {
+            return 0;
+        }
+    }
+
+    /**
+     * Re-applies whichever accent source is now in charge after the picture
+     * source or its seed changed: the picture, then Material You, else the
+     * accent the user had before either of them.
+     */
+    public static void refreshAccentSource(Context context) {
+        if (pictureAccent(Theme.isCurrentThemeDark()) != 0
+                || Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && materialYouEnabled()) {
+            applyMaterialYou(context);
+        } else {
+            restoreAccent(ApplicationLoader.applicationContext.getSharedPreferences(PREFS, 0));
         }
     }
 

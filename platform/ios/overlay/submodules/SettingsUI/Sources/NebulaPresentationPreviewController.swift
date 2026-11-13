@@ -41,9 +41,9 @@ final class NebulaPresentationPreviewController: UITableViewController {
     override func viewWillAppear(_ animated: Bool) { super.viewWillAppear(animated); hero.setPageVisible(true) }
     override func viewWillDisappear(_ animated: Bool) { super.viewWillDisappear(animated); hero.setPageVisible(false) }
     override func numberOfSections(in tableView: UITableView) -> Int { profile ? 2 : 3 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 1 : section == 1 ? keys.count : NebulaMessageMenuAction.allCases.count + 1 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 1 : section == 1 ? keys.count : NebulaMessageMenuAction.allCases.count + 3 }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
-        if section == 2 { return t("Скрываются только необязательные действия. Редактирование, удаление и выделение остаются доступны. Высота и прокрутка меню адаптируются iOS к экрану и размеру текста.", "Only optional actions are hidden. Edit, Delete and Select remain available. iOS adapts menu height and scrolling to the screen and text size.") }
+        if section == 2 { return t("«Строка иконок» выносит «Ответить», «Копировать», «Изменить», «Переслать» и «Ссылку» в ряд под списком, если таких действий хотя бы два. «Появление из сообщения» — меню вырастает из сообщения с лёгкой пружиной. Скрываются только необязательные действия; редактирование, удаление и выделение остаются доступны.", "Icon row moves Reply, Copy, Edit, Forward and Link into a row below the list when at least two of them apply. Grow from message makes the menu spring out of the message. Only optional actions are hidden; Edit, Delete and Select remain available.") }
         if section == 0 { return profile ? t("Условный профиль · информация приведена для примера", "Sample profile · illustrative information") : t("Нажмите на сообщение. Меню использует ту же анимацию и материал, что и в чате. Действия в примере ничего не отправляют.", "Tap the message. Its menu uses the same animation and material as a chat. Sample actions do not send anything.") }
         return profile ? nil : t("Кнопки ниже относятся к меню в заголовке чата; доступность звонков зависит от типа чата.", "The buttons below control the chat header menu; calls depend on the chat type.")
     }
@@ -64,10 +64,14 @@ final class NebulaPresentationPreviewController: UITableViewController {
             let toggle = NebulaSwitchControl()
             if indexPath.row == 0 {
                 cell.textLabel?.text = t("Компактное меню", "Compact menu"); toggle.isOn = prefs.compact; toggle.accessibilityIdentifier = "compact"
+            } else if indexPath.row == 1 {
+                cell.textLabel?.text = t("Строка иконок под списком", "Icon row below the list"); toggle.isOn = prefs.split; toggle.accessibilityIdentifier = "split"
+            } else if indexPath.row == 2 {
+                cell.textLabel?.text = t("Появление из сообщения", "Grow from message"); toggle.isOn = prefs.cherryMotion; toggle.accessibilityIdentifier = "cherry_motion"
             } else {
-                let action = NebulaMessageMenuAction.allCases[indexPath.row - 1]
+                let action = NebulaMessageMenuAction.allCases[indexPath.row - 3]
                 let names = ru ? ["Ответить", "Переслать", "Копировать", "Сохранить в галерею", "Сохранить в Файлы", "Копировать ссылку", "Пожаловаться", "Перевести", "Расшифровать", "Сохранить звук", "Инструменты Nebula", "Добавить в список дел"] : ["Reply", "Forward", "Copy", "Save to gallery", "Save to Files", "Copy link", "Report", "Translate", "Transcribe", "Save sound", "Nebula tools", "Add to checklist"]
-                cell.textLabel?.text = names[indexPath.row - 1]; toggle.isOn = prefs.visible(action); toggle.accessibilityIdentifier = action.rawValue
+                cell.textLabel?.text = names[indexPath.row - 3]; toggle.isOn = prefs.visible(action); toggle.accessibilityIdentifier = action.rawValue
             }
             toggle.accessibilityLabel = cell.textLabel?.text; toggle.addTarget(self, action: #selector(changeMenu(_:)), for: .valueChanged)
             cell.accessoryView = toggle; NebulaSettingsStyle.finish(cell, theme: theme); return cell
@@ -105,12 +109,14 @@ final class NebulaPresentationPreviewController: UITableViewController {
     }
     @objc private func changeMenu(_ sender: NebulaSwitchControl) {
         if sender.accessibilityIdentifier == "compact" { NebulaMessageMenuPreferences.shared.setCompact(sender.isOn) }
+        else if sender.accessibilityIdentifier == "split" { NebulaMessageMenuPreferences.shared.setSplit(sender.isOn) }
+        else if sender.accessibilityIdentifier == "cherry_motion" { NebulaMessageMenuPreferences.shared.setCherryMotion(sender.isOn) }
         else if let key = sender.accessibilityIdentifier, let action = NebulaMessageMenuAction(rawValue: key) { NebulaMessageMenuPreferences.shared.setVisible(action, sender.isOn) }
     }
     @objc private func openMenu() {
         guard presentedViewController == nil, !extracted.isExtractedToContextPreview else { return }
-        let entries: [(String, String, NebulaMessageMenuAction?)] = [(t("Ответить", "Reply"), "arrowshape.turn.up.left", .reply), (t("Копировать", "Copy"), "doc.on.doc", .copy), (t("Переслать", "Forward"), "arrowshape.turn.up.right", .forward), (t("Перевести", "Translate"), "character.bubble", .translate), (t("Редактировать", "Edit"), "pencil", nil), (t("Удалить", "Delete"), "trash", nil)]
-        let actions: [ContextMenuItem] = entries.map { title, symbol, action in .action(ContextMenuActionItem(id: action?.identifier, text: title, icon: { theme in UIImage(systemName: symbol)?.withTintColor(theme.contextMenu.primaryColor, renderingMode: .alwaysOriginal) }, action: { _, completion in completion(.default) })) }
+        let entries: [(String, String, NebulaMessageMenuAction?)] = [(t("Ответить", "Reply"), "arrowshape.turn.up.left", .reply), (t("Копировать", "Copy"), "doc.on.doc", .copy), (t("Переслать", "Forward"), "arrowshape.turn.up.right", .forward), (t("Перевести", "Translate"), "character.bubble", .translate), (t("Редактировать", "Edit"), "pencil", nil), (t("Копировать ссылку", "Copy link"), "link", .copyLink), (t("Удалить", "Delete"), "trash", nil)]
+        let actions: [ContextMenuItem] = entries.map { title, symbol, action in .action(ContextMenuActionItem(id: action?.identifier ?? (symbol == "pencil" ? NebulaMessageMenuSplit.editIdentifier : nil), text: title, icon: { theme in UIImage(systemName: symbol)?.withTintColor(theme.contextMenu.primaryColor, renderingMode: .alwaysOriginal) }, action: { _, completion in completion(.default) })) }
         let menu = makeContextController(context: context, presentationData: context.sharedContext.currentPresentationData.with { $0 }, source: .extracted(NebulaPreviewExtractedSource(view: extracted, blur: store.messageMenuBlur)), items: .single(ContextController.Items(content: .list(NebulaMessageMenuPresentation.filter(actions)))))
         present(menu, animated: true)
     }

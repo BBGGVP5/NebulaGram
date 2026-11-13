@@ -372,3 +372,183 @@ target and 3-point top/bottom gaps. The overlay button gives transient scale/opa
 feedback, resets on release/reuse, and honors Reduce Motion. No selected-format chips.
 `check_formatting_placement.py` executes the actual height/frame expressions rather
 than duplicating the reserved height; selection tests exercise all feedback states.
+
+## 0122 — split message menu, menu entrance, blurred bubbles, badge sheet
+
+Port of Android 0294 / commit 25134250.
+
+- `ChatInterfaceStateContextMenus.swift`: both native Edit actions get the identifier
+  `NebulaMessageMenuSplit.editIdentifier`. Edit has no visibility switch; the identifier only lets
+  `NebulaMessageMenuPresentation.split` move Reply, Copy, Edit, Forward and Copy link into a
+  `ContextMenuCustomItem` icon row below the list. The rule matches Android: at least two icons and
+  at least one action left in the list, otherwise the menu stays as it was. Each icon runs the
+  original Telegram action, so eligibility and side effects stay native.
+- `ContextControllerExtractedPresentationNode.swift`, `.animateIn` without liquid morph: for an
+  extracted source (a message), the actions card grows from 72 % with a lighter spring (damping 88)
+  and travels only the remaining 28 % from the message side (Android `NebulaMenuPop`). The switch is
+  read from `nebula.messageMenu.cherryMotion` (default on); Reduce Motion keeps the native animation.
+  Reference sources (buttons) and liquid morphs are untouched.
+- `WallpaperBackgroundNode.swift`: with `nebula.messages.message_blur`, incoming/outgoing bubble
+  backgrounds use the blurred wallpaper (`blurredBackgroundContents`, the same copy service
+  messages use) under the bubble colour at 35/55/75 % (`message_blur_tint`). Plain colour wallpapers
+  have nothing to blur and stay solid. Takes effect when a chat is opened again.
+- `PeerInfoHeaderNode.nebulaBadgeTapped`: opens `NebulaBadgeSheet` directly (artwork, meaning, how to
+  get it, all badges, Support for donation badges). This also replaces a `switch` that did not cover
+  the new donor/sponsor/moderator cases.
+
+Settings: Message menu page gains "Icon row below the list" and "Grow from message"; Messages and
+media gains "Blurred messages" and tint density. The NebulaGram settings root is grouped into
+Interface / Features / Accounts and security / NebulaGram, as on Android.
+
+## 0123 — switch for the dust delete effect
+
+`ChatHistoryListNode`: the dust effect for deleted messages additionally requires
+`NebulaMessagePreferences.enabled("delete_dust")` (default on, Android `delete_effect`). Off takes
+the same path as Telegram's own `ios_killswitch_disable_dust_effect`: the message just disappears.
+Without a patch, "Select loaded" can drop its 100-message cap with the catalog key
+`unlimited_selection` (Android `NebulaSelectionPolicy`); manual selection is not capped on iOS.
+
+## 0124 — message tails switch ("Shape" page)
+
+`ChatMessageBubbleImages.swift`: the four `drawTail = true` branches of `messageBubbleArguments`
+and `messageBubbleImage` read `nebula.shape.message_tails` (default on, Android `message_tails`).
+Off draws every bubble with its plain corners. Bubble graphics are cached per theme, so the change
+applies after a restart. The former Avatars page becomes "Shape": avatar presets Circle / Squircle /
+Rounded / Square set `avatar_round` (Android leaf and drop need per-corner radii the iOS avatar clip
+does not take); Android's uniform roundness, section gap and separate rows style Android's own
+cards and have no iOS counterpart in native inset-grouped lists.
+
+## 0125 — chats as cards
+
+`ChatListItemNode`: an extra `nebulaCardNode` above `backgroundNode` and below the content draws a
+5 % tint of the primary text colour with 16-point corners, inset 8 × 3 points, when
+`nebula.shape.chat_cards` is on (Android `NebulaChatCards`). The tint sits over whatever background
+is there, so it reads the same in light, dark and custom themes. Separators are hidden with cards;
+the archive row (`.groupReference`) keeps its native look. Row content and swipe geometry are not
+moved. The switch lives on the Shape page and applies as rows lay out again.
+
+## 0126 — profile tabs as buttons
+
+`HorizontalTabsComponent` gains `nebulaTabButtons` (default off, so folder tabs are unchanged): each
+regular tab view gets a 6 % primary-text tint capsule under its label. The liquid lens still marks
+and animates the selected tab, so selection code is untouched. `PeerInfoPaneContainerNode` passes
+`NebulaShapePreferences.profileTabButtons()` (Android `profile_tab_buttons`); the switch is on the
+Shape page.
+
+## 0127 — custom interface font
+
+`Display/Font.swift`: `Font.with` (regular design only, before its cache) and `Font.regular`,
+`medium`, `semibold`, `bold`, `light` first ask `NebulaCustomFont.font(size:weight:)` (overlay in
+Display). It returns nil unless `nebula.font.custom` is on and the imported file registered at launch,
+so the default path is unchanged. Bold and italic come from the font's own symbolic traits;
+monospaced, serif and camera designs stay native. The file is validated by
+`NebulaFontFile.validate` (sfnt directory with `cmap` and `head`, 8 MB limit, Android
+`NebulaFontFile`), registered with `CTFontManagerRegisterGraphicsFont` and written atomically to
+Application Support only after it registers. Applies after a restart. Settings: Appearance → Font.
+
+## 0128 — registration month in the profile
+
+`PeerInfoProfileItems.swift`, user section, before the birthday: a "Registered" row with the month
+Telegram reported in `CachedUserData.peerStatusSettings.registrationDate`, formatted by
+`NebulaRegistrationMonth` ("YYYY-MM" or "MM.YYYY"; anything else is shown as is). Unlike Android
+0254 there are no ID-neighbour estimates and no history request: only Telegram's own value, no
+extra network traffic. Switch: Profile information → Registration month (default on).
+
+## 0129 — NebulaLink shortcut on the home screen
+
+`ChatListController`, home header story slot: with `NebulaHomeLink` on and the AI shortcut off, the
+slot shows a `network` symbol and posts `NebulaHomeLink.open` (Android `home_nebulalink`). The AI
+shortcut keeps the slot when both are on; the camera returns when both are off. The header re-renders
+through the existing `homeShortcutChanged` signal. `TelegramRootController.nebulaOpenLink` presents
+the NebulaLink screen (`SettingsUI.nebulaLinkController`, now public) only for its own tab host;
+presenting it starts no tunnel or probe. Switch: Navigation → NebulaLink on home.
+
+## 0130 — glow behind photos in the media viewer
+
+`ChatImageGalleryItemNode`: a `NebulaMediaAmbientView` (GalleryUI overlay) sits at the bottom of the
+item view and shows an enlarged, blurred, dimmed copy of the photo `imageUpdated` delivers, when the
+catalog key `media_ambient` is on (Android `NebulaMediaAmbient`). It samples nothing per frame and
+does not touch zooming or dismissal. Videos keep the plain background. Switch: Appearance →
+Glow behind photos in the viewer.
+
+## 0131 — hide the bottom bar while scrolling chats
+
+`ChatListControllerNode.contentOffsetChanged`, primary list only: `NebulaTabScroll` (contract, Android
+`NebulaTabScroll`) hides the bar through Telegram's own `TabBarController.updateIsTabBarHidden` after a
+steady 72-point drag down and shows it after a 32-point pull back or at the top; a change of
+direction resets the distance and programmatic scrolling is ignored. Search keeps Telegram's own
+hide/show; turning the switch off shows the bar again. Switch: Navigation → Hide the bar while
+scrolling chats (default off).
+
+## 0132 — floating formatting "A"
+
+`ChatTextInputPanelNode`: with the formatting toolbar enabled, a `NebulaFormattingToggleButton` ("A")
+sits in the message field between the text and the emoji button (the accessory slot after the Nebula
+tools button; its 36 points are added to `accessoryButtonsWidth` in both measuring passes). The
+toolbar is reserved only after the "A" is tapped (`nebulaFormattingExpanded`) and unfolds from the
+button with a spring (`NebulaFormattingToolbar.setPresented(_:from:)`; Reduce Motion keeps the plain
+fade). Losing focus or turning the setting off folds it again. Port of Android 0297's format button.
+`check_formatting_placement.py` executes the eligibility with the folded state as a ninth bit.
+
+## 0133 — masked phone number in profiles
+
+`PeerInfoProfileItems.swift`: `hide_profile_phone` no longer removes the phone row. The number stays
+in place with its middle digits replaced by `•` (`NebulaPhoneMask`: the first two and last two digits
+remain); tapping or holding the row opens Telegram's own phone actions, which show the full number.
+Android 0297 blurs the text and reveals it for 15 seconds; iOS uses the mask because the profile list
+item has no per-row blur.
+
+### Unit conversion while typing (no patch)
+
+`NebulaArithmeticHint` (overlay) also shows `NebulaInlineUnits.result` when the catalog key
+`inline_units` is on (default on, Android `NebulaInlineUnits`): a last line ending with "=" such as
+"5 km =", "100 °F to °C =" or "90 min =" gets the converted value as the same grey hint. Length,
+weight, temperature, speed and time; without a target the value moves to the other measurement
+system (imperial when the device locale is not metric). Arithmetic keeps precedence. Switch: Chats →
+Messages and gestures → Unit conversion while typing.
+
+### Currency and time zones while typing (no patch)
+
+The same hint follows Android `NebulaInlineResults.compute`: arithmetic, units with a named target,
+then `NebulaInlineCurrency` ("100€ =", "$100 to euros =", "5k ₽ to $ ="), then `NebulaInlineTime`
+("15:00 msk in tokyo =", "3pm est to utc+3 =", "now in london =", "токио ="), and last units moved to
+the other measurement system. `NebulaInlineRates` keeps a day-long cache of fiat rates per dollar
+from `open.er-api.com` (the Android source) in `UserDefaults`; only that public URL is fetched, never
+the draft, at most every ten minutes, and the hint redraws on `NebulaInlineRates.didUpdate`. Without
+a named target the amount goes to `inline_default_currency` (Auto = the device locale's currency;
+Android also tries the account phone prefix), or USD/EUR when it already is that currency. Switches:
+Chats → Messages and gestures → Currency conversion / Time zones while typing / Default currency
+(`inline_currency`, `inline_timezones`, `inline_default_currency`, defaults as on Android).
+
+### 0134 — Postbox в TelegramUI
+
+`0134-telegramui-postbox-imports.patch`: Telegram iOS 13.1.1 убрал `import Postbox` из
+`ApplicationContext.swift` и `SharedAccountContext.swift`, а наши хуки уведомлений и
+расшифровки голосовых используют `Message`, `PeerGroupId` и транзакции Postbox. Патч
+возвращает импорт; модуль уже зависит от `//submodules/Postbox`.
+
+## 0135 — profile page colour (Cherrygram style)
+
+`PeerInfoHeaderNode` computes `nebulaPageColor` on every header update: the profile colour that ends
+the header cover (`getProfile(...).secondary ?? main`, or a star gift's outer colour) when Profile
+background is on, otherwise — for a profile with a photo and Photo banner on — the photo's average
+tone measured once per image (`NebulaProfilePage`, overlay) and clamped as on Android
+(`NebulaProfilePagePolicy.photoTone`: saturation ≤ 0.42/0.38, lightness 0.12…0.22 at night, ≥ 0.86 by
+day). The banner fade now fades into that colour. `PeerInfoScreenNode.updateBackgroundColor` shows a
+full-screen `CAGradientLayer` behind the scroll node from the page colour to its blend with the list
+background (30 % at night, 45 % by day, Android `PageBackground`), so the colour runs on under the
+cards; `PeerInfoPaneContainerNode.nebulaPageColor` paints the media tabs with the lower colour.
+Editing, Profile style off, or no colour/photo keep Telegram's own background. Android 0297/0302/0303.
+
+## 0136 — the "A" over the voice button; the toolbar unfolds sideways
+
+Supersedes 0132's placement (Android ddde6e0e/4be4c20a/ef54d403). The "A" leaves the message field
+(the field gets its 36 points back) and floats as a round 40-point button in its own row above the
+panel, centred on the round voice button — or on the send button while there is text — and clamped
+inside the panel. The 50-point row is reserved as soon as the "A" shows (focused text input with the
+formatting toolbar enabled), so the message list rises above it instead of being covered; tapping the
+"A" unfolds `NebulaFormattingToolbar` in the same row sideways out of it (a 40-point strip centred on
+the "A" grows leftwards to the full row with a spring) and folds it back into the "A". The toolbar's
+right end stays under the "A" and `trailingReserve` keeps its last tiles clear of it. Reduce Motion
+keeps the plain fade. `check_formatting_placement.py` now expects the row for both the folded and
+the open state.

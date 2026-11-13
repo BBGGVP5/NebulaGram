@@ -293,7 +293,7 @@ public final class NebulaAiChatController: UIViewController, UITextViewDelegate 
         if actions {
             let controls = UIStackView(); controls.axis = .horizontal; controls.spacing = 8; controls.alignment = .center
             let copied = label(text("Скопировано", "Copied"), style: .caption1); copied.textColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel; copied.isHidden = true
-            let copy = NebulaAiChatButton(title: "") { UIPasteboard.general.string = raw; copied.isHidden = false; UIAccessibility.post(notification: .announcement, argument: copied.text); DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak copied] in copied?.isHidden = true } }
+            let copy = NebulaAiChatButton(title: "") { [weak copied] in UIPasteboard.general.string = raw; copied?.isHidden = false; UIAccessibility.post(notification: .announcement, argument: copied?.text); DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { [weak copied] in copied?.isHidden = true } }
             copy.setImage(UIImage(systemName: "doc.on.doc"), for: .normal); copy.tintColor = theme?.list.itemSecondaryTextColor ?? .secondaryLabel; copy.accessibilityLabel = text("Копировать ответ", "Copy answer"); copy.widthAnchor.constraint(equalToConstant: 44).isActive = true
             controls.addArrangedSubview(copy); controls.addArrangedSubview(copied)
             if applyResult != nil {

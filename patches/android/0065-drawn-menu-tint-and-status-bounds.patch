@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
+index 189fdc72..3d0b278c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameDrawable.java
 @@ -75,6 +75,8 @@ public class PlayingGameDrawable extends StatusDrawable {
@@ -19,6 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PlayingGameD
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
+index 4ffeb6a0..2c5b001e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatusDrawable.java
 @@ -79,7 +79,7 @@ public class RecordStatusDrawable extends StatusDrawable {
@@ -31,6 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RecordStatus
              if (a == 0) {
                  paint.setAlpha((int) (alpha * progress));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
+index 0fa98b63..88d2c7b6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusDrawable.java
 @@ -73,9 +73,12 @@ public class RoundStatusDrawable extends StatusDrawable {
@@ -47,6 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RoundStatusD
              update();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
+index 6ff11f89..7b9ae184 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileDrawable.java
 @@ -71,6 +71,8 @@ public class SendingFileDrawable extends StatusDrawable {
@@ -67,12 +71,13 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SendingFileD
              update();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index 931eadc0..8a4f0a51 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-@@ -186,6 +186,9 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
- 
-     protected BlurredBackgroundColorProvider colorProvider;
-     protected int shadowColor, backgroundColor, strokeColorTop, strokeColorBottom;
+@@ -259,6 +259,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+     private float outlineWidth;
+     // the drawable's own shadow, back when a theme no longer overrides it
+     private float defaultShadowRadius = -1, defaultShadowDx, defaultShadowDy;
 +    /** Tint actually consumed by the drawable/render node, not the host theme. */
 +    public int getBackgroundTint() { return backgroundColor; }
 +    public BlurredBackgroundColorProvider getColorProvider() { return colorProvider; }

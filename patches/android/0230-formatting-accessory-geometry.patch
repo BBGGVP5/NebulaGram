@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index ff9f335a..5e7537dc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -47475,6 +47475,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -47845,6 +47845,8 @@ public class ChatActivity extends BaseFragment implements
          inputIslandHeightTarget = calculateInputIslandHeight(true);
  
          chatInputViewsContainer.setInputBubbleHeight(inputIslandHeightCurrent);
@@ -11,9 +12,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          updateBotforumTabsBottomMargin();
          checkUi_botMenuPosition();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 91d54c20..b63d9fb1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -238,6 +238,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -239,6 +239,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  {
      private app.nebulagram.ui.NebulaFormattingToolbar nebulaFormattingToolbar;
      private int nebulaFormattingHeight;
@@ -21,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private final app.nebulagram.ui.NebulaMathHint nebulaMathHint = new app.nebulagram.ui.NebulaMathHint();
  
      private int commonInputType;
-@@ -4905,7 +4906,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -4963,7 +4964,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected boolean drawChild(Canvas canvas, View child, long drawingTime) {
          boolean clip = child == topView || child == textFieldContainer;
          if (clip) {
@@ -31,9 +33,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              if (child == textFieldContainer) {
                  // The split composer's AI row sits above the native text island.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+index 633d5b26..9ef877c1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -211,6 +211,15 @@ public class ChatInputViewsContainer extends FrameLayout {
+@@ -218,6 +218,15 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora
  
      private float inputBubbleHeight;
      private int inputBubbleHeightRound;
@@ -49,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInp
      public void setInputBubbleHeight(float height) {
          inputBubbleHeight = height;
          inputBubbleHeightRound = Math.round(inputBubbleHeight);
-@@ -274,7 +283,8 @@ public class ChatInputViewsContainer extends FrameLayout {
+@@ -281,7 +290,8 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora
              Math.round(inputBubbleOffsetLeft),
              0,
              getMeasuredWidth() - Math.round(inputBubbleOffsetRight),

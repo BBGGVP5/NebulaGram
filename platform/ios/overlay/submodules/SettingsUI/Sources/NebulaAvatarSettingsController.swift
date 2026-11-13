@@ -12,7 +12,7 @@ final class NebulaAvatarSettingsController: UITableViewController {
     init(russian: Bool, theme: PresentationTheme) {
         self.ru = russian; self.theme = theme
         super.init(style: .insetGrouped)
-        title = ru ? "Аватары" : "Avatars"
+        title = ru ? "Форма" : "Shape"
     }
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     override func viewDidLoad() {
@@ -24,11 +24,68 @@ final class NebulaAvatarSettingsController: UITableViewController {
         observation = store.observe { [weak self] in self?.updateEnabledState() }
     }
     @objc private func close() { dismiss(animated: true) }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { 3 }
+    override func numberOfSections(in tableView: UITableView) -> Int { 4 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 0 ? 4 : 1 }
+    override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
+        section == 0 ? (ru ? "Аватары" : "Avatars") : section == 1 ? (ru ? "Сообщения" : "Messages") : section == 2 ? (ru ? "Список чатов" : "Chat list") : (ru ? "Профиль" : "Profile")
+    }
+    override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 3 { return ru ? "У каждой вкладки профиля своя подложка; выбранную по-прежнему показывает линза. Применяется при следующем открытии профиля." : "Every profile tab gets its own capsule; the lens still marks the selected one. Applies when a profile is opened again." }
+        if section == 2 { return ru ? "Каждый чат на своей карточке; разделители скрываются. Архив остаётся как есть." : "Every chat on its own card; dividers are hidden. The archive row stays as it is." }
+        guard section == 1 else { return nil }
+        return ru ? "Без хвостов у всех пузырей одинаковые скругления. Применяется после перезапуска приложения." : "Without tails every bubble has the same corners. Applies after the app restarts."
+    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
+        guard indexPath == IndexPath(row: 3, section: 0), !store.hasLoadError else { return }
+        let shapes = NebulaShapePreferences.AvatarShape.allCases
+        NebulaChoiceController.show(from: self, title: ru ? "Форма аватаров" : "Avatar shape", choices: shapes.map { $0.title(russian: ru) }, selected: NebulaShapePreferences.AvatarShape.matching(roundness: store.avatarRound).flatMap { shapes.firstIndex(of: $0) }, russian: ru, theme: theme) { [weak self] index in
+            guard let self else { return }
+            do {
+                try self.store.set(.boolean(true), for: "custom_avatar_corners")
+                try self.store.set(.integer(shapes[index].roundness), for: "avatar_round")
+            } catch { }
+            self.tableView.reloadData()
+        }
+    }
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil)
         defer { NebulaSettingsStyle.finish(cell, theme: theme) }
         cell.selectionStyle = .none
+        if indexPath.section == 3 {
+            cell.textLabel?.text = ru ? "Вкладки профиля кнопками" : "Profile tabs as buttons"
+            let toggle = NebulaSwitchControl(); toggle.tag = 12
+            toggle.isOn = NebulaShapePreferences.profileTabButtons()
+            toggle.accessibilityLabel = cell.textLabel?.text
+            toggle.addTarget(self, action: #selector(tabButtonsChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            return cell
+        }
+        if indexPath.section == 2 {
+            cell.textLabel?.text = ru ? "Чаты карточками" : "Chats as cards"
+            let toggle = NebulaSwitchControl(); toggle.tag = 11
+            toggle.isOn = NebulaShapePreferences.chatCards()
+            toggle.accessibilityLabel = cell.textLabel?.text
+            toggle.addTarget(self, action: #selector(cardsChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            return cell
+        }
+        if indexPath.section == 1 {
+            cell.textLabel?.text = ru ? "Хвосты у сообщений" : "Message tails"
+            let toggle = NebulaSwitchControl(); toggle.tag = 10
+            toggle.isOn = NebulaShapePreferences.messageTails()
+            toggle.accessibilityLabel = cell.textLabel?.text
+            toggle.addTarget(self, action: #selector(tailsChanged(_:)), for: .valueChanged)
+            cell.accessoryView = toggle
+            return cell
+        }
+        if indexPath.row == 3 {
+            cell.textLabel?.text = ru ? "Готовая форма" : "Preset shape"
+            cell.detailTextLabel?.text = store.customAvatarCorners ? (NebulaShapePreferences.AvatarShape.matching(roundness: store.avatarRound)?.title(russian: ru) ?? (ru ? "Своя: \(store.avatarRound) %" : "Custom: \(store.avatarRound)%")) : (ru ? "Как в Telegram" : "Telegram default")
+            cell.accessoryType = .disclosureIndicator
+            cell.selectionStyle = .default
+            return cell
+        }
         if indexPath.row < 2 {
             cell.textLabel?.text = indexPath.row == 0 ? (ru ? "Своя форма" : "Custom shape")
                 : (ru ? "Одинаковая форма у всех" : "Same shape for everyone")
@@ -63,6 +120,15 @@ final class NebulaAvatarSettingsController: UITableViewController {
         do { try store.set(.boolean(toggle.isOn), for: toggle.tag == 0 ? "custom_avatar_corners" : "uniform_avatars") }
         catch { toggle.isOn = toggle.tag == 0 ? store.customAvatarCorners : store.uniformAvatars }
         updateEnabledState()
+    }
+    @objc private func tabButtonsChanged(_ toggle: NebulaSwitchControl) {
+        NebulaShapePreferences.setProfileTabButtons(toggle.isOn)
+    }
+    @objc private func cardsChanged(_ toggle: NebulaSwitchControl) {
+        NebulaShapePreferences.setChatCards(toggle.isOn)
+    }
+    @objc private func tailsChanged(_ toggle: NebulaSwitchControl) {
+        NebulaShapePreferences.setMessageTails(toggle.isOn)
     }
     @objc private func radiusChanged(_ slider: UISlider) {
         let radius = Int(slider.value.rounded())

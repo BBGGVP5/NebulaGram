@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+index bc66ff21..0e611552 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
-@@ -1710,7 +1710,11 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+@@ -1815,7 +1815,11 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
          }
      }
  
@@ -13,7 +14,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
          onCloseAnimationEnd();
          onOpenAnimationEnd();
          if (waitingForKeyboardCloseRunnable != null) {
-@@ -1728,6 +1732,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+@@ -1833,6 +1837,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
              animationRunnable = null;
          }
          setAlpha(1.0f);
@@ -21,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
          containerView.setAlpha(1.0f);
          containerView.setScaleX(1.0f);
          containerView.setScaleY(1.0f);
-@@ -1817,6 +1822,46 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
+@@ -1922,6 +1927,46 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
      }
  
      private void startLayoutAnimation(final boolean open, final boolean first, final boolean preview) {

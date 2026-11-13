@@ -98,7 +98,22 @@ public final class NebulaDeletedArchive {
         final java.util.Map<Long, java.util.Set<Integer>> scopes = new java.util.HashMap<>();
         Snapshot(JSONArray entries) throws Exception {
             this.entries = entries;
-            for (int i = 0; i < entries.length(); i++) {
+            index(0);
+        }
+        /**
+         * Следующий снимок после дописывания в конец. Готовый индекс копируется
+         * целиком, а разбираются только новые записи: раньше каждое удаление,
+         * попавшее в архив, заново читало поля всех записей на очереди базы.
+         */
+        Snapshot(JSONArray entries, Snapshot previous) throws Exception {
+            this.entries = entries;
+            keys.addAll(previous.keys);
+            for (java.util.Map.Entry<Long, java.util.Set<Integer>> scope : previous.scopes.entrySet())
+                scopes.put(scope.getKey(), new java.util.HashSet<>(scope.getValue()));
+            index(previous.entries.length());
+        }
+        private void index(int from) throws Exception {
+            for (int i = from; i < entries.length(); i++) {
                 JSONObject e = entries.getJSONObject(i);
                 if (!e.optBoolean("inline")) continue;
                 keys.add(marker(e.optLong("peer"), e.optInt("id")));
@@ -229,8 +244,20 @@ public final class NebulaDeletedArchive {
     }
     public static boolean hasError(long owner) { return ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).getBoolean("deleted_archive_error_"+owner,false); }
     private static void failed(long owner) { ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).edit().putBoolean("deleted_archive_error_"+owner,true).apply(); }
-    // Must run on the account's storage queue after its database has opened.
-    public static synchronized void initialize(int account) {
+    // Чтение и расшифровка всего архива идут на своём потоке. Раньше они шли
+    // прямо здесь, на очереди базы сразу после её открытия: с большим архивом
+    // список чатов и сообщения ждали, пока он целиком расшифруется и
+    // разберётся. Метки «удалено» в чате появятся, как только поток закончит;
+    // удаление, пришедшее раньше, дождётся того же снимка под общим замком и не
+    // потеряет ни одного сохранённого сообщения.
+    private static final java.util.concurrent.ExecutorService ARCHIVE_LOADER =
+            java.util.concurrent.Executors.newSingleThreadExecutor(r -> {
+                Thread thread = new Thread(r, "NebulaDeletedArchiveLoad");
+                thread.setPriority(Thread.MIN_PRIORITY + 1);
+                return thread;
+            });
+    // Called on the account's storage queue after its database has opened; returns at once.
+    public static void initialize(int account) {
         long owner=owner(account); if(owner==0)return;
         // Выходим до первого обращения к хранилищу ключей. Этот метод вызывает
         // MessagesStorage сразу после открытия базы, на её же очереди: пока он
@@ -238,8 +265,12 @@ public final class NebulaDeletedArchive {
         // не включал, здесь была пара операций AndroidKeyStore и запись файла
         // на каждый запуск — и список чатов ждал их.
         if(!enabled(owner)&&!present(owner))return;
-        try { publish(owner, snapshot(owner)); }
-        catch(Exception e){failed(owner);}
+        ARCHIVE_LOADER.execute(()->{
+            synchronized (NebulaDeletedArchive.class) {
+                try { publish(owner, snapshot(owner)); }
+                catch(Exception e){failed(owner);}
+            }
+        });
     }
     // Build membership once per batch, not once for every archived message.
     private static java.util.Set<String> entryKeys(JSONArray entries) {
@@ -298,7 +329,14 @@ public final class NebulaDeletedArchive {
     private static boolean protectedPeer(int account,long peer) {
         if(DialogObject.isEncryptedDialog(peer))return false;
         org.telegram.messenger.MessagesController controller=org.telegram.messenger.MessagesController.getInstance(account);
-        if(peer<0){TLRPC.Chat chat=controller.getChat(-peer);return chat==null||chat.noforwards;}
+        if(peer<0){
+            TLRPC.Chat chat=controller.getChat(-peer);
+            // A group or channel not yet loaded into memory is not "protected":
+            // read it from the database (we are on its queue) instead of
+            // silently dropping every deleted message of that chat.
+            if(chat==null)chat=MessagesStorage.getInstance(account).getChat(-peer);
+            return chat!=null&&chat.noforwards;
+        }
         TLRPC.UserFull full=controller.getUserFull(peer);
         return full!=null&&(full.noforwards_my_enabled||full.noforwards_peer_enabled);
     }
@@ -352,7 +390,7 @@ public final class NebulaDeletedArchive {
             // Ciphering and the AtomicFile replacement are coalesced off the sync
             // queue, so an archive's size cannot hold up loading other chats.
             if(entries!=null) {
-                Snapshot next = new Snapshot(entries);
+                Snapshot next = new Snapshot(entries, before);
                 cachedOwner = owner;
                 cachedSnapshot = next;
                 writeAsync(owner, next);

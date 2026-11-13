@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+index 53e0fa79..1e819398 100644
 --- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
 +++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
 @@ -34,8 +34,8 @@
@@ -68,9 +69,10 @@ diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMess
              tools:node="replace">
  
 diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+index 99f64adb..27e1df31 100644
 --- a/TMessagesProj/src/main/AndroidManifest.xml
 +++ b/TMessagesProj/src/main/AndroidManifest.xml
-@@ -116,6 +116,8 @@
+@@ -114,6 +114,8 @@
          <activity-alias
              android:enabled="true"
              android:name="org.telegram.messenger.DefaultIcon"
@@ -79,7 +81,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
              android:targetActivity="org.telegram.ui.LaunchActivity"
              android:exported="true">
  
-@@ -131,8 +133,8 @@
+@@ -129,8 +131,8 @@
              android:enabled="false"
              android:name="org.telegram.messenger.VintageIcon"
              android:targetActivity="org.telegram.ui.LaunchActivity"
@@ -90,7 +92,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
              android:exported="true">
  
              <intent-filter>
-@@ -147,8 +149,8 @@
+@@ -145,8 +147,8 @@
              android:enabled="false"
              android:name="org.telegram.messenger.AquaIcon"
              android:targetActivity="org.telegram.ui.LaunchActivity"
@@ -101,7 +103,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
              android:exported="true">
  
              <intent-filter>
-@@ -163,8 +165,8 @@
+@@ -161,8 +163,8 @@
              android:enabled="false"
              android:name="org.telegram.messenger.PremiumIcon"
              android:targetActivity="org.telegram.ui.LaunchActivity"
@@ -112,7 +114,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
              android:exported="true">
  
              <intent-filter>
-@@ -179,8 +181,8 @@
+@@ -177,8 +179,8 @@
              android:enabled="false"
              android:name="org.telegram.messenger.TurboIcon"
              android:targetActivity="org.telegram.ui.LaunchActivity"
@@ -123,7 +125,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
              android:exported="true">
  
              <intent-filter>
-@@ -195,8 +197,8 @@
+@@ -193,8 +195,8 @@
              android:enabled="false"
              android:name="org.telegram.messenger.NoxIcon"
              android:targetActivity="org.telegram.ui.LaunchActivity"
@@ -135,6 +137,7 @@ diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main
  
              <intent-filter>
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
+index 49bf8215..49911f65 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LauncherIconController.java
 @@ -33,13 +33,15 @@ public class LauncherIconController {

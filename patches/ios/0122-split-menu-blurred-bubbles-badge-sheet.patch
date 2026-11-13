@@ -1,0 +1,191 @@
+diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
+index e159e64..79c806b 100644
+--- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
++++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
+@@ -1693,15 +1693,22 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
+                     self?.additionalActionsStackNode.alpha = 1.0
+                 })
+             } else {
+-                self.actionsContainerNode.layer.animateAlpha(from: 0.0, to: self.actionsContainerNode.alpha, duration: 0.05)
++                // NebulaGram: Cherrygram-style entrance of the message menu. The card grows from 72%
++                // out of the edge facing the message with a light overshoot instead of from a point.
++                var nebulaPop = false
++                if case .extracted = self.source, UserDefaults.standard.object(forKey: "nebula.messageMenu.cherryMotion") as? Bool ?? true, !UIAccessibility.isReduceMotionEnabled {
++                    nebulaPop = true
++                }
++                let nebulaPopTravel: CGFloat = nebulaPop ? (1.0 - 0.72) : 1.0
++                self.actionsContainerNode.layer.animateAlpha(from: 0.0, to: self.actionsContainerNode.alpha, duration: nebulaPop ? 0.16 : 0.05)
+                 self.actionsContainerNode.layer.animateSpring(
+-                    from: 0.01 as NSNumber,
++                    from: (nebulaPop ? 0.72 : 0.01) as NSNumber,
+                     to: 1.0 as NSNumber,
+                     keyPath: "transform.scale",
+                     duration: duration,
+                     delay: 0.0,
+                     initialVelocity: 0.0,
+-                    damping: springDamping,
++                    damping: nebulaPop ? 88.0 : springDamping,
+                     additive: false
+                 )
+                 
+@@ -1728,9 +1735,9 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
+                         actionsVerticalTransitionDirection = 1.0
+                     }
+                 }
+-                let actionsPositionDeltaYDistance = -animationInContentYDistance + actionsVerticalTransitionDirection * actionsSize.height / 2.0 - contentActionsSpacing
++                let actionsPositionDeltaYDistance = -animationInContentYDistance + nebulaPopTravel * (actionsVerticalTransitionDirection * actionsSize.height / 2.0 - contentActionsSpacing)
+                 self.actionsContainerNode.layer.animateSpring(
+-                    from: NSValue(cgPoint: CGPoint(x: actionsPositionDeltaXDistance, y: actionsPositionDeltaYDistance)),
++                    from: NSValue(cgPoint: CGPoint(x: actionsPositionDeltaXDistance * nebulaPopTravel, y: actionsPositionDeltaYDistance)),
+                     to: NSValue(cgPoint: CGPoint()),
+                     keyPath: "position",
+                     duration: duration,
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 8c83ea5..286f453 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -612,49 +612,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+     @objc private func nebulaBadgeTapped() {
+         guard let badge = self.nebulaBadge, let controller = self.controller,
+               let presentationData = self.presentationData else { return }
+-        let isRussian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
+-        let badgeTitle: String
+-        switch badge {
+-        case .supporter: badgeTitle = isRussian ? "Поддержка NebulaGram" : "NebulaGram Supporter"
+-        case .dev: badgeTitle = isRussian ? "Разработчик NebulaGram" : "NebulaGram Developer"
+-        case .tester: badgeTitle = isRussian ? "Тестер NebulaGram" : "NebulaGram Tester"
+-        case .star: badgeTitle = "Mira"
+-        case .heart: badgeTitle = isRussian ? "Друг NebulaGram" : "NebulaGram Friend"
+-        }
+-        let toastText: String
+-        switch badge {
+-        case .supporter: toastText = isRussian ? "Ты поддержал(а) разработку NebulaGram и получил(а) уникальный значок." : "You supported NebulaGram and received a unique badge."
+-        case .dev: toastText = isRussian ? "Этот значок отмечает вклад в разработку NebulaGram." : "This badge recognizes a contribution to NebulaGram development."
+-        case .tester: toastText = isRussian ? "Этот значок отмечает помощь в тестировании NebulaGram." : "This badge recognizes help testing NebulaGram."
+-        case .star: toastText = isRussian ? "Особый значок NebulaGram." : "A special NebulaGram badge."
+-        case .heart: toastText = isRussian ? "Этот значок отмечает дружбу и поддержку NebulaGram." : "This badge recognizes friendship and support for NebulaGram."
+-        }
+-        let details: String
+-        switch badge {
+-        case .supporter: details = isRussian ? "Спасибо за поддержку проекта. Уникальный значок отображается в профиле и отмечает твой вклад в развитие NebulaGram." : "Thank you for supporting the project. This unique badge appears on your profile and recognizes your contribution to NebulaGram."
+-        case .dev: details = isRussian ? "Значок для участников, которые помогают создавать NebulaGram." : "A badge for people who help build NebulaGram."
+-        case .tester: details = isRussian ? "Значок для участников, которые помогают проверять новые версии NebulaGram." : "A badge for people who help test new NebulaGram releases."
+-        case .star: details = isRussian ? "Особый значок сообщества NebulaGram." : "A special NebulaGram community badge."
+-        case .heart: details = isRussian ? "Значок для друзей проекта, которые поддерживают NebulaGram." : "A badge for friends of the project who support NebulaGram."
+-        }
+-        let overlay = UndoOverlayController(presentationData: presentationData, content: .universal(animation: "anim_gift", scale: 0.075, colors: [:], title: badgeTitle, text: toastText, customUndoText: isRussian ? "Подробнее" : "Learn more", timeout: 6.0), elevatedLayout: false, position: .bottom, action: { [weak self] action in
+-            guard case .undo = action, let self = self, let controller = self.controller else { return false }
+-            let sheet = ActionSheetController(presentationData: presentationData)
+-            let dismiss: () -> Void = { [weak sheet] in sheet?.dismissAnimated() }
+-            sheet.setItemGroups([
+-                ActionSheetItemGroup(items: [
+-                    NebulaBadgeArtworkActionSheetItem(badge: badge),
+-                    ActionSheetTextItem(title: badgeTitle, font: .large),
+-                    ActionSheetTextItem(title: details)
+-                ]),
+-                ActionSheetItemGroup(items: [
+-                    ActionSheetButtonItem(title: isRussian ? "Закрыть" : "Close", color: .accent, action: dismiss)
+-                ])
+-            ])
+-            controller.present(sheet, in: .window(.root))
+-            return false
+-        })
+-        controller.present(overlay, in: .current)
++        NebulaBadgeSheet.present(badge: badge, context: self.context, presentationData: presentationData, controller: controller)
+     }
+ 
+     private var currentPanelStatusData: PeerInfoStatusData?
+diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index d45135f..0d82117 100644
+--- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
++++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+@@ -1697,7 +1697,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+         }
+         
+         if data.canEdit && !isPinnedMessages && !isMigrated {
+-            actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_MessageDialogEdit, icon: { theme in
++            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuSplit.editIdentifier, text: chatPresentationInterfaceState.strings.Conversation_MessageDialogEdit, icon: { theme in
+                 return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Edit"), color: theme.actionSheet.primaryTextColor)
+             }, action: { c, f in
+                 if let _ = activeTodo {
+@@ -2473,7 +2473,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+                 
+                 if message.id.namespace == Namespaces.Message.QuickReplyCloud || message.id.namespace == Namespaces.Message.WelcomeMessageCloud {
+                     if data.canEdit {
+-                        actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_MessageDialogEdit, icon: { theme in
++                        actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuSplit.editIdentifier, text: chatPresentationInterfaceState.strings.Conversation_MessageDialogEdit, icon: { theme in
+                             return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Edit"), color: theme.actionSheet.primaryTextColor)
+                         }, action: { c, f in
+                             interfaceInteraction.setupEditMessage(messages[0].id, { transition in
+diff --git a/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift b/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
+index 85c72cd..4521eda 100644
+--- a/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
++++ b/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
+@@ -692,7 +692,19 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+                 let graphics = PresentationResourcesChat.principalGraphics(theme: bubbleTheme, wallpaper: wallpaper, bubbleCorners: bubbleCorners)
+                 
+                 var needsCleanBackground = false
++                var nebulaBlur = nebulaBlurredBubbles()
++                if case .color = wallpaper {
++                    nebulaBlur = false
++                }
+                 switch self.bubbleType {
++                case .incoming where nebulaBlur:
++                    self.contentNode.image = nil
++                    self.contentNode.backgroundColor = nebulaBlurTint(bubbleTheme.chat.message.incoming.bubble.withWallpaper.fill[0])
++                    needsCleanBackground = true
++                case .outgoing where nebulaBlur:
++                    self.contentNode.image = nil
++                    self.contentNode.backgroundColor = nebulaBlurTint(bubbleTheme.chat.message.outgoing.bubble.withWallpaper.fill[0])
++                    needsCleanBackground = true
+                 case .incoming:
+                     self.contentNode.image = graphics.incomingBubbleGradientImage
+                     if graphics.incomingBubbleGradientImage == nil {
+@@ -761,7 +773,7 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+ 
+                 var gradientBackgroundSource: GradientBackgroundNode? = backgroundNode.gradientBackgroundNode
+ 
+-                if case .outgoing = self.bubbleType {
++                if case .outgoing = self.bubbleType, !nebulaBlur {
+                     if let outgoingBubbleGradientBackgroundNode = backgroundNode.outgoingBubbleGradientBackgroundNode {
+                         gradientBackgroundSource = outgoingBubbleGradientBackgroundNode
+                         needsWallpaperBackground = false
+@@ -1965,6 +1977,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+         let graphics = PresentationResourcesChat.principalGraphics(theme: bubbleTheme, wallpaper: graphicsWallpaper, bubbleCorners: bubbleCorners)
+         switch type {
+         case .incoming:
++            if nebulaBlurredBubbles() && !hasPlainWallpaper {
++                return true
++            }
+             if graphics.incomingBubbleGradientImage != nil {
+                 return true
+             }
+@@ -1972,6 +1987,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+                 return !hasPlainWallpaper
+             }
+         case .outgoing:
++            if nebulaBlurredBubbles() && !hasPlainWallpaper {
++                return true
++            }
+             if graphics.outgoingBubbleGradientImage != nil {
+                 return true
+             }
+@@ -2083,3 +2101,18 @@ private extension StarGift {
+         }
+     }
+ }
++
++// NebulaGram "Blurred messages": bubbles show the blurred wallpaper under a translucent
++// tint of their own colour. Keys are written by NebulaMessagePreferences; plain colour
++// wallpapers have nothing to blur, so their bubbles stay solid.
++private func nebulaBlurredBubbles() -> Bool {
++    return UserDefaults.standard.bool(forKey: "nebula.messages.message_blur")
++}
++
++private func nebulaBlurTint(_ color: UIColor) -> UIColor {
++    var percent = UserDefaults.standard.integer(forKey: "nebula.messages.message_blur_tint")
++    if ![35, 55, 75].contains(percent) {
++        percent = 55
++    }
++    return color.withAlphaComponent(color.cgColor.alpha * CGFloat(percent) / 100.0)
++}

@@ -1,0 +1,78 @@
+diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 9e56a14..8a8e6a6 100644
+--- a/submodules/ChatListUI/Sources/ChatListController.swift
++++ b/submodules/ChatListUI/Sources/ChatListController.swift
+@@ -7428,16 +7428,21 @@ private final class ChatListLocationContext {
+                     }
+                 }
+                 
+-                if NebulaAiSettings.shared.homeShortcut || (storyPostingAvailable && !NebulaSettingsStore.shared.hideHomeCamera) {
++                let nebulaLinkShortcut = NebulaHomeLink.showsLink(aiShortcut: NebulaAiSettings.shared.homeShortcut, link: NebulaHomeLink.enabled())
++                if NebulaAiSettings.shared.homeShortcut || nebulaLinkShortcut || (storyPostingAvailable && !NebulaSettingsStore.shared.hideHomeCamera) {
+                     let nebulaShortcut = NebulaAiSettings.shared.homeShortcut
+                     self.storyButton = NavigationBarComponent.Button(id: "story",
+-                        content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
+-                        overflow: nebulaShortcut ? NavigationBarComponent.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nil,
++                        content: nebulaShortcut ? .image(nebulaAiShortcutImage()) : nebulaLinkShortcut ? .image(nebulaLinkShortcutImage()) : .icon(imageName: "Chat List/AddStoryIcon"),
++                        overflow: nebulaShortcut ? NavigationBarComponent.OverflowInfo(title: "Nebula AI", iconName: nil, priority: nil) : nebulaLinkShortcut ? NavigationBarComponent.OverflowInfo(title: "NebulaLink", iconName: nil, priority: nil) : nil,
+                         action: { [weak self] sourceView in
+                             guard let self, let parentController = self.parentController else {
+                                 return
+                             }
+                             
++                            if NebulaHomeLink.showsLink(aiShortcut: NebulaAiSettings.shared.homeShortcut, link: NebulaHomeLink.enabled()) {
++                                NotificationCenter.default.post(name: NebulaHomeLink.open, object: parentController.navigationController)
++                                return
++                            }
+                             if NebulaAiSettings.shared.homeShortcut {
+                                 NotificationCenter.default.post(name: NebulaAiSettings.openHomeChat, object: parentController.navigationController)
+                                 return
+@@ -7726,6 +7731,14 @@ public func resolveChatListNavigationTarget(navigationController: NavigationCont
+ /// Системный символ, а не ресурс приложения: он подхватывает начертание и
+ /// толщину как остальные значки панели. Отрисовка шаблоном обязательна —
+ /// иначе панель не покрасит его в свой цвет.
++private func nebulaLinkShortcutImage() -> UIImage {
++    let configuration = UIImage.SymbolConfiguration(pointSize: 21.0, weight: .medium)
++    if let image = UIImage(systemName: "network", withConfiguration: configuration) {
++        return image.withRenderingMode(.alwaysTemplate)
++    }
++    return UIImage(bundleImageName: "Chat List/AddStoryIcon") ?? UIImage()
++}
++
+ private func nebulaAiShortcutImage() -> UIImage {
+     let configuration = UIImage.SymbolConfiguration(pointSize: 22.0, weight: .medium)
+     if let image = UIImage(systemName: "sparkles", withConfiguration: configuration) {
+diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index d4a0834..4e12a72 100644
+--- a/submodules/TelegramUI/Sources/TelegramRootController.swift
++++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
+@@ -1,4 +1,5 @@
+ import Foundation
++import NebulaLinkUI
+ import UIKit
+ import NebulaSettingsContract
+ import Display
+@@ -206,6 +207,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
+     public func addRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
+         NotificationCenter.default.removeObserver(self, name: NebulaAiSettings.openHomeChat, object: nil)
+         NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenAiChat(_:)), name: NebulaAiSettings.openHomeChat, object: nil)
++        NotificationCenter.default.removeObserver(self, name: NebulaHomeLink.open, object: nil)
++        NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenLink(_:)), name: NebulaHomeLink.open, object: nil)
+         self.nebulaShowCalls = showCallsTab
+         self.nebulaShowNews = showNewsTab
+         let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
+@@ -316,6 +319,14 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
+         rootTabController.updateLayout(transition: .immediate)
+     }
+ 
++    @objc private func nebulaOpenLink(_ notification: Notification) {
++        guard let host = notification.object as? UIViewController, host === self, NebulaHomeLink.enabled(),
++              self.presentedViewController == nil else { return }
++        NebulaLinkService.shared.configure(accountManager: self.context.sharedContext.accountManager)
++        let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
++        self.present(UINavigationController(rootViewController: nebulaLinkController(context: self.context, russian: russian)), animated: true)
++    }
++
+     @objc private func nebulaOpenAiChat(_ notification: Notification) {
+         guard let host = notification.object as? UIViewController, host === self,
+               NebulaAiSettings.shared.homeShortcut else { return }

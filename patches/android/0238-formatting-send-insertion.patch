@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 6e255a58..6519d5a4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -9169,9 +9169,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9283,9 +9283,10 @@ public class ChatActivityEnterView extends FrameLayout implements
      }
  
      public boolean canShowTextMessageTransition() {
@@ -16,9 +17,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  && (recordedAudioPanel == null || recordedAudioPanel.getVisibility() != VISIBLE);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
+index 09f571f3..0687496a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/recyclerview/ChatListItemAnimator.java
-@@ -351,19 +351,19 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
+@@ -352,19 +352,19 @@ public class ChatListItemAnimator extends DefaultItemAnimator {
          }
          if (activity != null && chatMessageCell != null && activity.animatingMessageObjects.contains(chatMessageCell.getMessageObject())) {
              activity.animatingMessageObjects.remove(chatMessageCell.getMessageObject());

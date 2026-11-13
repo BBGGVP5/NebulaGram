@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
+index 2adb9152..c773b6d6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
 @@ -140,7 +140,7 @@ public class MessagePreviewParams {
@@ -19,9 +20,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewPa
          hasSenders = false;
          isSecret = DialogObject.isEncryptedDialog(dialogId);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+index 55452d3d..fec396d3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -2246,6 +2246,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -2247,6 +2247,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
          if (messages == null || messages.isEmpty()) {
              return 0;
          }
@@ -29,7 +31,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
          int sendResult = 0;
          long myId = getUserConfig().getClientUserId();
          boolean isChannel = false;
-@@ -2312,6 +2313,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -2313,6 +2314,18 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
                  canSendMusic = ChatObject.canSendMusic(chat);
              }
  
@@ -49,9 +51,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
              ArrayList<MessageObject> objArr = new ArrayList<>();
              ArrayList<TLRPC.Message> arr = new ArrayList<>();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index b1ed8b5d..d4c85781 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -11221,6 +11221,32 @@ public class ChatActivity extends BaseFragment implements
+@@ -11652,6 +11652,32 @@ public class ChatActivity extends BaseFragment implements
          keyboardWasVisible = chatActivityEnterView.isKeyboardVisible();
          forwardingPreviewView = new MessagePreviewView(contentView.getContext(), this, scrimBlur3Factory, messagePreviewParams, currentUser, currentChat, currentAccount, themeDelegate, startTab, replyingQuote != null && replyingQuote.outdated) {
  
@@ -85,9 +88,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              protected void removeLink() {
                  dismiss(true);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+index fb91d886..5c8e8d7a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
-@@ -1035,6 +1035,15 @@ public class MessagePreviewView extends FrameLayout {
+@@ -1037,6 +1037,15 @@ public class MessagePreviewView extends FrameLayout {
                      captionButton = null;
                  }
  
@@ -103,7 +107,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePrevi
                  ActionBarMenuSubItem changeRecipientView = new ActionBarMenuSubItem(context, true, false, resourcesProvider);
                  changeRecipientView.setOnClickListener(view -> selectAnotherChat(true));
                  changeRecipientView.setTextAndIcon(LocaleController.getString(R.string.ChangeRecipient), R.drawable.msg_forward_replace);
-@@ -2032,6 +2041,10 @@ public class MessagePreviewView extends FrameLayout {
+@@ -2034,6 +2043,10 @@ public class MessagePreviewView extends FrameLayout {
  
      }
  

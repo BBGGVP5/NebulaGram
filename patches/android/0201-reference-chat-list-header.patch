@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 60bc911e..8639bbe7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -94,6 +94,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -98,6 +98,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private BlurredBackgroundDrawable glassDrawable;
      private BlurredBackgroundDrawable glassDrawableBack;
      private BlurredBackgroundDrawable glassDrawableMenu;
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private final app.nebulagram.ui.NebulaSelectionGlass nebulaSelectionGlass = new app.nebulagram.ui.NebulaSelectionGlass();
      private INavigationLayout.BackButtonState backButtonState = INavigationLayout.BackButtonState.BACK;
      public ImageView backButtonImageView;
-@@ -201,6 +202,55 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -207,6 +208,55 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
      private boolean nebulaProfileGlass;
      private boolean nebulaHomeTabsGlass;
      private View nebulaHomeLeadingView;
@@ -65,9 +66,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private boolean glassOnlyBack;
      private boolean glassModeIsForum;
  
-@@ -354,6 +404,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-             .setRadius(dp(23))
-             .setPadding(dp(6));
+@@ -363,6 +413,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 .setRadius(dp(23))
+                 .setPadding(dp(6));
  
 +        glassDrawableHomeLeading = factory.create(this)
 +            .setColorProvider(colorProvider).setRadius(dp(22)).setPadding(dp(3));
@@ -75,7 +76,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (menu != null) {
              menu.setTranslationX(-dp(10));
              menu.setGlassMode(true);
-@@ -669,7 +722,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -801,7 +854,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          int translation = useContainerForTitles && titlesContainer != null
                  ? (int) Math.ceil(Math.max(0f, titlesContainer.getTranslationX())) : 0;
          return (menu != null && menu.getVisibility() != GONE ? menu.getMeasuredWidth() : 0)
@@ -85,15 +86,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      }
  
      private boolean nebulaCenterTitle() {
-@@ -1619,6 +1673,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1803,6 +1857,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
          }
  
 +        if (nebulaHomeTabsGlass) nebulaHomeVisibleStories = nebulaHomeStoryCount;
          for (int i = 0; i < 2; i++) {
              if (titleTextView[0] != null && titleTextView[0].getVisibility() != GONE || subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
-                 // A closing search field keeps filling the menu during its fade-out; don't squeeze the title for it.
-@@ -1654,7 +1709,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 int menuWidth = menu != null ? menu.getMeasuredWidth() : 0;
+@@ -1843,7 +1898,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      int titleAvailableWidth = availableWidth;
                      if (!(parentFragment instanceof org.telegram.ui.ChatActivity)) {
                          boolean centerHome = nebulaCenterTitle();
@@ -102,7 +103,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          if (centerHome) {
                              // First measure the real text (including emoji spans) against
                              // all free space, rather than mirroring the menu on the left.
-@@ -1665,8 +1720,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1854,8 +1909,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      if (nebulaCenterTitle()) {
                          int contentWidth = titleTextView[i].getTextWidth() + titleTextView[i].getSideDrawablesSize()
                                  + titleTextView[i].getPaddingLeft() + titleTextView[i].getPaddingRight();
@@ -121,7 +122,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          if (centeredWidth != titleAvailableWidth) {
                              titleTextView[i].measure(MeasureSpec.makeMeasureSpec(centeredWidth, MeasureSpec.AT_MOST),
                                      MeasureSpec.makeMeasureSpec(dp(24) + titleTextView[i].getPaddingTop() + titleTextView[i].getPaddingBottom(), MeasureSpec.AT_MOST));
-@@ -1797,6 +1860,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1987,6 +2050,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              additionalSubtitleTextView.layout(textLeft, additionalTop + textTop, textLeft + additionalSubtitleTextView.getMeasuredWidth(), additionalTop + textTop + additionalSubtitleTextView.getTextHeight());
          }
  
@@ -129,10 +130,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +
          if (avatarSearchImageView != null) {
              avatarSearchImageView.layout(
-                 dp(56 + 8),
-@@ -2657,7 +2722,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-                     && (!isNebulaSharedHeaderGlass() || glassDrawable.getAlpha() > 0)
-                     && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+                     dp(56 + 8),
+@@ -2892,7 +2957,14 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                         app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
+             }
          }
 -        final boolean nebulaPlainHeaderButtons = nebulaHomeGlass || isNebulaSharedHeaderGlass()
 +        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && nebulaHomeLeadingView != null
@@ -147,9 +148,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (glassDrawableBack != null && nebulaHomeTabsGlass && actionModeFactor > 0f
                  && actionMode != null && actionMode.getChildCount() > 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 763b48e3..74f4b34a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -507,6 +507,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -509,6 +509,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      private ActionBarMenuItem optionsItem;
      private TextView nebulaHomeEditButton;
      private boolean nebulaHomeEditing;
@@ -157,7 +159,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private ActionBarMenuItem speedItem;
      public static boolean switchingTheme;
      private ActionBarMenuItem doneItem;
-@@ -936,7 +937,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -939,7 +940,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
@@ -177,7 +179,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          final float factorSearch = Utilities.clamp(searchAnimationProgress * 2, 1f, 0f);
          dialogStoriesCell.setAlpha((1f - progressToActionMode) * alpha * progressToDialogStoriesCell * (1f - factorSearch));
          float containersAlpha;
-@@ -3242,6 +3247,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3161,6 +3166,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      showOrUpdateActionMode(0, null);
                  }
              });
@@ -185,7 +187,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              FrameLayout.LayoutParams editLayout = new FrameLayout.LayoutParams(dp(68), dp(44), Gravity.LEFT | Gravity.TOP);
              editLayout.leftMargin = dp(8);
              actionBar.addView(nebulaHomeEditButton, editLayout);
-@@ -3532,6 +3538,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3455,6 +3461,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              app.nebulagram.ui.NebulaLinkShortcut.install(this, menu);
          }
  
@@ -209,17 +211,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          searchItem.setSearchFieldHint(getString(R.string.Search));
          searchItem.setContentDescription(getString(R.string.Search));
          if (onlySelect) {
-@@ -5460,7 +5483,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5365,7 +5388,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          if (hasMainTabs) {
              actionBar.getTitlesContainer().setTranslationX(nebulaHomeEditButton != null ? 0 : dp(4));
--            actionBar.setTitleColor(getThemedColor(Theme.key_telegram_color_dialogsLogo));
-+            actionBar.setTitleColor(getThemedColor(nebulaHomeEditButton != null
-+                    ? Theme.key_actionBarDefaultTitle : Theme.key_telegram_color_dialogsLogo));
+-            ThemeBind.actionBarTitleColor(actionBar, Theme.key_telegram_color_dialogsLogo, getResourceProvider());
++            ThemeBind.actionBarTitleColor(actionBar, nebulaHomeEditButton != null ? Theme.key_actionBarDefaultTitle : Theme.key_telegram_color_dialogsLogo, getResourceProvider());
          }
  
          if (folderId != 0 || communityId != 0) {
-@@ -9024,9 +9048,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -8951,9 +8974,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          boolean ai = !onlySelect && app.nebulagram.ui.NebulaAiSheet.homeEnabled();
          floatingButtonStories.setImageResource(ai ? R.drawable.nebula_ai_spark : R.drawable.outline_fab_story_24);
          floatingButtonStories.setContentDescription(ai ? app.nebulagram.ui.NebulaText.text("Открыть ИИ-чат", "Open AI chat") : getString(R.string.StoryPrivacyButtonPost));
@@ -234,16 +235,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          final boolean isVisible = !(onlySelect && initialDialogsType != 10 || folderId != 0 || communityId != 0 || inPreviewMode || (searching && !onlySelect) || floatingButtonHidden);
  
          if (floatingButton3 != null) {
-@@ -12390,7 +12419,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -12170,7 +12198,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             if (searchViewPager != null) {
                  arrayList.add(new ThemeDescription(searchViewPager.searchListView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_windowBackgroundWhite));
              }
-             arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_ITEMSCOLOR, null, null, null, cellDelegate, Theme.key_actionBarDefaultIcon));
 -            arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, new Drawable[]{Theme.dialogs_holidayDrawable}, null, !hasMainTabs ? Theme.key_actionBarDefaultTitle : Theme.key_telegram_color_dialogsLogo));
 +            arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_TITLECOLOR, null, null, new Drawable[]{Theme.dialogs_holidayDrawable}, null, !hasMainTabs || nebulaHomeEditButton != null ? Theme.key_actionBarDefaultTitle : Theme.key_telegram_color_dialogsLogo));
-             arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SELECTORCOLOR, null, null, null, null, Theme.key_actionBarDefaultSelector));
              arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SEARCH, null, null, null, null, Theme.key_actionBarDefaultSearch));
              arrayList.add(new ThemeDescription(actionBar, ThemeDescription.FLAG_AB_SEARCHPLACEHOLDER, null, null, null, null, Theme.key_actionBarDefaultSearchPlaceholder));
-@@ -13886,7 +13915,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         } else {
+@@ -13492,7 +13520,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void showItemOptions() {
@@ -252,7 +253,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          io.setColors(getThemedColor(Theme.key_actionBarDefaultTitle), getThemedColor(Theme.key_actionBarDefaultTitle));
          io.setDimAlpha(0x08);
  
-@@ -14312,11 +14341,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13918,11 +13946,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();
          app.nebulagram.ui.NebulaLinkShortcut.setHeaderSearchProgress(this, searchFieldVisible);
@@ -267,7 +268,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              nebulaHomeEditButton.setVisibility(editAlpha > 0.01f ? View.VISIBLE : View.GONE);
          }
  
-@@ -14344,6 +14375,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13950,6 +13980,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_menuItems() {
@@ -275,7 +276,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          checkUi_itemBackButtonVisibility();
          checkUi_itemOptionsVisibility();
          checkUi_itemDownloadsVisibility();
-@@ -14352,6 +14384,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13958,6 +13989,18 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          checkUi_itemSearchVisibility();
      }
  
@@ -295,6 +296,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          if (actionBar == null) {
              return;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index d1d12f29..f5a158aa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -16,6 +16,7 @@ import android.graphics.Canvas;
@@ -305,7 +307,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  import android.graphics.PorterDuff;
  import android.graphics.PorterDuffColorFilter;
  import android.graphics.PorterDuffXfermode;
-@@ -124,6 +125,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -125,6 +126,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
      public RadialProgress radialProgress;
  
      RecyclerListView listViewMini;
@@ -313,7 +315,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
      StoriesController storiesController;
      ArrayList<Item> oldItems = new ArrayList<>();
      ArrayList<Item> oldMiniItems = new ArrayList<>();
-@@ -370,6 +372,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -371,6 +373,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                  for (int i = 0; i < getChildCount(); i++) {
                      StoryCell storyCell = (StoryCell) getChildAt(i);
                      storyCell.position = getChildAdapterPosition(storyCell);
@@ -322,7 +324,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
                      storyCell.drawInParent = true;
                      storyCell.isFirst = storyCell.position == 0;
                      storyCell.isLast = storyCell.position == miniItems.size() - 1;
-@@ -665,6 +669,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -666,6 +670,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          }
          adapter.setItems(oldItems, items);
          miniAdapter.setItems(oldMiniItems, miniItems);
@@ -332,7 +334,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          oldItems.clear();
          invalidate();
-@@ -687,7 +694,17 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -688,7 +695,17 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
          float bottomY = AndroidUtilities.lerp(0, maxY, collapsedProgress1);
          recyclerListView.setTranslationY(bottomY);
          listViewMini.setTranslationY(bottomY);
@@ -351,7 +353,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          for (int i = 0; i < viewsDrawInParent.size(); i++) {
              viewsDrawInParent.get(i).drawInParent = false;
-@@ -817,7 +834,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -818,7 +835,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                  } else {
                      toX = dp(COLLAPSED_DIS) + dp(COLLAPSED_DIS) * cellCollapsedProgress - AndroidUtilities.dpf2(0.5f) + AndroidUtilities.lerp(dp(COLLAPSED_DIS + COLLAPSED_DIS), 0f, collapsedProgress);
                  }
@@ -360,7 +362,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
                  if (!collapsed) {
                      float dstCellX = 0;
                      if (overscrollProgress > 0) {
-@@ -915,8 +932,6 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -916,8 +933,6 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
              premiumHint.setJoint(0, x);
          }
  
@@ -369,8 +371,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          final float clipRightPadding = actionBar.menu.getVisibleItemsMeasuredWidthWithAlpha() * progress - dp(6);
          final boolean needSaveLayer = progress != 0 && clipRightPadding > 0;
          if (needSaveLayer) {
-@@ -950,6 +965,19 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
-             subtitleOverlayContainer.setTranslationY(bottomY + dp(15 + FAKE_TOP_PADDING + 4.333f + 8));
+@@ -952,6 +967,19 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+             subtitleOverlayContainer.setTranslationY(bottomY - barOffset + dp(15 + FAKE_TOP_PADDING + 4.333f + 8));
          }
  
 +        // The expanded row can still draw below the toolbar during collapse.
@@ -389,7 +391,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
          super.dispatchDraw(canvas);
          if (currentState >= 0 && currentState != COLLAPSED_STATE) {
              Collections.sort(viewsDrawInParent, comparator);
-@@ -961,6 +989,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -963,6 +991,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
                  canvas.restore();
              }
          }
@@ -397,7 +399,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCe
  
          if (needSaveLayer) {
              final float w = dp(16);
-@@ -2145,6 +2174,16 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+@@ -2161,6 +2190,16 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
      @Override
      public boolean onTouchEvent(MotionEvent event) {
          if (currentState == COLLAPSED_STATE) {

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 92805c0..0727785 100644
+index 6519d5a4..6962b1b3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -7577,9 +7577,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7689,9 +7689,13 @@ public class ChatActivityEnterView extends FrameLayout implements
          final String voiceSendText = nebulaVoiceSendText;
          final boolean allowConfirmFinal = allowConfirm && !animatorEphemeralMessageVisibility.getValue();
  
@@ -17,7 +17,7 @@ index 92805c0..0727785 100644
                  if (delegate != null) {
                      delegate.scrollToSendingMessage();
                  }
-@@ -7601,7 +7605,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7713,7 +7717,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
              if (allowConfirmFinal && showConfirmAlert(() -> {
                  if (nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) {
@@ -26,7 +26,7 @@ index 92805c0..0727785 100644
                  }
              })) {
                  return;
-@@ -7609,7 +7613,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7721,7 +7725,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (!nebulaApplyVoiceText(voiceSendAttempt, voiceSendSource, voiceSendText)) return;
              dismissSendPreviewSent = true;
              if (videoToSendMessageObject != null) {
@@ -35,7 +35,7 @@ index 92805c0..0727785 100644
                  sendButton.setEffect(effectId = 0);
                  hideRecordedAudioPanel(true);
                  checkSendButton(true);
-@@ -7651,7 +7655,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7763,7 +7767,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                          }
                      }
                  }
@@ -44,7 +44,7 @@ index 92805c0..0727785 100644
                  params.sendMessageChatArguments = parentFragment != null ? parentFragment.getMessageChatSendParams() : null;
                  params.effect_id = effectId;
                  params.payStars = payStars;
-@@ -7666,7 +7670,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7778,7 +7782,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  applyStoryToSendMessageParams(params);
                  SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
                  if (delegate != null) {
@@ -53,7 +53,7 @@ index 92805c0..0727785 100644
                  }
                  hideRecordedAudioPanel(true);
                  checkSendButton(true);
-@@ -7678,7 +7682,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7790,7 +7794,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  millisecondsRecorded = 0;
                  return;
              } else if (richDraftActive && richDraftMessage != null) {
@@ -62,7 +62,7 @@ index 92805c0..0727785 100644
                  return;
              }
              CharSequence message = messageEditText == null ? "" : messageEditText.getTextToUse();
-@@ -7697,13 +7701,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7809,13 +7813,14 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
                  return;
              }
@@ -80,7 +80,7 @@ index 92805c0..0727785 100644
                      }
                  } else {
                      messageTransitionIsRunning = false;
-@@ -7714,14 +7719,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7826,14 +7831,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                              messageEditText.setText("");
                          }
                          if (delegate != null) {
@@ -97,7 +97,7 @@ index 92805c0..0727785 100644
                  }
              }
              updateSendButtonPaid();
-@@ -8254,8 +8259,22 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8366,8 +8371,22 @@ public class ChatActivityEnterView extends FrameLayout implements
          return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
      }
  

@@ -1,0 +1,26 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryRecorder.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryRecorder.java
+index 7aeffac6..ab44af97 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryRecorder.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryRecorder.java
+@@ -3232,6 +3232,7 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
+                     .allowCover(!collageLayoutView.hasLayout())
+                     .setCount(selectedEntries == null ? outputEntry.getTotalCount() : selectedEntries.size())
+                     .isEdit(false)
++                    .nebulaAllowSchedule(app.nebulagram.ui.NebulaStorySchedule.schedulable(outputEntry)) // NebulaGram
+                     .setWarnUsers(getUsersFrom(captionEdit.getText()))
+                     .whenSelectedPeer(peer -> {
+                         if (outputEntry == null) {
+@@ -3563,8 +3564,13 @@ public class StoryRecorder implements NotificationCenter.NotificationCenterDeleg
+             return;
+         }
+         destroyPhotoFilterView();
++        final long nebulaPublishAt = asStory ? app.nebulagram.ui.NebulaStorySchedulePlan.take(System.currentTimeMillis()) : 0; // NebulaGram
+         Utilities.Callback<StoryEntry> upload = entry -> {
+             prepareThumb(entry, false);
++            if (nebulaPublishAt != 0 && app.nebulagram.ui.NebulaStorySchedule.schedule(currentAccount, entry, nebulaPublishAt)) { // NebulaGram
++                entry.cancelCheckStickers();
++                return;
++            }
+             MessagesController.getInstance(currentAccount).getStoriesController().uploadStory(entry, asStory);
+             if (entry.isDraft && !entry.isEdit) {
+                 MessagesController.getInstance(currentAccount).getStoriesController().getDraftsController().delete(entry);

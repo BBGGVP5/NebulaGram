@@ -97,7 +97,7 @@ profile = (native/'ui/ProfileActivity.java').read_text(encoding='utf-8')
 bar = (native/'ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
 rich = (native/'messenger/RichMessageLayout.java').read_text(encoding='utf-8')
 route = method(profile,'private long nebulaProfileChannelId()')
-clip = method(rich,'private void drawInternal(Canvas canvas, ChatMessageCell.TransitionParams tp)')
+clip = method(rich,'private void drawInternal(Canvas canvas, ChatMessageTransitionParams tp)')
 search = method(bar,'public void onSearchFieldVisibilityChanged(boolean visible)')
 search = search[:search.index('        checkMenuItemsWidth();')] + '\n    }'
 files.append(write('PolicyCheck.java', '''class PolicyCheck {
@@ -108,10 +108,10 @@ files.append(write('PolicyCheck.java', '''class PolicyCheck {
  static class Menu {int visibility;void setVisibility(int v){visibility=v;}}
  static class Bar {boolean isSearchFieldVisible,nebulaFloatingChatHeader,nebulaChatMenuHidden,actionMode;
  final int GONE=8,VISIBLE=0;Menu menu=new Menu();boolean isActionModeShowed(){return actionMode;} SEARCH }
- static class Canvas{}static class ChatMessageCell {static class TransitionParams{}
+ static class Canvas{}static class ChatMessageTransitionParams{}static class ChatMessageCell {static class TransitionParams{}
  int visibleHeight=400,childPosition=1200,textY=20;boolean preview;boolean isDrawingMenuPreview(){return preview;}}
  static class Rich {ChatMessageCell cell;boolean clipped;float top,bottom;
- void drawInternal(Canvas c,ChatMessageCell.TransitionParams t,boolean clip,float a,float b){clipped=clip;top=a;bottom=b;} CLIP }
+ void drawInternal(Canvas c,ChatMessageTransitionParams t,boolean clip,float a,float b){clipped=clip;top=a;bottom=b;} CLIP }
  public static void main(String[] a){
  Route r=new Route();check(r.nebulaProfileChannelId()==0);r.chatInfo=new Info();r.currentChat=new Chat();
  check(r.nebulaProfileChannelId()==0);r.currentChat.megagroup=true;check(r.nebulaProfileChannelId()==22);

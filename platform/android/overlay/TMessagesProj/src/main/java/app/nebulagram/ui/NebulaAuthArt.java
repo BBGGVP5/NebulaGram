@@ -14,7 +14,6 @@ import android.view.animation.LinearInterpolator;
 
 import androidx.annotation.NonNull;
 
-import org.telegram.messenger.AndroidUtilities;
 
 /**
  * Рисунки над заголовками на экранах входа — по макетам онбординга.
@@ -31,7 +30,7 @@ import org.telegram.messenger.AndroidUtilities;
  */
 public class NebulaAuthArt extends Drawable {
 
-    /** Экран ввода номера: барабаны с цифрами за кодом страны. */
+    /** Экран ввода номера: телефон, на который приходит сообщение. */
     public static final int KIND_PHONE = 0;
     /** Экран ввода кода: замок с точками и бегущим по кругу пунктиром. */
     public static final int KIND_CODE = 1;
@@ -39,18 +38,8 @@ public class NebulaAuthArt extends Drawable {
     public static final int KIND_LINK = 2;
     public static final int KIND_PASSWORD = 3;
 
-    /** Сколько барабанов крутится справа от кода страны. */
-    private static final int REELS = 4;
-
-    /**
-     * Сколько полных оборотов делает каждый барабан за цикл. Числа целые и
-     * разные: на стыке цикла цифры не прыгают, а барабаны при этом
-     * останавливаются вразнобой, как при живом наборе.
-     */
-    private static final int[] REEL_TURNS = {3, 4, 2, 5};
-
     /** Длина цикла для каждого вида, мс. */
-    private static final int[] DURATION = {9000, 13500, 2400, 4800};
+    private static final int[] DURATION = {3200, 13500, 2400, 4800};
 
     /** Доли цикла подключения: рисование галочки, начало и время растворения. */
     private static final float DRAW_UNTIL = 0.28f;
@@ -58,7 +47,6 @@ public class NebulaAuthArt extends Drawable {
     private static final float FADE_TIME = 0.16f;
 
     private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-    private final Paint digits = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final RectF rect = new RectF();
     private final Path path = new Path();
     private final Path segment = new Path();
@@ -74,8 +62,6 @@ public class NebulaAuthArt extends Drawable {
         this.kind = kind;
         this.accent = accent;
         this.muted = muted;
-        digits.setTypeface(AndroidUtilities.bold());
-        digits.setTextAlign(Paint.Align.CENTER);
     }
 
     @Override
@@ -84,12 +70,7 @@ public class NebulaAuthArt extends Drawable {
         if (bounds.isEmpty()) {
             return;
         }
-        // Ряд барабанов — широкая полоса, и ей квадрат не нужен: масштаб берём
-        // от ширины, чтобы коробку можно было прижать по высоте к самой полосе
-        // и не оставлять пустоту сверху и снизу. Круглым рисункам нужна
-        // меньшая из сторон, иначе они вылезут за край.
-        float side = kind == KIND_PHONE
-                ? bounds.width() : Math.min(bounds.width(), bounds.height());
+        float side = Math.min(bounds.width(), bounds.height());
         float unit = side / 100f;
         canvas.save();
         canvas.translate(bounds.centerX() - side / 2f, bounds.centerY() - side / 2f);
@@ -111,48 +92,66 @@ public class NebulaAuthArt extends Drawable {
     }
 
     /**
-     * Набор номера: код страны стоит на месте, следом крутятся цифры.
-     *
-     * <p>Цифры сменяются рывком, а не плавной лентой: так читается набор, а не
-     * прокрутка списка.
+     * Номер: телефон, рядом расходится сигнал, на экране всплывает сообщение
+     * с кодом. Раньше здесь крутились барабаны цифр, и «+1213» читалось как
+     * чужой номер, а не как подсказка.
      */
     private void drawPhone(Canvas canvas, float unit) {
-        final float height = unit * 44;
-        final float reel = unit * 16;
-        final float gap = unit * 3.5f;
-        final float prefix = unit * 20;
-        final float radius = unit * 8;
-        final float total = prefix + gap + REELS * reel + (REELS - 1) * gap;
-        final float top = unit * 50 - height / 2f;
-        float left = (unit * 100 - total) / 2f;
-
-        // Код страны — залитая плашка: она никуда не едет и держит строку.
+        // Всё стоит по центру квадрата: мягкий круг, телефон посередине и
+        // волны сигнала поровну с обеих сторон. Раньше телефон сидел у левого
+        // края, а дуги торчали справа — значок выглядел сдвинутым.
         paint.setStyle(Paint.Style.FILL);
         paint.setColor(accent);
-        paint.setAlpha(56);
-        rect.set(left, top, left + prefix, top + height);
-        canvas.drawRoundRect(rect, radius, radius, paint);
+        paint.setAlpha(28);
+        canvas.drawCircle(unit * 50, unit * 50, unit * 46, paint);
+
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setStrokeWidth(unit * 3f);
+        for (int i = 0; i < 2; i++) {
+            float wave = (float) (0.5 - 0.5 * Math.cos((phase - i * 0.12f) * Math.PI * 2));
+            paint.setAlpha((int) (60 + 195 * wave));
+            float radius = unit * (24 + i * 8);
+            rect.set(unit * 50 - radius, unit * 44 - radius, unit * 50 + radius, unit * 44 + radius);
+            canvas.drawArc(rect, -35, 34, false, paint);
+            canvas.drawArc(rect, 181, 34, false, paint);
+        }
+
+        // Корпус.
+        rect.set(unit * 36, unit * 20, unit * 64, unit * 80);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setAlpha(46);
+        canvas.drawRoundRect(rect, unit * 8, unit * 8, paint);
         paint.setAlpha(255);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(unit * 3f);
+        canvas.drawRoundRect(rect, unit * 8, unit * 8, paint);
+        canvas.drawLine(unit * 46, unit * 26, unit * 54, unit * 26, paint);
 
-        digits.setTextSize(unit * 24);
-        digits.setColor(accent);
-        final float baseline = rect.centerY() - (digits.ascent() + digits.descent()) / 2f;
-        canvas.drawText("+", rect.centerX(), baseline, digits);
-        left += prefix + gap;
-
-        for (int i = 0; i < REELS; i++) {
-            rect.set(left, top, left + reel, top + height);
+        // Сообщение с кодом всплывает внутри экрана, держится и растворяется.
+        float show = Math.min(1f, Math.max(0f, (phase - 0.08f) / 0.14f));
+        float hide = Math.min(1f, Math.max(0f, (phase - 0.84f) / 0.12f));
+        float visible = show * (1f - hide);
+        if (visible > 0f) {
+            float lift = unit * 5 * (1f - show);
             paint.setStyle(Paint.Style.FILL);
-            paint.setColor(accent);
-            paint.setAlpha(24);
-            canvas.drawRoundRect(rect, radius, radius, paint);
+            paint.setAlpha((int) (90 * visible));
+            rect.set(unit * 40, unit * 42 + lift, unit * 60, unit * 56 + lift);
+            canvas.drawRoundRect(rect, unit * 5, unit * 5, paint);
+            path.reset();
+            path.moveTo(unit * 43, unit * 55 + lift);
+            path.lineTo(unit * 41.5f, unit * 60 + lift);
+            path.lineTo(unit * 48, unit * 55 + lift);
+            path.close();
+            canvas.drawPath(path, paint);
+            paint.setAlpha((int) (255 * visible));
+            for (int i = 0; i < 3; i++) {
+                canvas.drawCircle(unit * (44.5f + i * 5.5f), unit * 49 + lift, unit * 1.9f, paint);
+            }
             paint.setAlpha(255);
-
-            int digit = (int) (phase * REEL_TURNS[i] * 10) % 10;
-            canvas.drawText(String.valueOf(digit), rect.centerX(), baseline, digits);
-            left += reel + gap;
         }
         paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeCap(Paint.Cap.BUTT);
     }
 
     /** Код: пунктирное кольцо крутится, точки в замке всплывают по очереди. */
@@ -329,7 +328,6 @@ public class NebulaAuthArt extends Drawable {
     @Override
     public void setColorFilter(ColorFilter colorFilter) {
         paint.setColorFilter(colorFilter);
-        digits.setColorFilter(colorFilter);
         invalidateSelf();
     }
 

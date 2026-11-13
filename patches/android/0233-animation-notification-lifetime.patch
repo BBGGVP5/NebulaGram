@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
+index fdbe8051..c54c76d1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotificationsLocker.java
 @@ -24,7 +24,7 @@ public class AnimationNotificationsLocker {
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AnimationNotific
              this.currentAccount = currentAccount;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+index af45b08e..27b14869 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 @@ -503,7 +503,7 @@ public class NotificationCenter {

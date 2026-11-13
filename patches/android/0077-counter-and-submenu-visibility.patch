@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 12728587..5f3a2247 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-@@ -560,7 +560,10 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -562,7 +562,10 @@ public class ActionBarPopupWindow extends PopupWindow {
                          canvas.clipRect(AndroidUtilities.rectTmp2);
                      }
                      if (hasGap) {
@@ -14,9 +15,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                          AndroidUtilities.rectTmp.inset(dp(8), dp(8));
                          if (path == null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 12f3b422..e4319b75 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -148,6 +148,7 @@ public class FilterTabsView extends FrameLayout {
+@@ -149,6 +149,7 @@ public class FilterTabsView extends FrameLayout {
                  c = counter;
              }
  
@@ -24,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
              final int counterResultWidth;
              if (c > 0) {
                  String counterText = String.format("%d", c);
-@@ -366,9 +367,9 @@ public class FilterTabsView extends FrameLayout {
+@@ -367,9 +368,9 @@ public class FilterTabsView extends FrameLayout {
              int countWidth;
              String counterText;
  
@@ -37,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
  
              if ((currentTab.counter > 0 || animateCounterRemove) && !app.nebulagram.ui.NebulaAppearance.hideTabCounters()) {
                  if (animateCounterRemove) {
-@@ -652,7 +653,7 @@ public class FilterTabsView extends FrameLayout {
+@@ -653,7 +654,7 @@ public class FilterTabsView extends FrameLayout {
  
              int countWidth;
              String counterText = null;
@@ -46,7 +48,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
                  counterText = String.format("%d", currentTab.counter);
                  int counterWidth = (int) Math.ceil(textCounterPaint.measureText(counterText));
                  countWidth = Math.max(dp(TAB_COUNTER_HEIGHT - 10), counterWidth) + dp(10);
-@@ -1467,6 +1468,25 @@ public class FilterTabsView extends FrameLayout {
+@@ -1468,6 +1469,25 @@ public class FilterTabsView extends FrameLayout {
          return result;
      }
  
@@ -72,7 +74,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
      private int nebulaDefaultTabId;
      public void setNebulaDefaultTabId(int id) { nebulaDefaultTabId = id; }
  
-@@ -1477,6 +1497,7 @@ public class FilterTabsView extends FrameLayout {
+@@ -1478,6 +1498,7 @@ public class FilterTabsView extends FrameLayout {
      private float nebulaReleaseCenter, nebulaReleaseWidth;
      private int nebulaHover = -1;
      @Override protected void onDetachedFromWindow() {

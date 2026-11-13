@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index c89f2a61..f61159aa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1944,27 +1944,22 @@ public class ChatActivity extends BaseFragment implements
+@@ -1967,29 +1967,24 @@ public class ChatActivity extends BaseFragment implements
              createMenu(view, true, false, x, y, false);
          }
  
@@ -22,6 +23,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          && !isQuickRepliesOrWelcomeMessagesMode() && !own.isSponsored();
              }
              if (isQuickRepliesOrWelcomeMessagesMode()) return false;
+             // A double tap over a widget is the widget's (dblclick, docs/sdk-v1.md §5.5): the reaction is outside it.
+             if (view instanceof ChatMessageCell && ((ChatMessageCell) view).isWidgetPress()) return false;
 -            String reactionStringSetting = getMediaDataController().getDoubleTapReaction();
 -            TLRPC.TL_availableReaction reaction = getMediaDataController().getReactionsMap().get(reactionStringSetting);
 -            if (reaction == null && (reactionStringSetting == null || !reactionStringSetting.startsWith("animated_"))) {
@@ -37,7 +40,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              MessageObject messageObject;
              if (view instanceof ChatMessageCell) {
                  messageObject = ((ChatMessageCell) view).getPrimaryMessageObject();
-@@ -1973,7 +1968,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -1998,7 +1993,7 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return false;
              }
@@ -46,7 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
  
          @Override
-@@ -1992,9 +1987,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -2017,9 +2012,10 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  return;
              }
@@ -60,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  else if (action == 2) showFieldPanelForReply(messageObject);
                  else if (action == 3) AndroidUtilities.addToClipboard(messageObject.messageOwner.message);
                  return;
-@@ -2006,14 +2002,24 @@ public class ChatActivity extends BaseFragment implements
+@@ -2031,14 +2027,24 @@ public class ChatActivity extends BaseFragment implements
                  return;
              }
  
@@ -90,7 +93,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      return;
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reactionString), true, false, false, false);
-@@ -2022,11 +2028,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -2047,11 +2053,11 @@ public class ChatActivity extends BaseFragment implements
                  if (reaction == null || messageObject.isSponsored()) {
                      return;
                  }
@@ -107,9 +110,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  }
                  selectReaction(view, messageObject, null, null, x, y, ReactionsLayoutInBubble.VisibleReaction.fromEmojicon(reaction), true, false, false, false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index adf50fd7..a2301141 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
-@@ -6871,6 +6871,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -6933,6 +6933,11 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                  if (app.nebulagram.ui.NebulaAppearance.hideAttachCamera() && (photosEnabled || videosEnabled)) {
                      cameraButton = buttonsCount++;
                  }
@@ -121,7 +125,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  documentButton = buttonsCount++;
                  if (MessagesController.getInstance(currentAccount).config.walletAvailable.get() && ((ChatActivity) baseFragment).getChatMode() == ChatActivity.MODE_DEFAULT && isMoneyTabRecipient(user)) {
                      moneyButton = buttonsCount++;
-@@ -6879,9 +6884,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
+@@ -6941,9 +6946,6 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
                  if (plainTextEnabled) {
                      locationButton = buttonsCount++;
                  }

@@ -8,7 +8,7 @@ def method(s, token):
  start=s.index('{',s.index(token));end=start+1;depth=1
  while depth:depth+=(s[end]=='{')-(s[end]=='}');end+=1
  return s[start+1:end-1]
-prepare=method(bar,'public int prepare(').replace('android.animation.ValueAnimator','Animator').replace('new android.view.animation.DecelerateInterpolator()','new Object()')
+prepare=method(bar,'public int prepare(').replace('android.animation.ValueAnimator','Animator').replace('new android.view.animation.DecelerateInterpolator()','new Object()').replace('new android.view.animation.OvershootInterpolator(.8f)','new Object()').replace('new android.view.animation.AccelerateDecelerateInterpolator()','new Object()')
 chat=(tree/'TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java').read_text(encoding='utf-8')
 allowed=chat.split('allowedNotificationsDuringChatListAnimations = new int[]{',1)[1].split('};',1)[0]
 allowed=re.sub(r'//[^\n]*','',allowed).replace('NotificationCenter.','')
@@ -38,17 +38,23 @@ class View {boolean isLaidOut(){return true;}}
 class AndroidUtilities {static int dp(int x){return x;}}
 class NebulaGlass {static boolean reduced;static boolean reduced(){return reduced;}}
 class Animator {
- int start,end,value;boolean cancelled;java.util.function.Consumer<Animator> listener;static int starts;
+ int start,end,value;boolean cancelled,floating;float fraction,fvalue;java.util.function.Consumer<Animator> listener;static int starts;
  static Animator ofInt(int a,int b){Animator r=new Animator();r.start=r.value=a;r.end=b;return r;}
+ static Animator ofFloat(float a,float b){Animator r=new Animator();r.floating=true;r.fvalue=a;return r;}
+ float getAnimatedFraction(){return fraction;}
  void cancel(){cancelled=true;}void setDuration(int x){}void setInterpolator(Object x){}void addUpdateListener(java.util.function.Consumer<Animator> l){listener=l;}
- void start(){starts++;}Object getAnimatedValue(){return value;}void step(float f){if(!cancelled){value=Math.round(start+(end-start)*f);listener.accept(this);}}
+ void start(){starts++;}Object getAnimatedValue(){return floating?(Object)fvalue:(Object)value;}void step(float f){if(!cancelled){fraction=f;fvalue=f;value=Math.round(start+(end-start)*f);listener.accept(this);}}
 }
 class Motion {
  static int HEIGHT_DP=BAR_HEIGHT,GAP_DP=BAR_GAP,VISIBLE=0,GONE=8;boolean preferenceEnabled=true,expanded,attached=true;int reservedHeight,visibility=GONE,layouts;float alpha;Animator reveal;
+ float revealProgress;static class Row{float alpha;void setAlpha(float a){alpha=a;}}Row row=new Row();void invalidate(){}
+ static class Opener{void update(){}}Opener opener;
  Runnable layoutChanged=()->layouts++;Object getParent(){return new View();}boolean isAttachedToWindow(){return attached;}void setVisibility(int v){visibility=v;}void setAlpha(float a){alpha=a;}void updatePalette(){}
  // Подсветка состояния к движению панели не относится: эта фикстура
  // проверяет высоту и прозрачность, а состояние — check-formatting-toolbar.
  int states;void refreshState(){states++;}
+ // Панель открыта (выделение или «Aa»): здесь проверяется только движение.
+ boolean eligible,manual,selection=true;Runnable eligibilityChanged;void tintToggle(){}void highlightFormats(){}void post(Runnable r){}
  int prepare(boolean eligible){PREPARE}
 }
 class SystemClock {static long elapsedRealtime(){return 100;}}
@@ -101,9 +107,10 @@ class Regression {
    check(SendInsertion.VoiceMessageEnterTransition.starts==(outgoing&&pending&&voice&&!far?1:0),"voice flight eligibility changed");
    s.insert();check(s.activity.editor.clears==(outgoing&&pending?1:0),"repeated row callback clears a new draft");
   }
-  Motion t=new Motion();check(t.prepare(true)==0&&t.reveal!=null,"first appearance snaps");
-  t.reveal.step(.5f);check(t.prepare(true)>0&&t.prepare(true)<Motion.HEIGHT_DP+Motion.GAP_DP&&t.alpha>0&&t.alpha<1,"no intermediate motion");
-  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight<Motion.HEIGHT_DP+Motion.GAP_DP,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
+  // The row is reserved at once; the bar then unfolds sideways out of the A.
+  Motion t=new Motion();check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.reveal!=null&&t.revealProgress==0,"first appearance does not unfold from the A");
+  t.reveal.step(.5f);check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.revealProgress>0&&t.revealProgress<1,"no intermediate motion");
+  Animator previous=t.reveal;t.prepare(false);previous.step(1);check(t.reservedHeight==Motion.HEIGHT_DP+Motion.GAP_DP,"cancelled reveal changes height");t.reveal.step(1);check(t.prepare(false)==0&&t.visibility==8,"hidden toolbar reserves space");
   for(int i=0;i<1000;i++){t.prepare(true);t.reveal.step(1);int starts=Animator.starts;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP,"toolbar loses its gap");t.prepare(true);check(starts==Animator.starts,"typing restarts animation");t.prepare(false);t.reveal.step(1);}
   check(t.states>0,"a visible toolbar refreshes what it shows");
   NebulaGlass.reduced=true;check(t.prepare(true)==Motion.HEIGHT_DP+Motion.GAP_DP&&t.visibility==0&&t.alpha==1,"reduced motion not immediate");check(t.prepare(false)==0&&t.visibility==8,"reduced hide retains toolbar");

@@ -43,6 +43,8 @@ private final class NebulaSettingsArguments {
 private enum NebulaSettingsEntry: ItemListNodeEntry {
     case introduction(String, String, String)
     case category(Int, String, String, String)
+    /// Root page entry inside one of the Interface / Features / Accounts and security / NebulaGram groups.
+    case group(Int32, Int, String, String, String)
     case search(String, String)
     case empty(String)
     case toolsHeader(String)
@@ -79,6 +81,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -2
         case .search, .empty: return -1
+        case let .group(section, _, _, _, _): return section
         case let .category(index, _, _, _): return index == 35 ? 3 : index == 34 ? 3 : index == 33 ? 2 : index == 30 || index == 31 ? 0 : index == 27 || index == 28 ? 2 : index == 26 ? 0 : index == 25 ? 4 : index == 23 ? 7 : index == 24 ? 5 : index == 22 ? 9 : index == 19 ? 0 : index == 20 ? 9 : index == 21 ? 5 : index == 18 ? 0 : index == 17 ? 8 : index == 10 || index == 12 || index == 16 ? 9 : index == 11 ? 10 : index >= 13 ? 1 : 0
         case .toolsHeader, .link, .ai, .buildInfo, .memory, .support, .community: return 0
         case let .chatHeader(section, _): return Int32(section)
@@ -91,7 +94,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             if ["hide_dividers", "hide_search_field"].contains(key) { return 6 }
             if key.hasPrefix("menu_") || ["centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur"].contains(key) { return 7 }
             if ["formatting_toolbar", "hide_send_as", "hide_attach_camera"].contains(key) { return 8 }
-            if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel"].contains(key) { return 9 }
+            if key.hasPrefix("reply_") || ["seconds_in_time", "disable_next_channel", "unlimited_selection"].contains(key) { return 9 }
             return 1
         case .header, .hideCounters, .folderStyle, .footer: return 2
         case .privacyHeader, .privacy, .history, .clearHistory: return 3
@@ -101,6 +104,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
     private var order: Int {
         switch self {
         case .introduction: return -3
+        case let .group(_, index, _, _, _): return [2, 3, 7, 30, 31, 5, 1, 18].firstIndex(of: index) ?? index
         case let .category(index, _, _, _): return index == 35 ? 110 : index == 34 ? 115 : index == 33 ? 95 : index == 30 ? 35 : index == 7 ? 45 : index == 31 ? 48 : index == 8 ? 35 : index * 10
         case .search: return -2
         case .empty: return -1
@@ -126,6 +130,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "compact_bottom_bar": return 64
             case "hide_home_camera": return 65
             case "hide_home_compose": return 66
+            case "home_nebulalink": return 66
             case "formatting_toolbar": return 79
             case "hide_send_as": return 67
             case "hide_attach_camera": return 74
@@ -136,6 +141,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "menu_video": return 77
             case "centered_chat_header": return 68
             case "disable_next_channel": return 69
+            case "unlimited_selection": return 71
             case "folder_title": return 86
             case "folder_outline": return 87
             case "hide_search_field": return 72
@@ -161,6 +167,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         switch self {
         case .introduction: return -3
         case let .category(index, _, _, _): return Int32(200 + index)
+        case let .group(_, index, _, _, _): return Int32(600 + index)
         case .search: return 19
         case .empty: return 20
         case .toolsHeader: return 16
@@ -187,6 +194,10 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
             case "menu_video": return 45
             case "centered_chat_header": return 37
             case "disable_next_channel": return 38
+            case "unlimited_selection": return 90
+            case "home_nebulalink": return 91
+            case "media_ambient": return 92
+            case "tabs_hide_on_scroll": return 93
             case "folder_title": return 40
             case "folder_outline": return 47
             case "hide_search_field": return 48
@@ -243,6 +254,7 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
 
     var searchableText: String? {
         switch self {
+        case let .group(_, _, title, detail, _): return title + " " + detail
         case let .category(index, title, detail, _): return title + " " + detail + (index == 17 ? " автоперевод свои отправленные исходящие sent outgoing перевод при наборе черновик пауза AI live translation draft delay composer" : "")
         case let .navigation(title, detail), let .glass(title, detail), let .transitions(title, detail), let .folderStyle(title, detail): return title + " " + detail
         case let .widePosts(title, _, _), let .contacts(title, _, _), let .navigationToggle(_, title, _, _), let .stories(title, _, _), let .history(title, _, _),
@@ -286,6 +298,8 @@ private enum NebulaSettingsEntry: ItemListNodeEntry {
         case let .support(title):
             return disclosure(title, ru ? "Разработка и значок за поддержку" : "Development and a supporter badge", "heart", { arguments.openSupport?() })
         case let .category(index, title, detail, symbol):
+            return disclosure(title, detail, symbol, { arguments.openCategory?(index) })
+        case let .group(_, index, title, detail, symbol):
             return disclosure(title, detail, symbol, { arguments.openCategory?(index) })
         case let .search(value, placeholder):
             let magnifier = NSTextAttachment()
@@ -439,7 +453,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("tab_labels", ru ? "Подписи вкладок" : "Tab labels", store.showTabLabels, !store.hasLoadError),
             .navigationToggle("compact_bottom_bar", ru ? "Компактная нижняя панель" : "Compact bottom bar", store.compactBottomBar, !store.hasLoadError),
             .navigationToggle("hide_home_camera", ru ? "Скрыть камеру на главной" : "Hide camera on home", store.hideHomeCamera, !store.hasLoadError),
+            .navigationToggle("media_ambient", ru ? "Свечение за фото в просмотрщике" : "Glow behind photos in the viewer", store.mediaAmbient, !store.hasLoadError),
+            .navigationToggle("tabs_hide_on_scroll", ru ? "Скрывать панель при прокрутке чатов" : "Hide the bar while scrolling chats", NebulaTabScroll.enabled(), true),
+            .navigationToggle("home_nebulalink", ru ? "NebulaLink на главной" : "NebulaLink on home", NebulaHomeLink.enabled(), true),
             .navigationToggle("hide_home_compose", ru ? "Скрыть кнопку нового чата" : "Hide new-chat button", store.hideHomeCompose, !store.hasLoadError),
+            .navigationToggle("unlimited_selection", ru ? "«Выделить загруженные» без лимита 100" : "Select loaded without the 100 limit", store.unlimitedSelection, !store.hasLoadError),
             .navigationToggle("hide_send_as", ru ? "Скрыть «Отправить от имени»" : "Hide Send As", store.hideSendAs, !store.hasLoadError),
             .navigationToggle("hide_attach_camera", ru ? "Скрыть камеру во вложениях" : "Hide camera in attachments", store.hideAttachCamera, !store.hasLoadError),
             .navigationToggle("hide_dividers", ru ? "Скрыть разделители чатов" : "Hide chat dividers", store.hideDividers, !store.hasLoadError),
@@ -473,7 +491,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             .navigationToggle("reply_emoji", ru ? "Эмодзи в ответах" : "Emoji in replies", store.replyEmoji, !store.hasLoadError),
             .category(12, ru ? "Двойное нажатие на своё сообщение" : "Double tap your message",
                 (ru ? ["Реакция", "Редактировать", "Ответить", "Копировать", "Ничего"] : ["React", "Edit", "Reply", "Copy", "Nothing"])[store.ownDoubleTap], "hand.tap"),
-            .category(13, ru ? "Аватары" : "Avatars", ru ? "Форма и скругление" : "Shape and corners", "person.crop.circle"),
+            .category(37, ru ? "Шрифт" : "Font", ru ? "Как в Telegram или свой TTF/OTF" : "Telegram default or your own TTF/OTF", "textformat"),
+            .category(13, ru ? "Форма" : "Shape", ru ? "Аватары, хвосты, чаты карточками, вкладки профиля" : "Avatars, tails, chat cards, profile tabs", "person.crop.circle"),
             .category(14, ru ? "Значки интерфейса" : "Interface icons", (NebulaImportedIcons.activeName ?? ["Telegram", "Cupertino", "Solar"][store.iconPack]), "square.grid.2x2"),
             .category(15, ru ? "Переключатели" : "Switches", (ru ? ["Системные", "Округлые", "Компактные", "Минималистичные"] : ["System", "Rounded", "Compact", "Minimal"])[store.switchStyle], "switch.2"),
             .navigationToggle("formatting_toolbar", ru ? "Панель форматирования" : "Formatting toolbar", store.formattingToolbar, !store.hasLoadError),
@@ -510,7 +529,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             case let .category(index, _, _, _): return index == 8 || index == 9 || index == 10 || index == 11 || index == 12 || index == 16 || index == 20 || index == 22 || index == 23 || index == 29
             case let .navigationToggle(key, _, _, _):
                 return key.hasPrefix("reply_") || ["formatting_toolbar", "hide_dividers", "hide_send_as", "hide_attach_camera", "menu_search", "menu_mute",
-                    "menu_call", "menu_video", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
+                    "menu_call", "menu_video", "unlimited_selection", "centered_chat_header", "adaptive_chat_header", "floating_chat_header_v2", "header_unread", "message_menu_blur", "disable_next_channel", "seconds_in_time", "hide_search_field"].contains(key)
             default:
                 return false
             }
@@ -527,7 +546,7 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             case .navigation, .contacts, .category(4, _, _, _): return true
             case let .navigationToggle(key, _, _, _):
                 return ["bottom_bar", "bottom_bar_profile", "bottom_bar_settings", "tab_labels", "compact_bottom_bar",
-                    "hide_home_camera", "hide_home_compose"].contains(key)
+                    "hide_home_camera", "hide_home_compose", "home_nebulalink", "tabs_hide_on_scroll"].contains(key)
             default: return false
             }
         }
@@ -541,16 +560,21 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
         if page == 0 && query.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             entries = [
                 .search(query, ru ? "Поиск настроек" : "Search settings"),
-                .toolsHeader(ru ? "Разделы" : "Sections"),
                 .link("NebulaLink"),
-                .category(1, ru ? "Основные" : "General", ru ? "Поведение приложения и перенос настроек" : "App behavior and settings transfer", "gearshape"),
-                .category(2, ru ? "Оформление" : "Appearance", ru ? "Стекло, значки, анимации" : "Glass, icons, animations", "paintpalette"),
-                .category(7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и кнопки" : "Bottom bar and buttons", "rectangle.bottomthird.inset.filled"),
-                .category(3, ru ? "Чаты и сообщения" : "Chats and messages", ru ? "Ввод, действия, камера и задачи" : "Composer, actions, camera and tasks", "bubble.left"),
-                .category(30, ru ? "ИИ и аудио" : "AI and audio", ru ? "Ассистент, перевод, расшифровка и голоса" : "Assistant, translation, transcription and voices", "sparkles"),
-                .category(31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
-                .category(5, ru ? "Конфиденциальность" : "Privacy", ru ? "Архив, защита, поиск" : "Archive, protection, search", "hand.raised"),
-                .category(18, ru ? "О приложении" : "About", ru ? "Поддержка, сообщество и версия" : "Support, community and version", "info.circle")
+                // Each group answers one question, as on Android: how it looks,
+                // what it can do, whose it is and who we are.
+                .chatHeader(20, ru ? "Интерфейс" : "Interface"),
+                .group(20, 2, ru ? "Оформление" : "Appearance", ru ? "Тема, стекло, значки и анимации" : "Theme, glass, icons and motion", "paintpalette"),
+                .group(20, 3, ru ? "Чаты" : "Chats", ru ? "Шапка, пузыри, поле ввода и меню сообщений" : "Header, bubbles, composer and message menu", "bubble.left"),
+                .group(20, 7, ru ? "Навигация" : "Navigation", ru ? "Нижняя панель и папки" : "Bottom bar and folders", "rectangle.bottomthird.inset.filled"),
+                .chatHeader(21, ru ? "Функции" : "Features"),
+                .group(21, 30, ru ? "ИИ и перевод" : "AI and translation", ru ? "Ассистент, перевод, расшифровка и голоса" : "Assistant, translation, transcription and voices", "sparkles"),
+                .chatHeader(22, ru ? "Аккаунты и безопасность" : "Accounts and security"),
+                .group(22, 31, ru ? "Аккаунты" : "Accounts", ru ? "Поиск, порядок и переключение" : "Search, order and switching", "person.2"),
+                .group(22, 5, ru ? "Конфиденциальность" : "Privacy", ru ? "Удалённые сообщения, пароли чатов и защита" : "Deleted messages, chat passwords and protection", "hand.raised"),
+                .group(22, 1, ru ? "Основные" : "General", ru ? "Поведение приложения и копия настроек" : "App behavior and settings backup", "gearshape"),
+                .chatHeader(23, "NebulaGram"),
+                .group(23, 18, ru ? "О приложении" : "About", ru ? "Версия, значки, сообщество и поддержка" : "Version, badges, community and support", "info.circle")
             ]
         } else if page != 0 {
             entries = entries.filter { entry in
@@ -785,6 +809,11 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
                 }
             return
         }
+        if index == 37 {
+            let data = context.sharedContext.currentPresentationData.with { $0 }
+            controller.present(UINavigationController(rootViewController: NebulaFontController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
+            return
+        }
         if index == 13 {
             let data = context.sharedContext.currentPresentationData.with { $0 }
             controller.present(UINavigationController(rootViewController: NebulaAvatarSettingsController(russian: data.strings.baseLanguageCode.hasPrefix("ru"), theme: data.theme)), animated: true)
@@ -809,6 +838,8 @@ public func nebulaSettingsController(context: AccountContext, page: Int = 0, sea
             nebulaSettingsController(context: context, page: index))
     }
     arguments.updateKey = { key, value in
+        if key == "home_nebulalink" { NebulaHomeLink.setEnabled(value); return }
+        if key == "tabs_hide_on_scroll" { NebulaTabScroll.setEnabled(value); return }
         do { try store.set(.boolean(value), for: key);writeFailed.set(false) }
         catch { writeFailed.set(true) }
     }

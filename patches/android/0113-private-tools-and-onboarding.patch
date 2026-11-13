@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index be38bbf3..a3ab6e66 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -3643,6 +3643,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -3723,6 +3723,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
      }
  
      public boolean playMessage(final MessageObject messageObject, boolean silent) {
@@ -10,9 +11,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index a0e83d18..1fa6fc79 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-@@ -1853,6 +1853,11 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1862,6 +1862,11 @@ public class NotificationsController extends BaseController implements Notificat
      }
  
      public String getShortStringForMessage(MessageObject messageObject, String[] userName, boolean[] preview) {
@@ -24,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
          if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter) {
              return LocaleController.getString(R.string.NotificationHiddenMessage);
          }
-@@ -2541,6 +2546,10 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -2556,6 +2561,10 @@ public class NotificationsController extends BaseController implements Notificat
      }
  
      private String getStringForMessage(MessageObject messageObject, boolean shortMessage, boolean[] text, boolean[] preview) {
@@ -35,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
          if (AndroidUtilities.needShowPasscode() || SharedConfig.isWaitingForPasscodeEnter) {
              return LocaleController.getString(R.string.YouHaveNewMessage);
          }
-@@ -5161,6 +5170,12 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -5177,6 +5186,12 @@ public class NotificationsController extends BaseController implements Notificat
                  canReply = false;
              }
  
@@ -49,6 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
                  avatarFile = getFileLoader().getPathToAttach(photoPath, true);
                  if (Build.VERSION.SDK_INT < 28) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
+index fcc2c872..8a5b3216 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceiver.java
 @@ -71,6 +71,7 @@ public class WearReplyReceiver extends BroadcastReceiver {
@@ -60,9 +63,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/WearReplyReceive
          MessageObject replyToTopMsgId = null;
          if (max_id != 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index d14d9ccf..63cf64fa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
-@@ -543,6 +543,7 @@ public abstract class BaseFragment {
+@@ -669,6 +669,7 @@ public abstract class BaseFragment {
      @CallSuper
      public void onResume() {
          isPaused = false;
@@ -70,7 +74,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.
          if (actionBar != null) {
              actionBar.onResume();
          }
-@@ -1488,4 +1489,4 @@ public abstract class BaseFragment {
+@@ -1690,4 +1691,4 @@ public abstract class BaseFragment {
      protected void dumpCanvas() {
          AndroidUtilities.dumpCanvas(fragmentView);
      }
@@ -78,17 +82,18 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.
 \ No newline at end of file
 +}
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 59ca11a5..8d7d95a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -4914,6 +4914,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
- 
+@@ -4355,6 +4355,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @Override
      public boolean onTouchEvent(MotionEvent event) {
+         if (event.getActionMasked() == MotionEvent.ACTION_DOWN) lastTouchDownTime = event.getDownTime();
 +        if (app.nebulagram.ui.NebulaChatLocks.locked(currentMessageObject)) return true;
          if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
              if (event.getAction() == MotionEvent.ACTION_UP) {
                  app.nebulagram.ui.NebulaMessageFilter.reveal(currentMessageObject); invalidate();
-@@ -20216,6 +20217,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -17373,6 +17374,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @SuppressLint("WrongCall")
      @Override
      protected void onDraw(Canvas canvas) {
@@ -99,7 +104,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          if (app.nebulagram.ui.NebulaMessageFilter.hidden(currentMessageObject)) {
              app.nebulagram.ui.NebulaMessageFilter.draw(canvas, this);
              return;
-@@ -20223,7 +20228,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -17380,7 +17385,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          drawInternal(canvas);
      }
      @Override protected void dispatchDraw(Canvas canvas) {
@@ -108,7 +113,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
      }
      private Paint nebulaDeletedPaint;
      private int nebulaDeletedPaintKey;
-@@ -26828,6 +26833,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -23348,6 +23353,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -121,9 +126,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              info.setText(app.nebulagram.ui.NebulaMessageFilter.label());
              info.setContentDescription(app.nebulagram.ui.NebulaMessageFilter.label());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index fb667605..38f0b22a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
-@@ -3796,9 +3796,19 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -3842,9 +3842,19 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      private GradientDrawable archiveFadeGradientDrawable;
      private int archiveFadeGradientDrawableColor;
  
@@ -143,7 +149,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
          if (currentDialogId == 0 && customDialog == null) {
              return;
          }
-@@ -5521,6 +5531,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -5567,6 +5577,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -155,7 +161,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
          if (isFolderCell() && archivedChatsDrawable != null && SharedConfig.archiveHidden && archivedChatsDrawable.getPullProgress() == 0.0f) {
              info.setVisibleToUser(false);
          } else {
-@@ -5540,6 +5555,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -5586,6 +5601,11 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
      @Override
      public void onPopulateAccessibilityEvent(AccessibilityEvent event) {
          super.onPopulateAccessibilityEvent(event);
@@ -168,9 +174,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
          if (titleOverride != null) {
              sb.append(titleOverride);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
+index 22d5ed51..4dfbf0e6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.java
-@@ -387,6 +387,7 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+@@ -402,6 +402,7 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
  
      @Override
      public boolean onTouchEvent(MotionEvent event) {
@@ -178,7 +185,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.j
          if (currentMessageObject == null) {
              return super.onTouchEvent(event);
          }
-@@ -608,6 +609,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+@@ -623,6 +624,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -189,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.j
          info.setEnabled(true);
          if (currentMessageObject.isMusic()) {
              info.setText(LocaleController.formatString("AccDescrMusicInfo", R.string.AccDescrMusicInfo, currentMessageObject.getMusicAuthor(), currentMessageObject.getMusicTitle()));
-@@ -662,6 +667,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+@@ -677,6 +682,10 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
  
      @Override
      protected void dispatchDraw(Canvas canvas) {
@@ -200,15 +207,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedAudioCell.j
          if (showName && showNameProgress != 1f) {
              showNameProgress += 16 / 150f;
              invalidate();
-@@ -856,4 +865,3 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
+@@ -871,4 +880,3 @@ public class SharedAudioCell extends FrameLayout implements DownloadController.F
          }
      }
  }
 -
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
+index db17b42d..a3778903 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCell.java
-@@ -693,6 +693,10 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
+@@ -695,6 +695,10 @@ public class SharedDocumentCell extends FrameLayout implements Theme.Colorable,
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -219,7 +227,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCel
          if (checkBox.isChecked()) {
              info.setCheckable(true);
              info.setChecked(checkBox.isChecked());
-@@ -711,6 +715,10 @@ public class SharedDocumentCell extends FrameLayout implements DownloadControlle
+@@ -713,6 +717,10 @@ public class SharedDocumentCell extends FrameLayout implements Theme.Colorable,
  
      @Override
      protected void dispatchDraw(Canvas canvas) {
@@ -231,9 +239,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedDocumentCel
              canvas.saveLayerAlpha(0, 0, getMeasuredWidth(), getMeasuredHeight(), (int) ((1f - enterAlpha) * 255), Canvas.ALL_SAVE_FLAG);
              globalGradientView.setViewType(FlickerLoadingView.FILES_TYPE);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
+index 0ad1e0bf..1b26a898 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.java
-@@ -651,6 +651,7 @@ public class SharedLinkCell extends FrameLayout {
+@@ -663,6 +663,7 @@ public class SharedLinkCell extends FrameLayout implements Theme.Colorable {
  
      @Override
      public boolean onTouchEvent(MotionEvent event) {
@@ -241,7 +250,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.ja
          boolean result = false;
          if (message != null && !linkLayout.isEmpty() && delegate != null && delegate.canPerformActions()) {
              if (event.getAction() == MotionEvent.ACTION_DOWN || (linkPreviewPressed || spoilerPressed != null) && event.getAction() == MotionEvent.ACTION_UP) {
-@@ -863,8 +864,16 @@ public class SharedLinkCell extends FrameLayout {
+@@ -875,8 +876,16 @@ public class SharedLinkCell extends FrameLayout implements Theme.Colorable {
          checkBox.setChecked(checked, animated);
      }
  
@@ -258,7 +267,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.ja
          if (viewType == VIEW_TYPE_GLOBAL_SEARCH) {
              description2TextPaint.setColor(Theme.getColor(Theme.key_windowBackgroundWhiteGrayText3, resourcesProvider));
          }
-@@ -976,6 +985,10 @@ public class SharedLinkCell extends FrameLayout {
+@@ -988,6 +997,10 @@ public class SharedLinkCell extends FrameLayout implements Theme.Colorable {
      @Override
      public void onInitializeAccessibilityNodeInfo(AccessibilityNodeInfo info) {
          super.onInitializeAccessibilityNodeInfo(info);
@@ -270,6 +279,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedLinkCell.ja
          if (titleLayout != null) {
              sb.append(titleLayout.getText());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
+index 3fce55be..fa7de86d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoCell2.java
 @@ -467,6 +467,10 @@ public class SharedPhotoVideoCell2 extends FrameLayout {
@@ -310,9 +320,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/SharedPhotoVideoC
          final float leftpadding = isFirst ? padding : 0;
          final float rightpadding = padding;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index cf789834..e1a078c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -17892,6 +17892,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18397,6 +18397,7 @@ public class ChatActivity extends BaseFragment implements
  
          @Override
          public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -320,7 +331,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (messageMetricsView != null) {
                  messageMetricsView.setIsUserActive();
              }
-@@ -18197,6 +18198,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -18717,6 +18718,7 @@ public class ChatActivity extends BaseFragment implements
  
          @Override
          protected void dispatchDraw(Canvas canvas) {
@@ -329,31 +340,33 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              updateChatListViewTopPadding();
              if (invalidateMessagesVisiblePart || (chatListItemAnimator != null && chatListItemAnimator.isRunning())) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
+index 7308bcec..6c3b4cd9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActivity.java
-@@ -251,6 +251,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
- 
+@@ -184,6 +184,7 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
+         final FrameLayout frameLayout = new FrameLayout(context) {
              @Override
              public boolean dispatchTouchEvent(MotionEvent ev) {
 +                if (app.nebulagram.ui.NebulaChatLocks.intercept(this, ev)) return true;
                  if (sharedMediaLayout != null && sharedMediaLayout.isInFastScroll()) {
                      return sharedMediaLayout.dispatchFastScrollEvent(ev);
                  }
-@@ -264,6 +265,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
-             protected void drawList(Canvas blurCanvas, boolean top, ArrayList<IViewWithInvalidateCallback> views) {
-                 sharedMediaLayout.drawListForBlur(blurCanvas, views);
+@@ -192,6 +193,10 @@ public class MediaActivity extends BaseFragment implements SharedMediaLayout.Sha
+                 }
+                 return super.dispatchTouchEvent(ev);
              }
 +            @Override protected void dispatchDraw(Canvas canvas) {
 +                if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
 +                super.dispatchDraw(canvas);
 +            }
          };
-         fragmentView.needBlur = true;
-         this.fragmentView = fragmentView;
+         fragmentView = frameLayout;
+ 
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index 476e2ad1..78b58318 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
-@@ -7600,6 +7600,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+@@ -7414,6 +7414,7 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
      }
  
      private boolean onItemLongClick(MessageObject item, View view, int a, boolean allowStoryPreview) {
@@ -361,7 +374,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaL
          if (isActionModeShowed || profileActivity.getParentActivity() == null || item == null) {
              return false;
          }
-@@ -7772,6 +7773,7 @@ public class SharedMediaLayout extends FrameLayout implements NotificationCenter
+@@ -7586,6 +7587,7 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
      }
  
      private void onItemClick(int index, View view, MessageObject message, int a, int selectedMode) {
@@ -370,9 +383,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaL
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 5d1a5e92..fcd89871 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1216,12 +1216,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1247,12 +1247,14 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
              return;
          }
          switchingAccount = true;
@@ -387,7 +401,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.activeAccountChanged, account);
          if (AndroidUtilities.isTablet()) {
              layersActionBarLayout.removeAllFragments();
-@@ -6782,6 +6784,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -6834,6 +6836,8 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
  
      @Override
      protected void onPause() {
@@ -395,19 +409,20 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
 +        app.nebulagram.ui.NebulaSettingsSync.get().pause();
          super.onPause();
          isResumed = false;
-         pipActivityHandler.onPause();
-@@ -7021,6 +7025,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
-     @Override
+         WidgetMedia.onAppPaused(true);
+@@ -7148,6 +7152,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
      protected void onResume() {
          super.onResume();
+         WidgetMedia.onAppPaused(false);
 +        app.nebulagram.ui.NebulaSettingsSync.get().start(currentAccount);
          isResumed = true;
-         pipActivityHandler.onResume();
+         PipCoordinator.getInstance().onActivityResume(this);
          if (onResumeStaticCallback != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index 55aabcac..fd36576e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -15661,6 +15661,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -15632,6 +15632,14 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      }
  
      private void setImageIndex(int index, boolean init, boolean animateCaption, boolean force) {
@@ -422,7 +437,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
          if (!force && currentIndex == index || placeProvider == null) {
              return;
          }
-@@ -17463,6 +17471,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -17434,6 +17442,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      private NotificationCenter.ObserversGroup observersGroup;
  
      public boolean openPhoto(final MessageObject messageObject, final TLRPC.FileLocation fileLocation, final ImageLocation imageLocation, final ImageLocation videoLocation, final ArrayList<MessageObject> messages, final ArrayList<SecureDocument> documents, final ArrayList<Object> photos, final int index, final PhotoViewerProvider provider, ChatActivity chatActivity, long dialogId, long mDialogId, long topicId, boolean fullScreenVideo, PageBlocksAdapter pageBlocksAdapter, Integer embedSeekTime) {
@@ -433,7 +448,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
          if (parentActivity == null || isVisible || provider == null && checkAnimation() || messageObject == null && fileLocation == null && messages == null && photos == null && documents == null && imageLocation == null && pageBlocksAdapter == null) {
              return false;
          }
-@@ -18842,6 +18854,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -18825,6 +18837,10 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      public boolean isVisible() {
          return isVisible && placeProvider != null;
      }
@@ -445,9 +460,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
      private int getVideoFitHeight() {
          int height = getContainerViewHeight();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 39f037f6..90aa9d43 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3038,6 +3038,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3037,6 +3037,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
              @Override
              public boolean dispatchTouchEvent(MotionEvent ev) {
@@ -455,11 +471,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  if (pinchToZoomHelper.isInOverlayMode()) {
                      return pinchToZoomHelper.onTouchEvent(ev);
                  }
-@@ -3334,6 +3335,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3324,6 +3325,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
              @Override
              protected void dispatchDraw(Canvas canvas) {
 +                if (app.nebulagram.ui.NebulaChatLocks.draw(canvas, this)) return;
-                 if (Build.VERSION.SDK_INT >= 31 && scrollableViewNoiseSuppressor != null) {
-                     blur3_InvalidateBlur();
- 
+                 if (headerBlurFactor > 0) {
+                     // the colored header fades out: the rows go under the header, on the screen's background
+                     grayPaint.setColor(getThemedColor(Theme.key_windowBackgroundGray));

@@ -3,6 +3,14 @@ package app.nebulagram.ui;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.RectF;
+import androidx.core.graphics.ColorUtils;
+import android.graphics.drawable.Drawable;
+import android.graphics.Shader;
+import android.graphics.Rect;
+import android.graphics.PixelFormat;
+import android.graphics.Paint;
+import android.graphics.LinearGradient;
+import android.graphics.ColorFilter;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
@@ -12,11 +20,13 @@ import android.widget.TextView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import org.telegram.messenger.AndroidUtilities;
+import org.telegram.messenger.MessagesController;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.AboutLinkCell;
 import org.telegram.ui.Cells.CollapseTextCell;
 import org.telegram.ui.Cells.GraySectionCell;
 import org.telegram.ui.Cells.HeaderCell;
+import org.telegram.ui.Cells.TextDetailCell;
 import org.telegram.ui.Business.ProfileHoursCell;
 import org.telegram.ui.Business.ProfileLocationCell;
 import org.telegram.ui.Cells.ShadowSectionCell;
@@ -39,6 +49,115 @@ import java.util.WeakHashMap;
 public final class NebulaProfileStyle {
     private NebulaProfileStyle() { }
     private static final WeakHashMap<RecyclerListView, Boolean> styledLists = new WeakHashMap<>();
+    private static final WeakHashMap<View, Integer> pages = new WeakHashMap<>();
+
+    /**
+     * Цвет профиля продолжается ниже шапки на всю страницу, как в Cherrygram:
+     * карточки и кнопки лежат на нём полупрозрачными плашками. У профиля без
+     * цвета остаётся обычный фон Telegram. Фотобаннер шапки перетекает в этот
+     * же цвет.
+     */
+    public static void page(RecyclerListView list, MessagesController.PeerColor color,
+                            Theme.ResourcesProvider provider) {
+        if (list == null) return;
+        final int base = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+        final int page = NebulaAppearance.profileStyle() && color != null
+                ? color.getBgColor1(Theme.isCurrentThemeDark()) | 0xff000000 : 0;
+        peerPages.put(list, page);
+        bannerBitmaps.remove(list);
+        pages.put(list, page);
+        if (page == 0) list.setBackgroundColor(base);
+        else list.setBackground(new PageBackground(page, base, list));
+        invalidateTree(list, 0);
+    }
+
+    private static final WeakHashMap<View, Integer> peerPages = new WeakHashMap<>();
+    private static final WeakHashMap<View, java.lang.ref.WeakReference<android.graphics.Bitmap>> bannerBitmaps = new WeakHashMap<>();
+
+    /**
+     * У профиля без своего цвета, но с фотобаннером, страница берёт тон из
+     * фото: средний цвет снимка, затемнённый ночью и высветленный днём. Так
+     * баннер перетекает в страницу, а карточки ложатся на неё полупрозрачными
+     * плашками — тот же вид, что и у цветного профиля. Вызывается шапкой на
+     * каждом кадре, поэтому пересчёт идёт только при смене снимка.
+     */
+    public static void bannerPage(RecyclerListView list, org.telegram.messenger.ImageReceiver photo,
+                                  Theme.ResourcesProvider provider) {
+        if (list == null || photo == null || !NebulaAppearance.profileStyle()) return;
+        Integer peer = peerPages.get(list);
+        if (peer != null && peer != 0) return;
+        android.graphics.Bitmap bitmap = photo.getBitmap();
+        if (bitmap == null || bitmap.isRecycled()) return;
+        java.lang.ref.WeakReference<android.graphics.Bitmap> known = bannerBitmaps.get(list);
+        if (known != null && known.get() == bitmap) return;
+        bannerBitmaps.put(list, new java.lang.ref.WeakReference<>(bitmap));
+        int average;
+        try {
+            android.graphics.Bitmap source = bitmap.getConfig() == android.graphics.Bitmap.Config.HARDWARE
+                    ? bitmap.copy(android.graphics.Bitmap.Config.ARGB_8888, false) : bitmap;
+            android.graphics.Bitmap dot = android.graphics.Bitmap.createScaledBitmap(source, 1, 1, true);
+            average = dot.getPixel(0, 0) | 0xff000000;
+            if (dot != source) dot.recycle();
+            if (source != bitmap) source.recycle();
+        } catch (Throwable ignored) {
+            return;
+        }
+        float[] hsl = new float[3];
+        ColorUtils.colorToHSL(average, hsl);
+        boolean dark = Theme.isCurrentThemeDark();
+        hsl[1] = Math.min(hsl[1], dark ? .42f : .38f);
+        hsl[2] = dark ? Math.min(Math.max(hsl[2] * .45f, .12f), .22f) : Math.max(hsl[2], .86f);
+        int page = ColorUtils.HSLToColor(hsl) | 0xff000000;
+        final int base = Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+        pages.put(list, page);
+        list.setBackground(new PageBackground(page, base, list));
+        invalidateTree(list, 0);
+    }
+
+    /** Цвет страницы для вида внутри профиля; 0 — обычный фон. */
+    public static int pageColor(View view) {
+        for (View current = view; current != null;
+             current = current.getParent() instanceof View ? (View) current.getParent() : null) {
+            Integer color = pages.get(current);
+            if (color != null) return color;
+        }
+        return 0;
+    }
+
+    private static void invalidateTree(View view, int depth) {
+        view.invalidate();
+        if (depth > 4 || !(view instanceof ViewGroup)) return;
+        ViewGroup group = (ViewGroup) view;
+        for (int i = 0; i < group.getChildCount(); i++) invalidateTree(group.getChildAt(i), depth + 1);
+    }
+
+    /** «ID: 1 694 811 956» — число группами по три, как в Cherrygram. */
+    public static String idTitle(String id) {
+        if (id == null || id.isEmpty()) return "ID";
+        int start = id.startsWith("-") ? 1 : 0;
+        for (int i = start; i < id.length(); i++) {
+            if (!Character.isDigit(id.charAt(i))) return "ID: " + id;
+        }
+        StringBuilder grouped = new StringBuilder("ID: ").append(id, 0, start);
+        for (int i = start; i < id.length(); i++) {
+            grouped.append(id.charAt(i));
+            int left = id.length() - i - 1;
+            if (left > 0 && left % 3 == 0) grouped.append(' ');
+        }
+        return grouped.toString();
+    }
+
+    /** Подпись под ID: дата-центр с именем и городом, иначе тип ID. */
+    public static String idSubtitle(String fallback, int dc) {
+        switch (dc) {
+            case 1: return "DC: 1, Pluto, USA (Miami)";
+            case 2: return "DC: 2, Venus, NLD (Amsterdam)";
+            case 3: return "DC: 3, Aurora, USA (Miami)";
+            case 4: return "DC: 4, Vesta, NLD (Amsterdam)";
+            case 5: return "DC: 5, Flora, SGP (Singapore)";
+            default: return fallback;
+        }
+    }
 
     public static void sections(RecyclerListView list, Theme.ResourcesProvider provider) {
         if (list == null) return;
@@ -47,7 +166,7 @@ public final class NebulaProfileStyle {
             list.setSections();
             return;
         }
-        final NebulaProfileArt.Surface surface = new NebulaProfileArt.Surface(list.getContext(), provider);
+        final NebulaProfileArt.Surface surface = new NebulaProfileArt.Surface(list.getContext(), provider, () -> pageColor(list));
         // These are the native section boundaries. Special rows and shared
         // media retain the tags and grouping chosen by their own adapters.
         list.setSections(view -> !(view instanceof TextInfoPrivacyCell ||
@@ -70,6 +189,11 @@ public final class NebulaProfileStyle {
                     if (view instanceof ProfileHoursCell || view instanceof ProfileLocationCell) {
                         view.setBackground(null);
                     }
+                    // На карточке строки разделяет воздух, а не линии: у
+                    // Telegram они стояли лишь под частью строк.
+                    if (view instanceof TextDetailCell) ((TextDetailCell) view).nebulaNoDivider = true;
+                    if (view instanceof ProfileHoursCell) ((ProfileHoursCell) view).nebulaNoDivider = true;
+                    if (view instanceof ProfileLocationCell) ((ProfileLocationCell) view).nebulaNoDivider = true;
                     if (view instanceof AboutLinkCell) {
                         ((AboutLinkCell) view).setNebulaSectionSurface(true);
                         hideBioShadow((ViewGroup) view);
@@ -104,7 +228,7 @@ public final class NebulaProfileStyle {
 
     /** All drawing, hit targets, accessibility and avatar blur remain native. */
     public static ProfileActionsView actions(Context context, int height, Theme.ResourcesProvider provider) {
-        return NebulaAppearance.profileStyle()
+        return NebulaAppearance.profileStyle() || NebulaProfileArt.materialButtons()
                 ? new NebulaProfileArt.Actions(context, height, provider)
                 : new ProfileActionsView(context, height);
     }
@@ -185,5 +309,34 @@ public final class NebulaProfileStyle {
         content.setPadding(inset + (enabled ? left : 0),
                 AndroidUtilities.dp(enabled ? 10 : 4),
                 inset + (enabled ? right : 0), inset + bottom);
+    }
+
+    /**
+     * Фон цветной страницы: цвет шапки во всю длину, к низу длинного списка
+     * чуть спокойнее. Вкладки и сетка медиа лежат прямо на нём — их сплошную
+     * заливку на цветной странице убирает 0302, так что чёрной черты нет.
+     */
+    public static final class PageBackground extends Drawable {
+        private final int top, bottom;
+        private final Paint paint = new Paint();
+        private LinearGradient gradient;
+        private int previousTop = Integer.MIN_VALUE, previousHeight = -1;
+        public PageBackground(int color, int base, View owner) {
+            top = color;
+            bottom = ColorUtils.blendARGB(color, base, Theme.isCurrentThemeDark() ? .3f : .45f);
+        }
+        @Override public void draw(Canvas canvas) {
+            Rect bounds = getBounds();
+            if (gradient == null || previousTop != bounds.top || previousHeight != bounds.height()) {
+                previousTop = bounds.top; previousHeight = bounds.height();
+                gradient = new LinearGradient(0, bounds.top, 0, bounds.top + Math.max(AndroidUtilities.dp(900), bounds.height()),
+                        top, bottom, Shader.TileMode.CLAMP);
+            }
+            paint.setShader(gradient);
+            canvas.drawRect(bounds, paint);
+        }
+        @Override public void setAlpha(int alpha) { paint.setAlpha(alpha); invalidateSelf(); }
+        @Override public void setColorFilter(ColorFilter filter) { }
+        @Override public int getOpacity() { return PixelFormat.OPAQUE; }
     }
 }

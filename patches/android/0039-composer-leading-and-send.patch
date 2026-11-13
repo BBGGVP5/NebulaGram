@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 3fe99dcc..f604023d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14610,7 +14610,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14832,7 +14832,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -10,23 +11,22 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
-@@ -15446,7 +15446,12 @@ public class ChatActivityEnterView extends FrameLayout implements
-         private int drawableColor;
+@@ -15668,7 +15668,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+         private int drawableColor, inactiveDrawableColor, drawableInverseColor;
  
          public void updateColors() {
 -            int color = isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
-+            // В нашем оформлении кнопка отправки — такой же стеклянный кружок,
-+            // как микрофон рядом: цветного пятна под самолётиком быть не должно.
++            // NebulaGram: a monochrome composer tints the send glyph with the glass icon colour.
 +            final boolean mono = isNewDesignSendButton
 +                    && app.nebulagram.ui.NebulaComposerStyle.monochrome();
 +            int color = mono ? Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider)
 +                    : isNewDesignSendButton ? Color.WHITE : Theme.getColor(Theme.key_chat_messagePanelSend, resourcesProvider);
-             if (color != drawableColor) {
-                 drawableColor = color;
-                 drawable.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_IN));
-@@ -15454,7 +15459,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+             int c = Theme.getColor(Theme.key_glass_defaultIcon, resourcesProvider);
+             int inverseColor = Theme.getColor(Theme.key_chat_messagePanelVoicePressed, resourcesProvider);
+             if (color != drawableColor || c != inactiveDrawableColor || inverseColor != drawableInverseColor) {
+@@ -15679,7 +15683,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                  inactiveDrawable.setColorFilter(new PorterDuffColorFilter(Color.argb(0xb4, Color.red(c), Color.green(c), Color.blue(c)), PorterDuff.Mode.SRC_IN));
-                 drawableInverse.setColorFilter(new PorterDuffColorFilter(Theme.getColor(Theme.key_chat_messagePanelVoicePressed, resourcesProvider), PorterDuff.Mode.SRC_IN));
+                 drawableInverse.setColorFilter(new PorterDuffColorFilter(inverseColor, PorterDuff.Mode.SRC_IN));
              }
 -            if (isNewDesignSendButton) {
 +            if (mono) {

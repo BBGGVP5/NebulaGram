@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index 854c5c5f..4a897c2a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
-@@ -2892,7 +2892,7 @@ public class AndroidUtilities {
+@@ -3001,7 +3001,7 @@ public class AndroidUtilities {
      public static int getAccountInProduction() {
          if (UserConfig.getInstance(UserConfig.selectedAccount).isClientActivated() && !ConnectionsManager.getInstance(UserConfig.selectedAccount).isTestBackend())
              return UserConfig.selectedAccount;
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities
                  return i;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 4eb37f25..949410a8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 @@ -221,7 +221,7 @@ public class ApplicationLoader extends Application {
@@ -22,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
                          ConnectionsManager.getInstance(a).checkConnection();
                          FileLoader.getInstance(a).onNetworkChanged(isSlow);
                      }
-@@ -254,7 +254,8 @@ public class ApplicationLoader extends Application {
+@@ -256,7 +256,8 @@ public class ApplicationLoader extends Application {
  
          SharedConfig.loadConfig();
          SharedPrefsHelper.init(applicationContext);
@@ -32,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
              UserConfig.getInstance(a).loadConfig();
              MessagesController.getInstance(a);
              if (a == 0) {
-@@ -276,7 +277,7 @@ public class ApplicationLoader extends Application {
+@@ -278,7 +279,7 @@ public class ApplicationLoader extends Application {
          }
  
          MediaController.getInstance();
@@ -42,6 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
              DownloadController.getInstance(a);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java b/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
+index f63e6a8d..a545808f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaTask.java
 @@ -31,7 +31,7 @@ public class AutoDeleteMediaTask {
@@ -54,6 +57,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AutoDeleteMediaT
                      CacheByChatsController cacheByChatsController = UserConfig.getInstance(account).getMessagesController().getCacheByChatsController();
                      cacheByChatsControllers.add(cacheByChatsController);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+index ed092adb..21fc7f86 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
 @@ -110,7 +110,7 @@ public class ContactsController extends BaseController {
@@ -93,9 +97,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsControll
                                  if (user != null) {
                                      if (acc.name.equals("" + user.id)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
+index 1194a0b0..63bf2bb9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
-@@ -2179,7 +2179,7 @@ public class ImageLoader {
+@@ -2191,7 +2191,7 @@ public class ImageLoader {
          AndroidUtilities.createEmptyFile(new File(cachePath, ".nomedia"));
          mediaDirs.put(FileLoader.MEDIA_DIR_CACHE, cachePath);
  
@@ -104,7 +109,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
              final int currentAccount = a;
              FileLoader.getInstance(a).setDelegate(new FileLoader.FileLoaderDelegate() {
                  @Override
-@@ -2310,7 +2310,7 @@ public class ImageLoader {
+@@ -2322,7 +2322,7 @@ public class ImageLoader {
                      }
                  }
              });
@@ -114,6 +119,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
  
          BroadcastReceiver receiver = new BroadcastReceiver() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
+index 343618ac..92e41740 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService.java
 @@ -16,15 +16,20 @@ import androidx.core.app.NotificationCompat;
@@ -171,21 +177,23 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImportingService
                  return true;
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+index c5f634c7..3ca8b19d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
-@@ -3269,7 +3269,7 @@ public class LocaleController {
+@@ -3603,7 +3603,7 @@ public class LocaleController {
+                     }), ConnectionsManager.RequestFlagWithoutLogin);
+                     request.token = requestId;
+                 } else {
+-                    for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                    for (int a : UserConfig.getAccountIds()) {
+                         ConnectionsManager.setLangCode(localeInfo.getLangCode());
                      }
-                 }, ConnectionsManager.RequestFlagWithoutLogin);
-             } else {
--                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-+                for (int a : UserConfig.getAccountIds()) {
-                     ConnectionsManager.setLangCode(localeInfo.getLangCode());
-                 }
-                 FileLog.d("applyRemoteLanguage getLangPack");
+                     FileLog.d("applyRemoteLanguage getLangPack");
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+index 72271d04..94ddb12e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
-@@ -931,7 +931,7 @@ public class LocationController extends BaseController implements NotificationCe
+@@ -961,7 +961,7 @@ public class LocationController extends BaseController implements NotificationCe
  
      public static int getLocationsCount() {
          int count = 0;
@@ -195,9 +203,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationControll
          }
          return count;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
+index 67142a4a..61ca6869 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
-@@ -39,7 +39,7 @@ public class LocationSharingService extends Service implements NotificationCente
+@@ -44,7 +44,7 @@ public class LocationSharingService extends Service implements NotificationCente
          runnable = () -> {
              handler.postDelayed(runnable, 1000);
              Utilities.stageQueue.postRunnable(() -> {
@@ -206,7 +215,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingS
                      LocationController.getInstance(a).update();
                  }
              });
-@@ -79,7 +79,7 @@ public class LocationSharingService extends Service implements NotificationCente
+@@ -84,7 +84,7 @@ public class LocationSharingService extends Service implements NotificationCente
  
      private ArrayList<LocationController.SharingLocationInfo> getInfos() {
          ArrayList<LocationController.SharingLocationInfo> infos = new ArrayList<>();
@@ -216,9 +225,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingS
              if (!arrayList.isEmpty()) {
                  infos.addAll(arrayList);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index ee473ea9..0c6cb9df 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -1514,7 +1514,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -1579,7 +1579,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
          fileBuffer = ByteBuffer.allocateDirect(1920);
  
          AndroidUtilities.runOnUIThread(() -> {
@@ -227,7 +237,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.fileLoaded);
                  NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.httpFileDidLoad);
                  NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.didReceiveNewMessages);
-@@ -1524,7 +1524,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -1589,7 +1589,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.mediaDidLoad);
                  NotificationCenter.getInstance(a).addObserver(MediaController.this, NotificationCenter.musicListLoaded);
                  NotificationCenter.getGlobalInstance().addObserver(MediaController.this, NotificationCenter.playerDidStartPlaying);
@@ -236,7 +246,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
          });
  
          mediaProjections = new String[]{
-@@ -1699,7 +1699,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -1764,7 +1764,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
          cleanupPlayer(true, true);
          audioInfo = null;
          playMusicAgain = false;
@@ -246,9 +256,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
          }
          videoConvertQueue.clear();
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index d50b4ec9..7d7d53ce 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -16130,7 +16130,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -16171,7 +16171,7 @@ public class MessagesController extends BaseController implements NotificationCe
              TL_account.unregisterDevice req = new TL_account.unregisterDevice();
              req.token = SharedConfig.pushString;
              req.token_type = SharedConfig.pushType;
@@ -257,7 +268,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                  UserConfig userConfig = UserConfig.getInstance(a);
                  if (a != currentAccount && userConfig.isClientActivated()) {
                      req.other_uids.add(userConfig.getClientUserId());
-@@ -16161,6 +16161,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -16202,6 +16202,7 @@ public class MessagesController extends BaseController implements NotificationCe
              getConnectionsManager().cleanup(type == 2);
          }
          getUserConfig().clearConfig();
@@ -265,7 +276,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          SharedPrefsHelper.cleanupAccount(currentAccount);
  
          boolean shouldHandle = true;
-@@ -16176,7 +16177,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -16217,7 +16218,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (shouldHandle) {
              if (UserConfig.selectedAccount == currentAccount) {
                  int account = -1;
@@ -274,7 +285,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                      if (UserConfig.getInstance(a).isClientActivated()) {
                          account = a;
                          break;
-@@ -16216,7 +16217,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -16257,7 +16258,7 @@ public class MessagesController extends BaseController implements NotificationCe
          req.token = regid;
          req.no_muted = false;
          req.secret = SharedConfig.pushAuthKey;
@@ -284,6 +295,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (a != currentAccount && userConfig.isClientActivated()) {
                  long uid = userConfig.getClientUserId();
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java b/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
+index 7437ba88..42a5e676 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerService.java
 @@ -50,6 +50,8 @@ import org.telegram.ui.LaunchActivity;
@@ -331,9 +343,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicPlayerServi
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index 8b407517..6c76394b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
-@@ -1766,7 +1766,7 @@ public class NotificationsController extends BaseController implements Notificat
+@@ -1775,7 +1775,7 @@ public class NotificationsController extends BaseController implements Notificat
  
      private int getTotalAllUnreadCount() {
          int count = 0;
@@ -343,6 +356,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
                  continue;
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
+index 86d4cd3a..65b0e7d8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDisabledReceiver.java
 @@ -38,7 +38,7 @@ public class NotificationsDisabledReceiver extends BroadcastReceiver {
@@ -355,6 +369,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsDis
          }
          if (BuildVars.LOGS_ENABLED) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
+index e43cdc9a..a86d6527 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationController.java
 @@ -84,9 +84,9 @@ public class ProxyRotationController implements NotificationCenter.NotificationC
@@ -370,6 +385,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ProxyRotationCon
          NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.proxySettingsChanged);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java b/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
+index d63cdf50..839e1d3f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerController.java
 @@ -59,7 +59,7 @@ public class PushListenerController {
@@ -400,6 +416,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/PushListenerCont
                  ConnectionsManager.onInternalPushReceived(a);
                  ConnectionsManager.getInstance(a).resumeNetworkMaybe();
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java b/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
+index 1901d86b..96171571 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocationReceiver.java
 @@ -16,7 +16,7 @@ public class StopLiveLocationReceiver extends BroadcastReceiver {
@@ -412,9 +429,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StopLiveLocation
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+index 66ca1a16..a2b1d912 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -24,8 +24,23 @@ import java.util.Arrays;
+@@ -25,8 +25,23 @@ import java.util.Arrays;
  public class UserConfig extends BaseController {
  
      public static int selectedAccount;
@@ -440,7 +458,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
  
      private final Object sync = new Object();
      private volatile boolean configLoaded;
-@@ -91,8 +106,8 @@ public class UserConfig extends BaseController {
+@@ -92,8 +107,8 @@ public class UserConfig extends BaseController {
  
      public static int getActivatedAccountsCount() {
          int count = 0;
@@ -451,7 +469,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
                  count++;
              }
          }
-@@ -104,18 +119,14 @@ public class UserConfig extends BaseController {
+@@ -105,18 +120,14 @@ public class UserConfig extends BaseController {
      }
  
      public static boolean hasPremiumOnAccounts() {
@@ -472,7 +490,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
      public int getNewMessageId() {
          int id;
          synchronized (sync) {
-@@ -222,7 +233,7 @@ public class UserConfig extends BaseController {
+@@ -223,7 +234,7 @@ public class UserConfig extends BaseController {
      }
  
      public static boolean isValidAccount(int num) {
@@ -481,7 +499,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
      }
  
      public boolean isClientActivated() {
-@@ -487,8 +498,8 @@ public class UserConfig extends BaseController {
+@@ -488,8 +499,8 @@ public class UserConfig extends BaseController {
          lastHintsSyncTime = (int) (System.currentTimeMillis() / 1000) - 25 * 60 * 60;
          resetSavedPassword();
          boolean hasActivated = false;
@@ -492,7 +510,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
                  hasActivated = true;
                  break;
              }
-@@ -610,7 +621,7 @@ public class UserConfig extends BaseController {
+@@ -622,7 +633,7 @@ public class UserConfig extends BaseController {
      }
  
      public static int getProductionAccount() {
@@ -502,6 +520,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
              if (getInstance(account).isClientActivated() && !ConnectionsManager.getInstance(account).isTestBackend())
                  return account;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
+index 8929f573..2159dccd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUtilities.java
 @@ -256,7 +256,7 @@ public class BillingUtilities {
@@ -514,6 +533,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/BillingUti
              if (acc.getUserConfig().getClientUserId() == accountId) {
                  result = acc;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
+index a09c4d4d..f31f1901 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNotificationService.java
 @@ -590,7 +590,7 @@ public class VoIPPreNotificationService { // } extends Service implements AudioM
@@ -526,9 +546,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/VoIPPreNoti
              }
              AndroidUtilities.runOnUIThread(() -> {
 diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+index c8ef73b7..89b984c9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 +++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-@@ -685,7 +685,7 @@ public class ConnectionsManager extends BaseController {
+@@ -709,7 +709,7 @@ public class ConnectionsManager extends BaseController {
  
      public static void setLangCode(String langCode) {
          langCode = langCode.replace('_', '-').toLowerCase();
@@ -537,7 +558,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.j
              native_setLangCode(a, langCode);
          }
      }
-@@ -702,14 +702,14 @@ public class ConnectionsManager extends BaseController {
+@@ -726,14 +726,14 @@ public class ConnectionsManager extends BaseController {
              String tag = type == PushListenerController.PUSH_TYPE_FIREBASE ? "FIREBASE" : "HUAWEI";
              pushString = SharedConfig.pushStringStatus = "__" + tag + "_GENERATING_SINCE_" + getInstance(0).getCurrentTime() + "__";
          }
@@ -554,7 +575,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.j
              native_setSystemLangCode(a, langCode);
          }
      }
-@@ -976,7 +976,7 @@ public class ConnectionsManager extends BaseController {
+@@ -1000,7 +1000,7 @@ public class ConnectionsManager extends BaseController {
              WebProxyTransport.stop();
          }
  
@@ -564,9 +585,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.j
                  native_setProxySettings(a, address, port, username, password, secret);
              } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
+index 344eb36e..b29e1454 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.java
-@@ -609,7 +609,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
+@@ -621,7 +621,7 @@ public class CacheControlActivity extends BaseFragment implements NotificationCe
                      cacheModel.add(addToType, fileInfo);
                  }
                  //TODO measure for other accounts
@@ -576,9 +598,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/CacheControlActivity.ja
  //                        FileLoader.getInstance(currentAccount).getFileDatabase().getFileDialogId(fileEntry);
  //                    }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
+index 7c1a3721..227dd613 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalListCell.java
-@@ -65,6 +65,8 @@ import java.util.ArrayList;
+@@ -66,6 +66,8 @@ import java.util.ArrayList;
  import java.util.HashMap;
  
  public class ThemesHorizontalListCell extends RecyclerListView implements NotificationCenter.NotificationCenterDelegate {
@@ -587,15 +610,17 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalL
  
      public static byte[] bytes = new byte[1024];
  
-@@ -811,18 +813,21 @@ public class ThemesHorizontalListCell extends RecyclerListView implements Notifi
+@@ -817,18 +819,21 @@ public class ThemesHorizontalListCell extends RecyclerListView implements Notifi
      @Override
      protected void onAttachedToWindow() {
          super.onAttachedToWindow();
 -        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-+        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoaded);
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoadFailed);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.fileLoaded);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.fileLoadFailed);
 -        }
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoaded);
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.fileLoadFailed);
 +        }, a -> {
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoaded);
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.fileLoadFailed);
@@ -615,9 +640,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ThemesHorizontalL
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+index b2726299..7af5ca29 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
-@@ -1874,7 +1874,7 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -1876,7 +1876,7 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
  
                  int accountForEmoji = currentAccount;
                  if (ConnectionsManager.getInstance(accountForEmoji).isTestBackend()) {
@@ -627,9 +653,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAler
                              accountForEmoji = i;
                              break;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+index 75823c38..6b3eff79 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
-@@ -7710,7 +7710,7 @@ public class AlertsCreator {
+@@ -7696,7 +7696,7 @@ public class AlertsCreator {
  
          final LinearLayout linearLayout = new LinearLayout(parentActivity);
          linearLayout.setOrientation(LinearLayout.VERTICAL);
@@ -639,9 +666,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreato
              if (u != null) {
                  AccountSelectCell cell = new AccountSelectCell(parentActivity, false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+index 2b60ce65..88b21f10 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
-@@ -718,7 +718,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -720,7 +720,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                  }
                  builder.setPositiveButton(getString(R.string.Stop), (dialogInterface, i) -> {
                      if (fragment instanceof DialogsActivity) {
@@ -650,7 +678,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
                              LocationController.getInstance(a).removeAllLocationSharings();
                          }
                      } else {
-@@ -802,7 +802,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -804,7 +804,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                      did = chatActivity.getDialogId();
                      account = fragment.getCurrentAccount();
                  } else if (LocationController.getLocationsCount() == 1) {
@@ -659,7 +687,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
                          ArrayList<LocationController.SharingLocationInfo> arrayList = LocationController.getInstance(a).sharingLocationsUI;
                          if (!arrayList.isEmpty()) {
                              LocationController.SharingLocationInfo info = LocationController.getInstance(a).sharingLocationsUI.get(0);
-@@ -1403,11 +1403,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1426,11 +1426,6 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
          topPadding = 0;
  
          removeObservers();
@@ -671,7 +699,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
  
          if (currentStyle == STYLE_ACTIVE_GROUP_CALL || currentStyle == STYLE_CONNECTING_GROUP_CALL) {
              Theme.getFragmentContextViewWavesDrawable().removeParent(this);
-@@ -1421,8 +1416,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1444,8 +1439,13 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
  
      private final java.util.HashMap<Integer, NotificationCenter.ObserversGroup> observersGroup = new java.util.HashMap<>();
      private NotificationCenter.ObserversGroup globalObserversGroup;
@@ -685,7 +713,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
          if (globalObserversGroup != null) {
              globalObserversGroup.removeAllObservers();
              globalObserversGroup = null;
-@@ -1446,7 +1446,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1469,7 +1469,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                  .add(NotificationCenter.liveLocationsCacheChanged);
              checkLiveLocation(true);
          } else {
@@ -694,7 +722,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
                  observersGroup.put(a, NotificationCenter.getInstance(a)
                      .createObserversGroup(this)
                      .add(NotificationCenter.messagePlayingDidReset)
-@@ -1458,7 +1458,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1481,7 +1481,11 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                      .add(NotificationCenter.liveStoryUpdated)
                      .add(NotificationCenter.messagePlayingProgressDidChanged));
                  GroupCallMessagesController.getInstance(a).subscribeToCallMessages(0, this);
@@ -707,7 +735,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
  
              globalObserversGroup = NotificationCenter.getGlobalInstance()
                  .createObserversGroup(this)
-@@ -1697,7 +1701,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
+@@ -1721,7 +1725,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
                  String param;
                  String str;
                  ArrayList<LocationController.SharingLocationInfo> infos = new ArrayList<>();
@@ -717,9 +745,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
                  }
                  if (infos.size() == 1) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
+index 234498c4..349962ca 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/DoubledLimitsBottomSheet.java
-@@ -319,11 +319,6 @@ public class DoubledLimitsBottomSheet extends BottomSheetWithRecyclerListView im
+@@ -320,11 +320,6 @@ public class DoubledLimitsBottomSheet extends BottomSheetWithRecyclerListView im
                      LocaleController.formatString(R.string.ChatPerFolderLimitSubtitle, messagesController.dialogFiltersChatsLimitPremium),
                      messagesController.dialogFiltersChatsLimitDefault, messagesController.dialogFiltersChatsLimitPremium
              ));
@@ -732,10 +761,11 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Premium/Doub
                      LocaleController.getString(R.string.SimilarChannelsLimitTitle),
                      LocaleController.formatString(R.string.SimilarChannelsLimitSubtitle, messagesController.recommendedChannelsLimitPremium),
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
+index 79f14688..8c839819 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocationsAlert.java
-@@ -181,7 +181,7 @@ public class SharingLocationsAlert extends BottomSheet implements NotificationCe
-         pickerBottomLayout.cancelButton.setTextColor(getThemedColor(Theme.key_text_RedBold));
+@@ -183,7 +183,7 @@ public class SharingLocationsAlert extends BottomSheet implements NotificationCe
+         ThemeBind.textColor(pickerBottomLayout.cancelButton, Theme.key_text_RedBold, resourcesProvider);
          pickerBottomLayout.cancelButton.setText(LocaleController.getString(R.string.StopAllLocationSharings));
          pickerBottomLayout.cancelButton.setOnClickListener(view -> {
 -            for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
@@ -743,7 +773,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocat
                  LocationController.getInstance(a).removeAllLocationSharings();
              }
              dismiss();
-@@ -229,7 +229,7 @@ public class SharingLocationsAlert extends BottomSheet implements NotificationCe
+@@ -231,7 +231,7 @@ public class SharingLocationsAlert extends BottomSheet implements NotificationCe
      }
  
      private LocationController.SharingLocationInfo getLocation(int position) {
@@ -753,9 +783,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharingLocat
              if (position >= infos.size()) {
                  position -= infos.size();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index ee7aa85f..a7bb5130 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -14763,7 +14763,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14363,7 +14363,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final ArrayList<Integer> accountNumbers = new ArrayList<>();
  
          accountNumbers.clear();
@@ -765,9 +796,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  accountNumbers.add(a);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
+index c1f80c14..e9f19b31 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.java
-@@ -271,7 +271,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
+@@ -277,7 +277,7 @@ public class LanguageSelectActivity extends BaseFragment implements Notification
  //                                            }
  //                                        }
  //                                        if (languages2.isEmpty()) return;
@@ -777,9 +809,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LanguageSelectActivity.
  //                                        }
  //                                        BaseFragment lastFragment = LaunchActivity.getSafeLastFragment();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 2d64d398..fc48839c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1263,7 +1263,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1294,7 +1294,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
  
      private void switchToAvailableAccountOrLogout() {
          int account = -1;
@@ -788,7 +821,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
              if (UserConfig.getInstance(a).isClientActivated()) {
                  account = a;
                  break;
-@@ -2605,7 +2605,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -2647,7 +2647,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                          if (accountUserID != null) {
                                              try {
                                                  long wantUserId = Long.parseLong(accountUserID);
@@ -797,7 +830,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                                                      UserConfig cfg = UserConfig.getInstance(a);
                                                      if (cfg.isClientActivated() && cfg.getClientUserId() == wantUserId) {
                                                          intentAccount[0] = a;
-@@ -2895,7 +2895,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -2937,7 +2937,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                                          if (cursor.moveToFirst()) {
                                              long userId = cursor.getLong(cursor.getColumnIndex(ContactsContract.Data.DATA4));
                                              int accountId = Utilities.parseInt(cursor.getString(cursor.getColumnIndex(ContactsContract.RawContacts.ACCOUNT_NAME)));
@@ -806,7 +839,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                                                  int i = a == -1 ? intentAccount[0] : a;
                                                  if ((a == -1 && MessagesStorage.getInstance(i).containsLocalDialog(userId)) || UserConfig.getInstance(i).getClientUserId() == accountId) {
                                                      intentAccount[0] = i;
-@@ -8684,7 +8684,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8830,7 +8830,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  layersActionBarLayout.getView().setVisibility(View.VISIBLE);
  
                  int account = -1;
@@ -815,7 +848,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                      if (UserConfig.getInstance(a).isClientActivated()) {
                          account = a;
                          break;
-@@ -8757,7 +8757,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8903,7 +8903,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                  layersActionBarLayout.getView().setVisibility(View.VISIBLE);
  
                  int account = -1;
@@ -825,9 +858,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                          account = a;
                          break;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+index 396ae722..cb930bbd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
-@@ -527,10 +527,22 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -550,10 +550,22 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          }
          getNotificationCenter().removeObserver(this, NotificationCenter.didUpdateConnectionState);
          getNotificationCenter().removeObserver(this, NotificationCenter.newSuggestionsAvailable);
@@ -847,10 +881,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
 +                UserConfig.getInstance(0).saveConfig(false);
 +            }
 +        }
-         getNotificationCenter().addObserver(this, NotificationCenter.didUpdateConnectionState);
-         getNotificationCenter().addObserver(this, NotificationCenter.newSuggestionsAvailable);
+         getNotificationCenter().addWeakObserver(this, NotificationCenter.didUpdateConnectionState);
+         getNotificationCenter().addWeakObserver(this, NotificationCenter.newSuggestionsAvailable);
          return super.onFragmentCreate();
-@@ -3090,7 +3102,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -3126,7 +3138,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
              String phone = PhoneFormat.stripExceptNumbers("" + codeField.getText() + phoneField.getText());
              if (activityMode == MODE_LOGIN) {
                  if (getParentActivity() instanceof LaunchActivity) {
@@ -859,7 +893,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
                          UserConfig userConfig = UserConfig.getInstance(a);
                          if (!userConfig.isClientActivated()) {
                              continue;
-@@ -3469,7 +3481,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -3675,7 +3687,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                      return;
                  }
                  if (userId != 0 && getParentActivity() instanceof LaunchActivity) {
@@ -869,9 +903,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
                          if (!userConfig.isClientActivated()) {
                              continue;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
+index 89793ffd..8bbc6084 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java
-@@ -74,7 +74,7 @@ public class LogoutActivity extends BaseFragment {
+@@ -78,7 +78,7 @@ public class LogoutActivity extends BaseFragment {
  
          rowCount = 0;
          alternativeHeaderRow = rowCount++;
@@ -880,7 +915,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/T
              addAccountRow = rowCount++;
          } else {
              addAccountRow = -1;
-@@ -124,22 +124,8 @@ public class LogoutActivity extends BaseFragment {
+@@ -132,22 +132,8 @@ public class LogoutActivity extends BaseFragment {
          listView.setAdapter(listAdapter);
          listView.setOnItemClickListener((view, position, x, y) -> {
              if (position == addAccountRow) {
@@ -906,9 +941,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LogoutActivity.java b/T
                      showDialog(limitReachedBottomSheet);
                  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index a3bdfb4e..28dad7ac 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -645,7 +645,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -663,7 +663,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          final ArrayList<Integer> accountNumbers = new ArrayList<>();
  
          accountNumbers.clear();
@@ -918,9 +954,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
                  accountNumbers.add(a);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java b/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
+index 5edc7160..e8dcf263 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionDialog.java
-@@ -41,6 +41,8 @@ import org.telegram.ui.Components.LayoutHelper;
+@@ -43,6 +43,8 @@ import org.telegram.ui.Components.LayoutHelper;
  import org.telegram.ui.Components.RLottieImageView;
  
  public class NotificationPermissionDialog extends BottomSheet implements NotificationCenter.NotificationCenterDelegate {
@@ -929,14 +966,14 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionD
  
      private CounterView counterView;
      private RLottieImageView rLottieImageView;
-@@ -110,11 +112,15 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
+@@ -112,11 +114,15 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
          });
          linearLayout.addView(textView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, 14, 14, 14, 10));
  
 -        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; ++a) {
 +        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
              try {
-                 NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.updateInterfaces);
+                 NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.updateInterfaces);
              } catch (Exception ignore) {}
 -        }
 +        }, a -> {
@@ -947,7 +984,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionD
      }
  
      @Override
-@@ -129,7 +135,7 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
+@@ -131,7 +137,7 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
  
      public void updateCounter() {
          int counter = 0;
@@ -956,7 +993,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionD
              MessagesStorage messagesStorage = MessagesStorage.getInstance(a);
              if (messagesStorage != null) {
                  counter += messagesStorage.getMainUnreadCount();
-@@ -159,10 +165,9 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
+@@ -161,10 +167,9 @@ public class NotificationPermissionDialog extends BottomSheet implements Notific
              whenGranted = null;
              askLater();
          }
@@ -971,9 +1008,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationPermissionD
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
+index f1aee781..1fd0a543 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsActivity.java
-@@ -743,7 +743,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
+@@ -749,7 +749,7 @@ public class NotificationsSettingsActivity extends BaseFragment implements Notif
                  editor.putBoolean("AllAccounts", !enabled);
                  editor.commit();
                  SharedConfig.showNotificationsForAllAccounts = !enabled;
@@ -983,9 +1021,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/NotificationsSettingsAc
                          NotificationsController.getInstance(a).showNotifications();
                      } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
+index b102601b..19ed98fe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java
-@@ -152,7 +152,7 @@ public class OAuthSheet {
+@@ -153,7 +153,7 @@ public class OAuthSheet {
          final ArrayList<Integer> accountNumbers = new ArrayList<>();
          final boolean testBackend = ConnectionsManager.getInstance(currentAccount).isTestBackend();
          accountNumbers.clear();
@@ -994,7 +1033,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java b/TMess
              if (UserConfig.getInstance(a).isClientActivated() && ConnectionsManager.getInstance(a).isTestBackend() == testBackend) {
                  accountNumbers.add(a);
              }
-@@ -618,7 +618,7 @@ public class OAuthSheet {
+@@ -622,7 +622,7 @@ public class OAuthSheet {
  
          int accountForEmoji = currentAccount;
          if (ConnectionsManager.getInstance(accountForEmoji).isTestBackend()) {
@@ -1004,9 +1043,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/OAuthSheet.java b/TMess
                      accountForEmoji = i;
                      break;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
+index 19f49650..1a29c675 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivity.java
-@@ -84,6 +84,8 @@ import java.io.File;
+@@ -85,6 +85,8 @@ import java.io.File;
  import java.util.ArrayList;
  
  public class PopupNotificationActivity extends Activity implements NotificationCenter.NotificationCenterDelegate {
@@ -1015,18 +1055,25 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivi
  
      private ActionBar actionBar;
      private ChatActivityEnterView chatActivityEnterView;
-@@ -165,13 +167,19 @@ public class PopupNotificationActivity extends Activity implements NotificationC
+@@ -166,15 +168,21 @@ public class PopupNotificationActivity extends Activity implements NotificationC
          Theme.createChatResources(this, false);
  
          AndroidUtilities.fillStatusBarHeight(this, false);
 -        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
-+        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.appDidLogout);
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.updateInterfaces);
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidReset);
-             NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.contactsDidLoad);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.appDidLogout);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.updateInterfaces);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.messagePlayingDidReset);
+-            NotificationCenter.getInstance(a).addWeakObserver(this, NotificationCenter.contactsDidLoad);
 -        }
+-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.pushMessagesUpdated);
+-        NotificationCenter.getGlobalInstance().addWeakObserver(this, NotificationCenter.emojiLoaded);
++        accountSubscription = org.telegram.messenger.AccountDirectory.observe(a -> {
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.appDidLogout);
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.updateInterfaces);
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingProgressDidChanged);
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.messagePlayingDidReset);
++            NotificationCenter.getInstance(a).addObserver(this, NotificationCenter.contactsDidLoad);
 +        }, a -> {
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.appDidLogout);
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.updateInterfaces);
@@ -1034,10 +1081,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivi
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.messagePlayingDidReset);
 +            NotificationCenter.getInstance(a).removeObserver(this, NotificationCenter.contactsDidLoad);
 +        });
-         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.pushMessagesUpdated);
-         NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
++        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.pushMessagesUpdated);
++        NotificationCenter.getGlobalInstance().addObserver(this, NotificationCenter.emojiLoaded);
          classGuid = ConnectionsManager.generateClassGuid();
-@@ -1201,7 +1209,7 @@ public class PopupNotificationActivity extends Activity implements NotificationC
+ 
+         statusDrawables[0] = new TypingDotsDrawable(false);
+@@ -1203,7 +1211,7 @@ public class PopupNotificationActivity extends Activity implements NotificationC
              }
              popupMessages.addAll(NotificationsController.getInstance(account).popupReplyMessages);
          } else {
@@ -1046,7 +1095,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivi
                  if (UserConfig.getInstance(a).isClientActivated()) {
                      popupMessages.addAll(NotificationsController.getInstance(a).popupMessages);
                  }
-@@ -1471,7 +1479,7 @@ public class PopupNotificationActivity extends Activity implements NotificationC
+@@ -1473,7 +1481,7 @@ public class PopupNotificationActivity extends Activity implements NotificationC
          } else if (id == NotificationCenter.pushMessagesUpdated) {
              if (!isReply) {
                  popupMessages.clear();
@@ -1055,7 +1104,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivi
                      if (UserConfig.getInstance(a).isClientActivated()) {
                          popupMessages.addAll(NotificationsController.getInstance(a).popupMessages);
                      }
-@@ -1587,12 +1595,9 @@ public class PopupNotificationActivity extends Activity implements NotificationC
+@@ -1589,12 +1597,9 @@ public class PopupNotificationActivity extends Activity implements NotificationC
          if (isReply) {
              popupMessages.clear();
          }
@@ -1072,9 +1121,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PopupNotificationActivi
          NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.pushMessagesUpdated);
          NotificationCenter.getGlobalInstance().removeObserver(this, NotificationCenter.emojiLoaded);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 5b2ceb6f..281f967d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -14759,16 +14759,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14873,16 +14873,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      new SearchResult(500, getString(R.string.EditName), 0, () -> f.presentFragment(new ChangeNameActivity(resourcesProvider))),
                      new SearchResult(501, getString(R.string.ChangePhoneNumber), 0, () -> f.presentFragment(new ActionIntroActivity(ActionIntroActivity.ACTION_TYPE_CHANGE_PHONE_NUMBER))).withLink("tg://settings/edit/change-number"),
                      new SearchResult(502, getString(R.string.AddAnotherAccount), 0, () -> {
@@ -1092,7 +1142,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      }).withLink("tg://settings/edit/add-account"),
                      // TODO:
  //                    new SearchResult(503, getString(R.string.UserBio), 0, () -> {
-@@ -15337,7 +15328,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -15456,7 +15447,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          if (stringBuilder != null && i == searchArgs.length - 1) {
                              if (result.guid == 502) {
                                  int freeAccount = -1;
@@ -1102,9 +1152,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                                          freeAccount = b;
                                          break;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
+index fc7b94da..6bb16113 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSelectActivity.java
-@@ -552,7 +552,7 @@ public class RestrictedLanguagesSelectActivity extends BaseFragment implements N
+@@ -546,7 +546,7 @@ public class RestrictedLanguagesSelectActivity extends BaseFragment implements N
                  edit.putInt("translate_button_restricted_languages_version", LAST_DO_NOT_TRANSLATE_VERSION).apply();
                  invalidateRestrictedLanguages();
  
@@ -1114,9 +1165,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/RestrictedLanguagesSele
                      try {
                          MessagesController.getInstance(account).getTranslateController().checkRestrictedLanguagesUpdate();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
+index add1d601..5cd0159b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java
-@@ -364,7 +364,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
+@@ -373,7 +373,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                                      }
                                  });
  
@@ -1125,7 +1177,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java b
                                      UserConfig userConfig = UserConfig.getInstance(a);
                                      if (!userConfig.isClientActivated()) {
                                          continue;
-@@ -404,7 +404,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
+@@ -413,7 +413,7 @@ public class SessionsActivity extends BaseFragment implements NotificationCenter
                                  }
                              });
  
@@ -1135,9 +1187,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SessionsActivity.java b
                                  if (!userConfig.isClientActivated()) {
                                      continue;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index 65d4908f..7be92d45 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
-@@ -645,7 +645,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
+@@ -721,7 +721,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
          items.add(UItem.asCustomShadow(topView, 200 - 12));
  
          accountNumbers.clear();
@@ -1147,6 +1200,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
                  accountNumbers.add(a);
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
+index 3985d89a..90773bc5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java
 @@ -301,7 +301,7 @@ public class UserInfoActivity extends UniversalFragment implements NotificationC
@@ -1214,9 +1268,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/UserInfoActivity.java b
              }
          } else if (item.instanceOf(SettingsActivity.AccountCell.Factory.class)) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
+index 57062156..d8342ce8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java
-@@ -201,7 +201,7 @@ public class WearAuthSheet {
+@@ -218,7 +218,7 @@ public class WearAuthSheet {
          int nonTestAccount = UserConfig.selectedAccount;
          final ArrayList<Integer> accountNumbers = new ArrayList<>();
          accountNumbers.clear();
@@ -1226,6 +1281,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/WearAuthSheet.java b/TM
                  if (!ConnectionsManager.getInstance(a).isTestBackend()) {
                      nonTestAccount = a;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
+index 5f8cd514..2610e703 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java
 @@ -491,7 +491,7 @@ public class BotBiometry {
@@ -1238,9 +1294,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotBiometry.java b
              prefs.edit().clear().apply();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
+index 07eb2ecc..824142b1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java
-@@ -867,7 +867,7 @@ public class BotDownloads {
+@@ -881,7 +881,7 @@ public class BotDownloads {
      public static void clear() {
          Context context = ApplicationLoader.applicationContext;
          if (context == null) return;
@@ -1250,9 +1307,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotDownloads.java 
              prefs.edit().clear().apply();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
+index 4ad12e23..d540ef4d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java
-@@ -558,7 +558,7 @@ public class BotLocation {
+@@ -563,7 +563,7 @@ public class BotLocation {
      public static void clear() {
          Context context = ApplicationLoader.applicationContext;
          if (context == null) return;
@@ -1262,9 +1320,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotLocation.java b
              prefs.edit().clear().apply();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
+index 3f4b1206..54395aa3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java
-@@ -301,7 +301,7 @@ public class BotStorage {
+@@ -303,7 +303,7 @@ public class BotStorage {
          boolean can_restore = false;
          if (secured && value == null && !thisJSON.keys().hasNext()) {
              final HashSet<Long> activeUsers = new HashSet<>();
@@ -1273,7 +1332,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java b/
                  final UserConfig userConfig = UserConfig.getInstance(i);
                  if (userConfig.isClientActivated()) {
                      activeUsers.add(userConfig.getClientUserId());
-@@ -341,7 +341,7 @@ public class BotStorage {
+@@ -343,7 +343,7 @@ public class BotStorage {
          final ArrayList<StorageConfig> result = new ArrayList<>();
  
          final HashSet<Long> activeUsers = new HashSet<>();
@@ -1282,7 +1341,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java b/
              final UserConfig userConfig = UserConfig.getInstance(i);
              if (userConfig.isClientActivated()) {
                  activeUsers.add(userConfig.getClientUserId());
-@@ -378,7 +378,7 @@ public class BotStorage {
+@@ -380,7 +380,7 @@ public class BotStorage {
          }
  
          final HashSet<Long> activeUsers = new HashSet<>();
@@ -1292,9 +1351,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/BotStorage.java b/
              if (userConfig.isClientActivated()) {
                  activeUsers.add(userConfig.getClientUserId());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
+index 85726159..3d712366 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/bots/SetupEmojiStatusSheet.java
-@@ -499,7 +499,7 @@ public class SetupEmojiStatusSheet {
+@@ -506,7 +506,7 @@ public class SetupEmojiStatusSheet {
      public static void clear() {
          Context context = ApplicationLoader.applicationContext;
          if (context == null) return;

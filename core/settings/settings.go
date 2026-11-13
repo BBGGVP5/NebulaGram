@@ -7,7 +7,11 @@
 // the strings live in the platform resource files.
 package settings
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/nebulagram/nebulagram/core/model"
+)
 
 // Mode is how traffic reaches the tunnel.
 type Mode string
@@ -56,6 +60,16 @@ type Settings struct {
 	RouteCalls      bool `json:"route_calls"`
 	DualCore        bool `json:"dual_core"`
 
+	// AutoSelect keeps the tunnel on the fastest server of the list: every
+	// server is measured on connect and every AutoSelectMin minutes, and the
+	// tunnel moves only when another server is clearly faster or the current
+	// one stopped answering. SelectedServerID then holds what auto picked.
+	AutoSelect    bool `json:"auto_select"`
+	AutoSelectMin int  `json:"auto_select_min,omitempty"`
+
+	// Routing is the user's routing table; the zero value proxies everything.
+	Routing model.Routing `json:"routing"`
+
 	// Networking internals.
 	DNS      string `json:"dns,omitempty"`
 	LogLevel string `json:"log_level,omitempty"`
@@ -77,6 +91,7 @@ func Default() Settings {
 		PingType:        PingNimbo,
 		AutoPing:        false,
 		AutoPingMin:     15,
+		AutoSelectMin:   10,
 		RefreshOnStart:  false,
 		SwitchOnFailure: false,
 		RouteCalls:      true,
@@ -106,6 +121,15 @@ func (s *Settings) Normalize() {
 	}
 	if s.AutoPingMin <= 0 {
 		s.AutoPingMin = def.AutoPingMin
+	}
+	if s.AutoSelectMin <= 0 || s.AutoSelectMin > 24*60 {
+		s.AutoSelectMin = def.AutoSelectMin
+	}
+	if clean, err := s.Routing.Clean(); err == nil {
+		s.Routing = clean
+	} else {
+		// A table that no longer parses must not keep the tunnel from starting.
+		s.Routing = model.Routing{}
 	}
 	if s.PerPage <= 0 || s.PerPage > 500 {
 		s.PerPage = def.PerPage

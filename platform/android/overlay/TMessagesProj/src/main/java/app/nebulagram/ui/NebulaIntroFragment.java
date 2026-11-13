@@ -69,28 +69,30 @@ public class NebulaIntroFragment extends BaseFragment {
         actionBar.setVisibility(View.GONE);
         NebulaOnboardingLayout root = new NebulaOnboardingLayout(context);
 
+        // Как в обзоре Telegram: живая картинка сверху, под ней заголовок
+        // и описание по центру, внизу шаги и кнопка.
         art = new NebulaIntroArt(context);
-        LinearLayout.LayoutParams artParams = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        artParams.gravity = Gravity.CENTER_HORIZONTAL;
-        artParams.bottomMargin = NebulaLoginStyle.compact(14);
+        art.setAnimated(NebulaGlass.animations() && !NebulaGlass.reduced()
+                && (android.os.Build.VERSION.SDK_INT < 26 || android.animation.ValueAnimator.areAnimatorsEnabled()));
+        root.content.addView(art, new LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
 
-
-        title = text(context, 30, theme.onSurface(), true);
-        title.setGravity(Gravity.START);
+        title = text(context, 26, theme.onSurface(), true);
+        title.setGravity(Gravity.CENTER_HORIZONTAL);
         title.setMaxLines(4);
         title.setIncludeFontPadding(false);
-        root.content.addView(title, width());
+        LinearLayout.LayoutParams titleParams = width();
+        titleParams.topMargin = NebulaLoginStyle.compact(20);
+        root.content.addView(title, titleParams);
 
         subtitle = text(context, 16, theme.onSurfaceVariant(), false);
-        subtitle.setGravity(Gravity.START);
+        subtitle.setGravity(Gravity.CENTER_HORIZONTAL);
         subtitle.setMaxLines(8);
         subtitle.setIncludeFontPadding(false);
         LinearLayout.LayoutParams subtitleParams = width();
-        subtitleParams.topMargin = AndroidUtilities.dp(8);
+        subtitleParams.topMargin = AndroidUtilities.dp(10);
+        subtitleParams.leftMargin = subtitleParams.rightMargin = AndroidUtilities.dp(8);
         root.content.addView(subtitle, subtitleParams);
-        artParams.topMargin = NebulaLoginStyle.compact(24);
-        root.content.addView(art, artParams);
 
         next = new NebulaButton(context, NebulaButton.STYLE_FILLED);
         NebulaOnboardingLayout.action(next);
@@ -100,9 +102,7 @@ public class NebulaIntroFragment extends BaseFragment {
         });
         root.actions.addView(next);
         root.content.setGravity(Gravity.TOP);
-        // Slightly lower the illustration-and-copy group so the visual center
-        // accounts for the anchored pager controls below it.
-        root.content.setPadding(0, NebulaLoginStyle.compact(20), 0, 0);
+        root.content.setPadding(0, NebulaLoginStyle.compact(12), 0, NebulaLoginStyle.compact(8));
         root.setOnSwipeListener(direction -> showPage(Math.max(0,
                 Math.min(TITLES.length - 1, page + direction))));
         language = new NebulaButton(context, NebulaButton.STYLE_TEXT);
@@ -150,14 +150,16 @@ public class NebulaIntroFragment extends BaseFragment {
         }
         art.setPage(index);
         title.setText(new String[]{NebulaText.text("Добро пожаловать\nв NebulaGram", "Welcome to\nNebulaGram"),
-                NebulaText.text("Настрой под себя", "Make it yours"), NebulaText.text("Твоё личное пространство", "Your private space"),
-                NebulaText.text("Помощник в твоём ритме", "An assistant at your pace"), NebulaText.text("NebulaLink рядом", "NebulaLink, built in")}[index]);
+                NebulaText.text("Оформление\nпод вас", "Designed\naround you"),
+                NebulaText.text("Ваше личное\nпространство", "Your private\nspace"),
+                NebulaText.text("ИИ-помощник\nвсегда рядом", "An AI assistant\nat hand"),
+                NebulaText.text("NebulaLink\nуже внутри", "NebulaLink,\nbuilt in")}[index]);
         subtitle.setText(new String[]{
-                NebulaText.text("Любимые чаты, близкие люди и больше возможностей для общения.", "Your favorite chats, your people, and more ways to connect."),
-                NebulaText.text("Темы, иконки и папки. Собери удобное пространство для своих разговоров.", "Themes, icons and folders. Make room for the way you chat."),
-                NebulaText.text("Управляй приватностью и защищай приложение кодом или биометрией.", "Manage your privacy and protect the app with a passcode or biometrics."),
-                NebulaText.text("Переводи сообщения и выделяй главное с помощью выбранной тобой модели ИИ.", "Translate messages and find the key points with the AI model you choose."),
-                NebulaText.text("Добавь подписку Xray, выбери сервер и управляй подключением прямо здесь.", "Add an Xray subscription, pick a server, and manage your connection right here.")
+                NebulaText.text("Ваши чаты и близкие люди — и возможности, которых нет в обычном Telegram.", "Your chats and your people — plus features regular Telegram doesn't have."),
+                NebulaText.text("Цвет акцента, иконка, темы и папки. Настройте всё так, как удобно именно вам.", "Accent color, app icon, themes and folders. Set everything up the way you like."),
+                NebulaText.text("Код-пароль и биометрия закроют приложение и отдельные чаты от чужих глаз.", "A passcode and biometrics keep the app and individual chats away from prying eyes."),
+                NebulaText.text("Переводите сообщения и выделяйте главное с моделью, которую выберете сами.", "Translate messages and pull out the key points with a model you choose."),
+                NebulaText.text("Добавьте подписку Xray, выберите сервер и управляйте подключением прямо в приложении.", "Add an Xray subscription, pick a server and manage the connection right in the app.")
         }[index]);
         if (animate) {
             for (View view : new View[]{art, title, subtitle}) {
@@ -166,8 +168,7 @@ public class NebulaIntroFragment extends BaseFragment {
             }
         }
         next.setText(LocaleController.getString(index == TITLES.length - 1
-                ? R.string.NebulaAuthStart : R.string.NebulaIntroNext)
-                + (LocaleController.isRTL ? "  ←" : "  →"));
+                ? R.string.NebulaAuthStart : R.string.NebulaIntroNext));
         previous.setVisibility(index == 0 ? View.GONE : View.VISIBLE);
         language.setVisibility(index == 0 ? View.VISIBLE : View.GONE);
         skip.setVisibility(index > 0 && index < TITLES.length - 1 ? View.VISIBLE : View.INVISIBLE);
@@ -187,15 +188,21 @@ public class NebulaIntroFragment extends BaseFragment {
         title.announceForAccessibility(title.getText());
     }
 
+    /** Тот же вид шагов, что и на экранах входа: вытянутая текущая полоска. */
     private View dots(Context context, int selected) {
+        NebulaTheme theme = NebulaTheme.of(context);
         LinearLayout row = new LinearLayout(context); row.setGravity(Gravity.CENTER);
-        row.setPadding(0, AndroidUtilities.dp(8), 0, AndroidUtilities.dp(18));
+        row.setPadding(0, AndroidUtilities.dp(10), 0, AndroidUtilities.dp(22));
         for (int i=0;i<TITLES.length;i++) {
-            View dot = new View(context); android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
-            shape.setShape(android.graphics.drawable.GradientDrawable.OVAL);
-            shape.setColor(i==selected ? 0xff65b9ee : NebulaTheme.of(context).outline()); dot.setBackground(shape);
-            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(AndroidUtilities.dp(6),AndroidUtilities.dp(6));
-            size.leftMargin=AndroidUtilities.dp(4);size.rightMargin=AndroidUtilities.dp(4);row.addView(dot,size);
+            View dot = new View(context);
+            android.graphics.drawable.GradientDrawable shape = new android.graphics.drawable.GradientDrawable();
+            shape.setCornerRadius(AndroidUtilities.dp(3));
+            shape.setColor(i == selected ? theme.primary() : theme.outline());
+            dot.setBackground(shape);
+            LinearLayout.LayoutParams size = new LinearLayout.LayoutParams(
+                    AndroidUtilities.dp(i == selected ? 24 : 6), AndroidUtilities.dp(6));
+            size.leftMargin = size.rightMargin = AndroidUtilities.dp(3);
+            row.addView(dot, size);
             final int pageIndex = i;
             dot.setContentDescription(NebulaText.text("Экран " + (i + 1), "Page " + (i + 1)));
             dot.setOnClickListener(v -> showPage(pageIndex));

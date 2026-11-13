@@ -2,16 +2,36 @@ package app.nebulagram.ui;
 
 import android.content.Context;
 import android.graphics.*;
+import android.os.SystemClock;
+import android.view.HapticFeedbackConstants;
+import android.view.MotionEvent;
 import android.view.View;
 import org.telegram.messenger.AndroidUtilities;
 
-/** Localized product previews with an original illustrated Nebula mascot. */
+/**
+ * Иллюстрации обзора: живые миниатюры экранов в духе Telegram.
+ *
+ * <p>Синяя шапка списка чатов, пузыри на обоях, аватарки с инициалами и
+ * синий экран код-пароля — всё узнаётся сразу. Каждая сцена проигрывает
+ * короткую петлю: собеседник печатает, меняется акцент, вводится код,
+ * отвечает ИИ, пульсирует подключение. Без анимации показан готовый кадр.
+ * Геометрия задана на холсте 360x360 и масштабируется под свободное место.
+ */
 public final class NebulaIntroArt extends View {
+    private static final float CANVAS = 360f;
+    /** Длина петли каждой сцены, мс. */
+    private static final long[] LOOP = {5200, 9600, 4600, 5600, 2400};
+    /** Кадр для режима без анимации: сцена в законченном виде. */
+    private static final long[] STILL = {3400, 0, 1000, 4000, 600};
+    private static final int GREEN = 0xff4fbf62;
+    private static final int[][] AVATARS = {
+            {0xff5caffa, 0xff408acf}, {0xffb694f9, 0xff6c61df}, {0xffff8aac, 0xffd95574}};
+    private static final int[] SWATCHES = {0, 0xff7f72e8, 0xff3fb47a, 0xffe46b8e, 0xfff09a37, 0xff3cb5c6};
+
     private final Paint p = new Paint(3);
     private final RectF r = new RectF();
-    private final Path leader = new Path();
-    private final Path avatarClip = new Path();
-    private final RadialGradient halo;
+    private final Path path = new Path();
+    private final Path clip = new Path();
     private final java.util.ArrayList<Shade> gradients = new java.util.ArrayList<>();
     private static final class Shade {
         final float l,t,r,b; final int first,last; final LinearGradient shader;
@@ -20,6 +40,7 @@ public final class NebulaIntroArt extends View {
             shader=new LinearGradient(l,t,r,b,first,last,Shader.TileMode.CLAMP);
         }
     }
+    /** Градиенты кэшируются, поэтому сюда идут только постоянные цвета. */
     private LinearGradient shade(float l,float t,float r,float b,int first,int last) {
         for(int i=0;i<gradients.size();i++) {
             Shade value=gradients.get(i);
@@ -27,189 +48,472 @@ public final class NebulaIntroArt extends View {
         }
         Shade value=new Shade(l,t,r,b,first,last);gradients.add(value);return value.shader;
     }
+
     private int page;
-    private final int ink, muted, cyan, panelTop, panelBottom, edge;
+    private long start = SystemClock.uptimeMillis();
+    private boolean animated = true;
+
+    // Рисунки откликаются на нажатия. Пока их не трогали, идёт петля; после
+    // первого нажатия сцена слушается пальца: выбранный цвет и иконка,
+    // набранный код, включённое подключение.
+    private float originX, originY, unitScale;
+    private long interactUntil;
+    private int swatchChoice = -1, previousSwatch, iconChoice;
+    private long swatchAt;
+    private boolean privacyTouched;
+    private int typedDigits, keyPressed = -1;
+    private long keyAt, unlockAt = -1;
+    private boolean disconnected;
+    private long toggleAt;
+    private final boolean dark;
+    private final int ink, muted, accent, card, raised, edge, tint, header, onHeader;
+    private final int inBubble, outBubble, outText, outCheck, wallTop, wallBottom, listCheck;
+
     private static int blend(int first, int last, float amount) {
         int red = Math.round(Color.red(first) * (1 - amount) + Color.red(last) * amount);
         int green = Math.round(Color.green(first) * (1 - amount) + Color.green(last) * amount);
         int blue = Math.round(Color.blue(first) * (1 - amount) + Color.blue(last) * amount);
         return Color.rgb(red, green, blue);
     }
+    private static int alpha(int color, float amount) {
+        int value = Math.round((color >>> 24) * Math.max(0, Math.min(1, amount)));
+        return (color & 0x00ffffff) | (value << 24);
+    }
+    private static boolean light(int color) {
+        return Color.red(color) * .299f + Color.green(color) * .587f + Color.blue(color) * .114f > 150;
+    }
+
     public NebulaIntroArt(Context context) {
         super(context);
         NebulaTheme theme = NebulaTheme.of(context);
-        ink = theme.onSurface(); muted = theme.onSurfaceVariant(); cyan = theme.primary();
-        panelTop = blend(theme.surface(), ink, .085f);
-        panelBottom = blend(theme.surface(), ink, .045f);
-        edge = (ink & 0x00ffffff) | 0x14000000;
-        halo = new RadialGradient(180,195,180,(cyan & 0x00ffffff) | 0x14000000,
-                cyan & 0x00ffffff,Shader.TileMode.CLAMP);
+        int surface = theme.surface();
+        dark = !light(surface);
+        ink = theme.onSurface(); muted = theme.onSurfaceVariant(); accent = theme.primary();
+        // Цвета Telegram по умолчанию: белые карточки и синяя шапка днём,
+        // графитовые карточки и тёмная шапка ночью.
+        card = dark ? blend(surface, ink, .09f) : 0xffffffff;
+        raised = dark ? blend(card, ink, .07f) : 0xfff1f2f4;
+        edge = alpha(ink, dark ? .10f : .08f);
+        tint = blend(card, accent, dark ? .22f : .12f);
+        header = dark ? blend(card, ink, .05f) : blend(accent, 0xff000000, .08f);
+        onHeader = dark ? ink : 0xffffffff;
+        inBubble = dark ? blend(card, ink, .06f) : 0xffffffff;
+        outBubble = dark ? 0xff3a6ea5 : 0xffeffede;
+        outText = dark ? 0xffffffff : ink;
+        outCheck = dark ? 0xffcfe3ff : 0xff4fae4e;
+        wallTop = dark ? 0xff1e2b26 : 0xffdbddbb;
+        wallBottom = dark ? 0xff12191a : 0xff8fbf8f;
+        listCheck = dark ? accent : 0xff46aa36;
         setImportantForAccessibility(IMPORTANT_FOR_ACCESSIBILITY_NO);
     }
-    public void setPage(int value) { page = value; invalidate(); }
+
+    public void setPage(int value) {
+        if (value != page) start = SystemClock.uptimeMillis();
+        page = value; invalidate();
+    }
+    /** Выключает петли, если пользователь отключил анимации. */
+    public void setAnimated(boolean value) {
+        if (value && !animated) start = SystemClock.uptimeMillis();
+        animated = value; invalidate();
+    }
+
+    /**
+     * Рисунок занимает всё место, что ему дали, а без ограничения просит
+     * квадрат по ширине колонки.
+     */
     @Override protected void onMeasure(int w, int h) {
-        int maxWidth = MeasureSpec.getSize(w);
-        int maxHeight = AndroidUtilities.dp(280 * NebulaLoginStyle.vertical());
-        // Measure the view to the drawing canvas, instead of forcing a narrow
-        // canvas into the full text column and shrinking the art inside it.
-        int width = Math.min(maxWidth, Math.round(maxHeight * (360f / 340f)));
-        int height = Math.round(width * (340f / 360f));
-        setMeasuredDimension(resolveSize(width, w), resolveSize(height, h));
+        int width = MeasureSpec.getSize(w);
+        int preferred = Math.min(width, AndroidUtilities.dp(300 * NebulaLoginStyle.vertical()));
+        int height = MeasureSpec.getMode(h) == MeasureSpec.EXACTLY ? MeasureSpec.getSize(h)
+                : MeasureSpec.getMode(h) == MeasureSpec.AT_MOST ? Math.min(preferred, MeasureSpec.getSize(h))
+                : preferred;
+        setMeasuredDimension(width, height);
     }
     private String t(String ru, String en) { return NebulaText.text(ru, en); }
     @Override protected void onDraw(Canvas c) {
-        float scale = Math.min(getWidth()/360f, getHeight()/340f);
-        c.save(); c.translate((getWidth()-360*scale)/2, (getHeight()-340*scale)/2); c.scale(scale, scale);
-        p.setShader(halo);
-        c.drawCircle(180,195,180,p); p.setShader(null);
-        if(page==0) welcome(c); else if(page==1) design(c); else if(page==2) privacy(c); else if(page==3) ai(c); else link(c);
+        float scale = Math.min(getWidth()/CANVAS, getHeight()/CANVAS);
+        // Крупнее этого миниатюра выглядит как настоящий экран, а не картинка.
+        scale = Math.min(scale, AndroidUtilities.dp(380) / CANVAS);
+        if (scale <= 0) return;
+        long time = animated ? (SystemClock.uptimeMillis() - start) % LOOP[page] : STILL[page];
+        originX = (getWidth()-CANVAS*scale)/2; originY = (getHeight()-CANVAS*scale)/2; unitScale = scale;
+        c.save(); c.translate(originX, originY); c.scale(scale, scale);
+        if(page==0) welcome(c,time); else if(page==1) design(c,time); else if(page==2) privacy(c,time); else if(page==3) ai(c,time); else link(c,time);
         c.restore();
+        if (animated || SystemClock.uptimeMillis() < interactUntil) postInvalidateOnAnimation();
     }
-    private void welcome(Canvas c) {
-        annotation(c,70,5,290,39,"✦",t("Твои разговоры","Your conversations"),178,55);
-        card(c,38,54,322,324,24);
-        text(c,"NebulaGram",58,84,18,ink,true);
-        card(c,50,94,310,128,17);
-        pill(c,54,97,112,125,t("Все","All"),cyan);
-        text(c,t("Личные","Personal"),128,115,11,muted,false);
-        text(c,t("Работа","Work"),190,115,11,muted,false);
+
+    @Override public boolean onTouchEvent(MotionEvent event) {
+        if (unitScale <= 0) return false;
+        float x = (event.getX() - originX) / unitScale, y = (event.getY() - originY) / unitScale;
+        int action = event.getActionMasked();
+        if (action == MotionEvent.ACTION_DOWN) return x >= 0 && y >= 0 && x <= CANVAS && y <= CANVAS;
+        if (action != MotionEvent.ACTION_UP) return true;
+        if (tap(x, y, SystemClock.uptimeMillis())) {
+            performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP);
+            interactUntil = SystemClock.uptimeMillis() + 1800;
+            invalidate();
+        }
+        return true;
+    }
+
+    private static boolean near(float x, float y, float cx, float cy, float radius) {
+        return (x - cx) * (x - cx) + (y - cy) * (y - cy) <= radius * radius;
+    }
+
+    /** Нажатие в координатах холста 360x360. true — сцена изменилась. */
+    private boolean tap(float x, float y, long now) {
+        if (page == 1) {
+            for (int i = 0; i < SWATCHES.length; i++) {
+                if (near(x, y, 58 + i * 49, 238, 24)) {
+                    previousSwatch = swatchChoice >= 0 ? swatchChoice : 0;
+                    swatchChoice = i; swatchAt = now; return true;
+                }
+            }
+            for (int i = 0; i < 5; i++) {
+                if (x >= 38 + i * 56 && x <= 90 + i * 56 && y >= 296 && y <= 348) { iconChoice = i; return true; }
+            }
+            return false;
+        }
+        if (page == 2) {
+            for (int i = 0; i < 12; i++) {
+                if (!near(x, y, 124 + (i % 3) * 56, 196 + (i / 3) * 41, 21)) continue;
+                privacyTouched = true;
+                if (unlockAt >= 0) return false;
+                keyPressed = i; keyAt = now;
+                if (i == 9) { typedDigits = 4; unlockAt = now; }
+                else if (i == 11) typedDigits = Math.max(0, typedDigits - 1);
+                else if (++typedDigits >= 4) { typedDigits = 4; unlockAt = now + 150; }
+                return true;
+            }
+            return false;
+        }
+        if (page == 4) {
+            if (near(x, y, 180, 128, 50)) { disconnected = !disconnected; toggleAt = now; return true; }
+            return false;
+        }
+        // Чаты и ИИ: нажатие проигрывает сцену заново.
+        if (page == 0 || page == 3) { start = now; return true; }
+        return false;
+    }
+
+    private static float clamp(float v) { return Math.max(0, Math.min(1, v)); }
+    /** Плавный переход от 0 к 1 между моментами from и to. */
+    private static float span(long t, long from, long to) { float v = clamp((t - from) / (float) (to - from)); return v * v * (3 - 2 * v); }
+    /** Появление с лёгким перелётом, как у счётчиков Telegram. */
+    private static float pop(long t, long from) {
+        float u = clamp((t - from) / 320f);
+        return u <= 0 ? 0 : u * (1 + .28f * (float) Math.sin(Math.PI * u));
+    }
+
+    private void welcome(Canvas c, long t) {
+        int save = clipCard(c,30,26,330,334,24,card,card);
+        r.set(30,26,330,112); p.setColor(header); c.drawRect(r,p);
+        text(c,"NebulaGram",52,62,18,onHeader,true);
+        search(c,304,56,onHeader);
+        String[] tabs={t("Все","All"),t("Личные","Personal"),t("Работа","Work")};
+        float x=52;
+        for(int i=0;i<tabs.length;i++) {
+            p.setTypeface(AndroidUtilities.bold()); p.setTextSize(13);
+            float width=p.measureText(tabs[i]);
+            text(c,tabs[i],x,97,13,i==0?onHeader:alpha(onHeader,.6f),true);
+            if(i==0) { r.set(x-3,108,x+width+3,112); p.setColor(onHeader); c.drawRoundRect(r,2,2,p); }
+            x+=width+26;
+        }
         String[] names={t("Избранное","Saved Messages"),t("Команда Nebula","Nebula team"),t("Аня","Anna")};
-        String[] messages={t("Всё важное — здесь","Keep what matters"),t("Новая идея","A new idea"),t("Увидимся вечером?","See you tonight?")};
-        String[] times={"16:40","12:30","11:58"};
+        String[] initials={"","КН",t("А","A")};
+        // Новое сообщение приходит в 2.6 с и тает в конце петли.
+        float arrived = span(t,2600,2800) * (1 - span(t,4900,5200));
         for(int i=0;i<3;i++) {
-            float y=157+i*47;
-            drawChatAvatar(c,75,y,i);
-            fitText(c,names[i],101,y-3,12,153,ink,true);
-            rightText(c,times[i],304,y-3,9,muted,false);
-            fitText(c,messages[i],101,y+15,10,190,muted,false);
-            if(i<2) divider(c,101,y+23,304,y+23);
+            float y=150+i*60;
+            avatar(c,62,y,i,initials[i]);
+            fitText(c,names[i],96,y-4,14,150,ink,true);
+            if(i==0) { checks(c,268,y-8,listCheck,.8f); rightText(c,"16:40",314,y-4,11,muted,false); }
+            if(i==1) {
+                rightText(c,"12:30",314,y-4,11,muted,false);
+                p.setTypeface(AndroidUtilities.bold()); p.setTextSize(12);
+                String sender=t("Макс: ","Max: ");
+                float senderWidth=p.measureText(sender);
+                text(c,sender,96,y+16,12,accent,true);
+                fitText(c,t("Новая идея готова","The new idea is ready"),96+senderWidth,y+16,12,170-senderWidth,muted,false);
+                badge(c,304,y+12,"3",1);
+            }
+            if(i==0) fitText(c,t("Фото, ссылки и заметки","Photos, links and notes"),96,y+16,12,200,muted,false);
+            if(i==2) {
+                rightText(c,arrived>.5f?"16:42":"11:58",314,y-4,11,muted,false);
+                if(arrived<1) typing(c,96,y+16,t,1-arrived);
+                if(arrived>0) fitText(c,t("Увидимся вечером?","See you tonight?"),96,y+16,12,170,alpha(ink,arrived),false);
+                float s=pop(t,2600)*(1-span(t,4900,5200));
+                if(s>0) badge(c,304,y+12,"1",s);
+            }
+            if(i<2) divider(c,96,y+30,330,y+30);
         }
-        sticker(c,278,274,320,322);
+        c.restoreToCount(save);
+        outline(c,30,26,330,334,24);
     }
-    private void design(Canvas c) {
-        annotation(c,52,5,308,39,"✦",t("Настрой под себя","Make it yours"),180,58);
-        int[] colors={0xff4fc7c9,0xff7565ee,0xffdd91c4,0xff438adf,0xff365172,0xff758acf};
-        String[] icons={"✦","◈","Aa","☷","N","▣"};
-        for(int i=0;i<6;i++) {
-            int x=50+(i%3)*91,y=61+(i/3)*84;
-            gradient(c,x,y,x+78,y+74,22,blend(panelTop,colors[i],.24f),blend(panelBottom,colors[i],.06f));
-            centeredText(c,icons[i],x+39,y+48,i==2?27:35,ink,true);
+
+    private void design(Canvas c, long t) {
+        int step=(int)(t/1600)%SWATCHES.length, previous=(step+SWATCHES.length-1)%SWATCHES.length;
+        float k = t < 1600 ? 1 : span(t%1600,0,360);
+        if (swatchChoice >= 0) {
+            step = swatchChoice; previous = previousSwatch;
+            k = span(SystemClock.uptimeMillis() - swatchAt, 0, 300);
         }
-        annotation(c,42,247,318,287,"Aa",t("Темы, папки и иконки","Themes, folders, icons"),180,224);
-    }
-    private void privacy(Canvas c) {
-        annotation(c,72,5,288,39,"●",t("Код и биометрия","Passcode and biometrics"),252,75);
-        gradient(c,64,48,296,324,28,panelTop,panelBottom);
-        centeredText(c,t("Код доступа","Passcode"),180,91,16,ink,true);
-        centeredText(c,"••••",180,134,28,ink,true);
-        for(int i=0;i<9;i++) {
-            int x=124+(i%3)*56,y=176+(i/3)*41;
-            circle(c,x,y,17,(cyan & 0x00ffffff) | 0x20000000);centeredText(c,""+(i+1),x,y+6,15,ink,false);
+        int current=blend(swatch(previous),swatch(step),k);
+        int save=clipCard(c,34,18,326,176,22,wallTop,wallBottom);
+        round(c,52,36,226,76,16,inBubble);
+        fitText(c,t("Новая тема готова?","New theme ready?"),66,61,13,118,ink,false);
+        rightText(c,"16:39",216,70,9,muted,false);
+        int bubble = dark ? blend(0xff1f2123,current,.62f) : blend(0xffffffff,current,.24f);
+        round(c,118,84,312,124,16,bubble);
+        fitText(c,t("Да, с моим акцентом","Yes, with my accent"),132,109,13,124,outText,false);
+        rightText(c,"16:40",288,118,9,alpha(outText,.6f),false);
+        checks(c,292,110,dark?alpha(0xffffffff,.85f):current,.65f);
+        round(c,52,132,120,162,16,inBubble);
+        for(int i=0;i<3;i++) circle(c,72+i*14,147,3.5f,alpha(muted,dots(t,i)));
+        c.restoreToCount(save);
+        outline(c,34,18,326,176,22);
+        text(c,t("Цвет акцента","Accent color"),42,208,12,muted,true);
+        float from=58+previous*49, to=58+step*49;
+        for(int i=0;i<SWATCHES.length;i++) circle(c,58+i*49,238,15,swatch(i));
+        ring(c,from+(to-from)*k,238,20,ink);
+        text(c,t("Иконка приложения","App icon"),42,286,12,muted,true);
+        for(int i=0;i<5;i++) {
+            float x=42+i*56;
+            int color=swatch(i);
+            if(i==0) gradientRound(c,x,300,x+44,344,13,blend(accent,0xffffffff,.25f),accent);
+            else gradientRound(c,x,300,x+44,344,13,blend(color,0xffffffff,.25f),color);
+            centeredText(c,"N",x+22,331,22,0xffffffff,true);
         }
-        circle(c,180,299,17,(cyan & 0x00ffffff) | 0x20000000);centeredText(c,"0",180,304,15,ink,false);
-        circle(c,270,77,21,0xff496ddb);
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(3);p.setColor(ink);
-        r.set(264,64,276,78);c.drawRoundRect(r,6,6,p);p.setStyle(Paint.Style.FILL);
-        r.set(260,74,280,88);c.drawRoundRect(r,4,4,p);
+        float iconX=42+iconChoice*56;
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2.4f);p.setColor(ink);r.set(iconX-5,295,iconX+49,349);c.drawRoundRect(r,17,17,p);p.setStyle(Paint.Style.FILL);
     }
-    private void ai(Canvas c) {
-        text(c,"Nebula AI",35,44,20,ink,true);
-        sticker(c,238,3,345,116);
-        gradient(c,62,105,325,171,19,blend(panelTop,cyan,.23f),blend(panelBottom,cyan,.12f));
-        fitText(c,t("Объясни это проще","Make this easier to understand"),78,133,12,231,ink,true);
-        text(c,t("И выдели главное","And highlight what matters"),78,154,11,ink,false);
-        arrow(c,284,174,304,190,cyan);
-        card(c,26,193,318,304,21);text(c,"Nebula AI",44,220,13,cyan,true);
-        fitText(c,t("Конечно. Вот краткий ответ:","Of course. Here is a short answer:"),44,245,11,256,ink,false);
-        text(c,t("1. Самая важная мысль","1. The key idea"),44,268,11,ink,false);
-        text(c,t("2. Что можно сделать дальше","2. What you can do next"),44,288,11,ink,false);
-    }
-    private void link(Canvas c) {
-        card(c,49,16,311,320,24);text(c,"NebulaLink",70,52,20,ink,true);
-        circle(c,180,111,32,blend(panelTop,cyan,.12f));
-        // Draw the power symbol ourselves so it is independent of emoji fonts.
-        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(4);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(cyan);
-        r.set(164,95,196,127);c.drawArc(r,-50,280,false,p);c.drawLine(180,89,180,111,p);
-        p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
-        centeredText(c,t("Подключено","Connected"),180,159,14,cyan,true);
-        arrow(c,180,168,180,188,cyan);
-        card(c,66,190,294,257,14);
-        drawFinlandFlag(c,94,223);
-        fitText(c,t("Финляндия","Finland"),112,228,13,98,ink,true);
-        pingBadge(c,211,204,282,242,t("89 мс","89 ms"));
-        centeredText(c,t("Сервер можно сменить","Change servers anytime"),180,286,11,muted,false);
-    }
-    private void sticker(Canvas c,float l,float top,float right,float bottom) {
-        int save = c.save();
-        c.translate(l, top); c.scale((right-l)/80f, (bottom-top)/80f); c.rotate(-9,40,40);
-        // A small drawn message note, with no decoded bitmap or bundled mascot.
-        gradient(c,9,12,69,65,15,blend(panelTop,cyan,.20f),panelBottom);
-        leader.reset();leader.moveTo(22,65);leader.lineTo(18,75);leader.lineTo(35,65);
-        p.setColor(cyan);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2);p.setStrokeCap(Paint.Cap.ROUND);c.drawPath(leader,p);
-        c.drawLine(23,29,55,29,p);c.drawLine(23,40,47,40,p);
-        leader.reset();leader.moveTo(44,55);leader.lineTo(50,61);leader.lineTo(62,48);c.drawPath(leader,p);
-        p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);c.restoreToCount(save);
-    }
-    private void card(Canvas c,float l,float top,float right,float bottom,float radius){gradient(c,l,top,right,bottom,radius,panelTop,panelBottom);}
-    private void gradient(Canvas c,float l,float t,float rr,float b,float rad,int a,int z){r.set(l,t,rr,b);p.setShader(shade(l,t,rr,b,a,z));p.setStyle(Paint.Style.FILL);c.drawRoundRect(r,rad,rad,p);p.setShader(null);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(edge);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
-    private void ribbon(Canvas c,float l,float t,float rr,float b,String icon,String label){card(c,l,t,rr,b,19);circle(c,l+24,(t+b)/2,14,0xff496ddb);centeredText(c,icon,l+24,(t+b)/2+5,15,ink,true);fitText(c,label,l+48,(t+b)/2+5,13,rr-l-62,ink,true);}
-    private void fitText(Canvas c,String s,float x,float y,float size,float available,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);text(c,s,x,y,measured>available?size*available/measured:size,color,bold);}
-    private void pill(Canvas c,float l,float t,float rr,float b,String text,int color){gradient(c,l,t,rr,b,12,blend(panelTop,cyan,.16f),blend(panelBottom,cyan,.10f));centeredText(c,text,(l+rr)*.5f,b-7,10,color,true);}
-    private void circle(Canvas c,float x,float y,float radius,int color){p.setColor(color);c.drawCircle(x,y,radius,p);}
-    private void text(Canvas c,String s,float x,float y,float size,int color,boolean bold){p.setColor(color);p.setTextSize(size);p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);c.drawText(s,x,y,p);}
-    private void rightText(Canvas c,String s,float right,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,right-p.measureText(s),baseline,size,color,bold);}
-    private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(edge);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
-    private void centeredText(Canvas c,String s,float centerX,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,centerX-p.measureText(s)*.5f,baseline,size,color,bold);}
-    private void drawChatAvatar(Canvas c,float x,float y,int type) {
-        int save=c.save();avatarClip.reset();avatarClip.addCircle(x,y,15,Path.Direction.CW);c.clipPath(avatarClip);
-        int bg=type==0?0xff5d70df:type==1?0xff27afb3:0xffd48ea9; p.setColor(bg);c.drawCircle(x,y,15,p);
-        if(type==0) {
-            p.setColor(0xffffd66e);c.drawCircle(x,y-3,5,p);r.set(x-8,y+2,x+8,y+15);c.drawRoundRect(r,7,7,p);
-            p.setColor(0xfff5f3ff);p.setStrokeWidth(1.5f);p.setStyle(Paint.Style.STROKE);c.drawLine(x-5,y+1,x+5,y+1,p);p.setStyle(Paint.Style.FILL);
-        } else if(type==1) {
-            p.setColor(0xffd9fbf5);c.drawCircle(x-5,y-2,4,p);c.drawCircle(x+5,y-2,4,p);
-            r.set(x-12,y+3,x+1,y+13);c.drawRoundRect(r,5,5,p);r.set(x-1,y+3,x+12,y+13);c.drawRoundRect(r,5,5,p);
-            p.setColor(0xff7885f1);c.drawCircle(x,y-7,3,p);
-        } else {
-            p.setColor(0xffffe0bf);c.drawCircle(x,y-2,6,p);r.set(x-9,y+4,x+9,y+17);c.drawRoundRect(r,8,8,p);
-            p.setColor(0xff744c67);r.set(x-7,y-9,x+7,y-1);c.drawOval(r,p);c.drawCircle(x-6,y-3,3,p);c.drawCircle(x+6,y-3,3,p);
+    private int swatch(int i) { return i==0 ? accent : SWATCHES[i]; }
+
+    private void privacy(Canvas c, long t) {
+        // Синий экран код-пароля Telegram: белые клавиши на цвете шапки.
+        int bottom=blend(header,0xff000000,dark?.25f:.18f);
+        int save=clipCard(c,66,14,294,346,30,header,bottom);
+        long[] presses={300,800,1300,1800};
+        int[] keys={1,4,7,10};
+        int typed=0;for(long press:presses) if(t>=press) typed++;
+        float unlocked=span(t,2200,2400)*(1-span(t,3700,3950));
+        if(t>=3950) typed=0;
+        final long now=SystemClock.uptimeMillis();
+        if (privacyTouched) {
+            // Код принят: замок открыт, точки зеленеют, потом всё сбрасывается.
+            if (unlockAt >= 0 && now - unlockAt > 1500) { unlockAt = -1; typedDigits = 0; }
+            typed = typedDigits;
+            unlocked = unlockAt >= 0 && now >= unlockAt ? span(now - unlockAt, 0, 220) : 0;
+        }
+        circle(c,180,62,24,alpha(onHeader,.16f));
+        lock(c,180,62,onHeader,unlocked);
+        centeredText(c,t("Код-пароль","Passcode"),180,110,16,onHeader,true);
+        fitCentered(c,t("Введите код, чтобы открыть","Enter it to unlock"),180,129,11,200,alpha(onHeader,.72f));
+        for(int i=0;i<4;i++) {
+            float x=150+i*20;
+            if(i<typed) circle(c,x,154,5.5f,blend(onHeader,GREEN,unlocked));
+            else { p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.6f);p.setColor(alpha(onHeader,.6f));c.drawCircle(x,154,5,p);p.setStyle(Paint.Style.FILL); }
+        }
+        for(int i=0;i<12;i++) {
+            float x=124+(i%3)*56, y=196+(i/3)*41;
+            if(i==9) { circle(c,x,y,17,alpha(onHeader,.14f+(privacyTouched&&keyPressed==9?.3f*(1-clamp((now-keyAt)/260f)):0))); fingerprint(c,x,y,onHeader); continue; }
+            if(i==11) { backspace(c,x,y,onHeader); continue; }
+            float pressed=0;
+            if (privacyTouched) { if (keyPressed == i) pressed = 1-clamp((now-keyAt)/260f); }
+            else for(int j=0;j<keys.length;j++) if(keys[j]==i && t>=presses[j]) pressed=Math.max(pressed,1-clamp((t-presses[j])/260f));
+            circle(c,x,y,17,alpha(onHeader,.14f+.3f*pressed));
+            centeredText(c,i==10?"0":String.valueOf(i+1),x,y+5.5f,16,onHeader,false);
         }
         c.restoreToCount(save);
     }
-    private void drawFinlandFlag(Canvas c,float x,float y) {
-        r.set(x-11,y-9,x+11,y+9);p.setColor(0xfff1f5fb);c.drawRoundRect(r,4,4,p);
-        p.setColor(0xff3976c7);r.set(x-5,y-9,x-1,y+9);c.drawRect(r,p);r.set(x-11,y-2,x+11,y+2);c.drawRect(r,p);
+
+    private void ai(Canvas c, long t) {
+        gradientCircle(c,58,40,20,AVATARS[1][0],AVATARS[1][1]);
+        sparkle(c,58,40,10*(1+.08f*(float)Math.sin(t/260.0)),0xffffffff);
+        text(c,"Nebula AI",88,37,17,ink,true);
+        boolean typing = t>=500 && t<1600;
+        fitText(c,typing?t("печатает…","typing…"):t("бот","bot"),88,56,12,200,typing?accent:muted,false);
+        float out=1-span(t,5200,5600);
+        int save=clipCard(c,30,72,330,344,22,wallTop,wallBottom);
+        round(c,124,88,316,146,16,alpha(outBubble,out));
+        fitText(c,t("Объясни это проще","Make this easier to read"),138,110,13,162,alpha(outText,out),false);
+        fitText(c,t("и выдели главное","and highlight the key points"),138,128,13,124,alpha(outText,out),false);
+        rightText(c,"16:41",292,139,9,alpha(outText,.6f*out),false);
+        checks(c,296,131,alpha(outCheck,out),.65f);
+        if(typing) {
+            round(c,44,158,110,188,15,inBubble);
+            for(int i=0;i<3;i++) circle(c,63+i*14,173,3.5f,alpha(muted,dots(t,i)));
+        }
+        float reply=span(t,1600,1850)*out;
+        if(reply>0) {
+            float lift=(1-reply)*10;
+            round(c,44,158+lift,292,272+lift,16,alpha(inBubble,reply));
+            sparkle(c,62,177+lift,6,alpha(accent,reply));
+            fitText(c,t("Конечно, вот коротко:","Sure, here's the short version:"),74,182+lift,13,206,alpha(ink,reply),true);
+            String[] points={t("Самая важная мысль","The key idea"),t("Что можно сделать дальше","What to do next")};
+            for(int i=0;i<2;i++) {
+                float shown=span(t,2000+i*400,2250+i*400)*out;
+                float y=212+i*28+lift+(1-shown)*6;
+                circle(c,64,y-4,3.5f,alpha(accent,shown));
+                fitText(c,points[i],76,y,12,200,alpha(ink,shown),false);
+            }
+            rightText(c,"16:41",282,266+lift,9,alpha(muted,reply),false);
+        }
+        // Кнопки под ответом бота, как встроенная клавиатура Telegram.
+        float keys=span(t,2800,3050)*out;
+        if(keys>0) {
+            String[] labels={t("Перевести","Translate"),t("Кратко","Summary"),t("Ответить","Reply")};
+            for(int i=0;i<3;i++) {
+                float l=44+i*84, y=282+(1-keys)*8;
+                round(c,l,y,l+80,y+30,10,alpha(dark?0x66ffffff:0x40000000,keys));
+                fitCentered(c,labels[i],l+40,y+19.5f,11,70,alpha(0xffffffff,keys));
+            }
+        }
+        c.restoreToCount(save);
     }
-    private void pingBadge(Canvas c,float l,float top,float rr,float bottom,String label) {
-        gradient(c,l,top,rr,bottom,11,blend(panelTop,cyan,.12f),blend(panelBottom,cyan,.06f));
+
+    private void link(Canvas c, long t) {
+        int save=clipCard(c,46,14,314,340,28,card,card);
+        text(c,"NebulaLink",70,52,18,ink,true);
+        // Кнопка включает и выключает подключение. Волны есть, только пока
+        // соединение живое.
+        float on = disconnected ? 1-span(SystemClock.uptimeMillis()-toggleAt,0,250) : span(SystemClock.uptimeMillis()-toggleAt,0,250);
+        if (toggleAt == 0) on = 1;
+        int power = blend(muted, accent, on);
+        for(int i=0;i<2;i++) {
+            float wave=((t+i*1200)%2400)/2400f;
+            circle(c,180,128,42+wave*30,alpha(accent,.22f*(1-wave)*on));
+        }
+        circle(c,180,128,42,blend(raised,tint,on));
+        p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(5);p.setStrokeCap(Paint.Cap.ROUND);p.setColor(power);
+        r.set(162,110,198,146);c.drawArc(r,-55,290,false,p);c.drawLine(180,102,180,126,p);
+        p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);
+        p.setTypeface(AndroidUtilities.bold());p.setTextSize(14);
+        String status=disconnected?t("Отключено","Disconnected"):t("Подключено","Connected");
+        float statusWidth=p.measureText(status)+20;
+        float blink=.55f+.45f*(float)Math.cos(t/2400.0*Math.PI*2);
+        int statusColor=disconnected?muted:GREEN;
+        circle(c,180-statusWidth/2+4,197,4.5f,alpha(statusColor,disconnected?1:blink));
+        text(c,status,180-statusWidth/2+16,202,14,statusColor,true);
+        round(c,66,226,294,284,18,raised);
+        flag(c,94,255);
+        fitText(c,t("Финляндия","Finland"),116,253,13,92,ink,true);
+        fitText(c,"Helsinki · VLESS",116,270,10,92,muted,false);
+        ping(c,216,241,280,269,t("89 мс","89 ms"),t);
+        String change=t("Сменить сервер","Change server");
+        p.setTypeface(AndroidUtilities.bold());p.setTextSize(12);
+        float width=p.measureText(change);
+        text(c,change,180-(width+12)/2,316,12,accent,true);
+        chevron(c,180+(width+12)/2-3,312,accent);
+        c.restoreToCount(save);
+        outline(c,46,14,314,340,28);
+    }
+
+    /** Яркость точки «печатает» с волной слева направо. */
+    private static float dots(long t, int i) { return .35f + .65f * (.5f + .5f * (float) Math.sin(t / 170.0 - i * .9)); }
+    private void typing(Canvas c,float x,float baseline,long t,float alpha){
+        String label=t("печатает","typing");
+        fitText(c,label,x,baseline,12,120,alpha(accent,alpha),false);
+        p.setTextSize(12);p.setTypeface(Typeface.DEFAULT);
+        float end=x+p.measureText(label)+5;
+        for(int i=0;i<3;i++) circle(c,end+i*6,baseline-3.5f,1.8f,alpha(accent,alpha*dots(t,i)));
+    }
+    private int clipCard(Canvas c,float l,float top,float rr,float b,float rad,int first,int last){
+        int save=c.save();clip.reset();r.set(l,top,rr,b);clip.addRoundRect(r,rad,rad,Path.Direction.CW);c.clipPath(clip);
+        p.setStyle(Paint.Style.FILL);p.setShader(shade(l,top,rr,b,first,last));c.drawRect(r,p);p.setShader(null);
+        return save;
+    }
+    private void outline(Canvas c,float l,float top,float rr,float b,float rad){r.set(l,top,rr,b);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(.8f);p.setColor(edge);c.drawRoundRect(r,rad,rad,p);p.setStyle(Paint.Style.FILL);}
+    private void round(Canvas c,float l,float top,float rr,float b,float rad,int color){r.set(l,top,rr,b);p.setStyle(Paint.Style.FILL);p.setColor(color);c.drawRoundRect(r,rad,rad,p);}
+    private void gradientRound(Canvas c,float l,float top,float rr,float b,float rad,int first,int last){r.set(l,top,rr,b);p.setStyle(Paint.Style.FILL);p.setShader(shade(l,top,rr,b,first,last));c.drawRoundRect(r,rad,rad,p);p.setShader(null);}
+    private void gradientCircle(Canvas c,float x,float y,float radius,int first,int last){p.setStyle(Paint.Style.FILL);p.setShader(shade(x,y-radius,x,y+radius,first,last));c.drawCircle(x,y,radius,p);p.setShader(null);}
+    private void badge(Canvas c,float x,float y,String value,float scale){
+        circle(c,x,y,10*scale,accent);
+        if(scale>.6f) centeredText(c,value,x,y+3.8f*scale,11*scale,0xffffffff,true);
+    }
+    private void checks(Canvas c,float x,float y,int color,float size){
+        stroke(color,1.6f);
+        for(int i=0;i<2;i++){float o=i*5*size;c.drawLine(x+o,y+4*size,x+o+3*size,y+7*size,p);c.drawLine(x+o+3*size,y+7*size,x+o+9*size,y,p);}
+        fill();
+    }
+    private void ring(Canvas c,float x,float y,float radius,int color){p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(2.4f);p.setColor(color);c.drawCircle(x,y,radius,p);p.setStyle(Paint.Style.FILL);}
+    private void fitText(Canvas c,String s,float x,float y,float size,float available,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);text(c,s,x,y,measured>available?size*available/measured:size,color,bold);}
+    private void fitCentered(Canvas c,String s,float centerX,float y,float size,float available,int color){p.setTypeface(Typeface.DEFAULT);p.setTextSize(size);float measured=p.measureText(s);centeredText(c,s,centerX,y,measured>available?size*available/measured:size,color,false);}
+    private void circle(Canvas c,float x,float y,float radius,int color){p.setStyle(Paint.Style.FILL);p.setColor(color);c.drawCircle(x,y,radius,p);}
+    private void text(Canvas c,String s,float x,float y,float size,int color,boolean bold){p.setStyle(Paint.Style.FILL);p.setColor(color);p.setTextSize(size);p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);c.drawText(s,x,y,p);}
+    private void rightText(Canvas c,String s,float right,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,right-p.measureText(s),baseline,size,color,bold);}
+    private void divider(Canvas c,float sx,float sy,float ex,float ey){p.setColor(edge);p.setStrokeWidth(.8f);p.setStyle(Paint.Style.STROKE);c.drawLine(sx,sy,ex,ey,p);p.setStyle(Paint.Style.FILL);}
+    private void centeredText(Canvas c,String s,float centerX,float baseline,float size,int color,boolean bold){p.setTypeface(bold?AndroidUtilities.bold():Typeface.DEFAULT);p.setTextSize(size);text(c,s,centerX-p.measureText(s)*.5f,baseline,size,color,bold);}
+    private void stroke(int color,float width){p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(width);p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);p.setColor(color);}
+    private void fill(){p.setStyle(Paint.Style.FILL);p.setStrokeCap(Paint.Cap.BUTT);}
+    private void search(Canvas c,float x,float y,int color){stroke(color,2);c.drawCircle(x-2,y-2,6,p);c.drawLine(x+2.5f,y+2.5f,x+7,y+7,p);fill();}
+    /** Замок; lift от 0 до 1 приподнимает дужку — код принят. */
+    private void lock(Canvas c,float x,float y,int color,float lift){
+        float up=lift*6;
+        stroke(color,3);r.set(x-6.5f,y-13-up,x+6.5f,y+1-up);c.drawArc(r,180,180,false,p);
+        c.drawLine(x-6.5f,y-6-up,x-6.5f,y-2-up*(1-lift),p);c.drawLine(x+6.5f,y-6-up,x+6.5f,y-2,p);
+        fill();p.setColor(color);r.set(x-10,y-3,x+10,y+12);c.drawRoundRect(r,4,4,p);
+    }
+    /**
+     * Отпечаток пальца: вложенные гребни-арки с «ножками» разной длины и
+     * короткой линией в центре — как значок сканера в Android. Сидит в
+     * круглой клавише, как и цифры.
+     */
+    private void fingerprint(Canvas c,float x,float y,int color){
+        stroke(color,1.4f);
+        float cy=y+.5f;
+        float[] radius={2.4f,4.8f,7.2f};
+        float[] left={5,7,4.5f};
+        float[] right={7.5f,4.5f,7};
+        c.drawLine(x,cy+1,x,cy+5,p);
+        for(int i=0;i<radius.length;i++){
+            float rad=radius[i];
+            r.set(x-rad,cy-rad,x+rad,cy+rad);c.drawArc(r,180,180,false,p);
+            c.drawLine(x-rad,cy,x-rad,cy+left[i],p);
+            c.drawLine(x+rad,cy,x+rad,cy+right[i],p);
+        }
+        r.set(x-9.6f,cy-9.6f,x+9.6f,cy+9.6f);c.drawArc(r,205,130,false,p);
+        fill();
+    }
+    private void backspace(Canvas c,float x,float y,int color){
+        stroke(color,1.8f);path.reset();path.moveTo(x-11,y);path.lineTo(x-5,y-7);path.lineTo(x+10,y-7);path.lineTo(x+10,y+7);path.lineTo(x-5,y+7);path.close();c.drawPath(path,p);
+        c.drawLine(x-1,y-3,x+5,y+3,p);c.drawLine(x+5,y-3,x-1,y+3,p);fill();
+    }
+    private void sparkle(Canvas c,float x,float y,float size,int color){
+        float waist=size*.28f;path.reset();path.moveTo(x,y-size);path.quadTo(x+waist,y-waist,x+size,y);path.quadTo(x+waist,y+waist,x,y+size);path.quadTo(x-waist,y+waist,x-size,y);path.quadTo(x-waist,y-waist,x,y-size);path.close();
+        fill();p.setColor(color);c.drawPath(path,p);
+    }
+    private void chevron(Canvas c,float x,float y,int color){stroke(color,2);c.drawLine(x-3,y-5,x+2,y,p);c.drawLine(x+2,y,x-3,y+5,p);fill();}
+    /** Аватарка Telegram: градиентный круг с инициалами, у «Избранного» — закладка. */
+    private void avatar(Canvas c,float x,float y,int type,String letters) {
+        gradientCircle(c,x,y,22,AVATARS[type][0],AVATARS[type][1]);
+        if(type==0) {
+            p.setColor(0xffffffff);path.reset();path.moveTo(x-7,y-10);path.lineTo(x+7,y-10);path.lineTo(x+7,y+10);path.lineTo(x,y+4.5f);path.lineTo(x-7,y+10);path.close();c.drawPath(path,p);
+        } else {
+            centeredText(c,letters,x,y+5.5f,15,0xffffffff,true);
+        }
+    }
+    private void flag(Canvas c,float x,float y) {
+        int save=c.save();clip.reset();clip.addCircle(x,y,12,Path.Direction.CW);c.clipPath(clip);
+        p.setColor(0xfff1f5fb);c.drawCircle(x,y,12,p);
+        p.setColor(0xff3976c7);r.set(x-5,y-12,x-1,y+12);c.drawRect(r,p);r.set(x-12,y-2,x+12,y+2);c.drawRect(r,p);
+        c.restoreToCount(save);
+    }
+    private void ping(Canvas c,float l,float top,float rr,float bottom,String label,long t) {
+        r.set(l,top,rr,bottom);p.setColor(tint);c.drawRoundRect(r,(bottom-top)/2,(bottom-top)/2,p);
         p.setTypeface(AndroidUtilities.bold());p.setTextSize(10);
         Paint.FontMetrics metrics=p.getFontMetrics();
         float baseline=(top+bottom)*.5f-(metrics.ascent+metrics.descent)*.5f;
-        float labelWidth=p.measureText(label), barsWidth=14, gap=5;
-        float groupWidth=barsWidth+gap+labelWidth;
-        float start=(l+rr-groupWidth)*.5f;
-        float x=start+1;
-        p.setColor(cyan);p.setStrokeWidth(2.2f);p.setStrokeCap(Paint.Cap.ROUND);
-        float[] heights={4,7,10,13};for(int i=0;i<heights.length;i++)c.drawLine(x+i*4,baseline+1,x+i*4,baseline+1-heights[i],p);
-        p.setStrokeCap(Paint.Cap.BUTT);text(c,label,start+barsWidth+gap,baseline,10,cyan,true);
-    }
-    private void annotation(Canvas c,float l,float top,float rr,float bottom,String icon,String label,float targetX,float targetY) {
-        arrow(c,(l+rr)*.5f,bottom,targetX,targetY,cyan);
-        gradient(c,l,top,rr,bottom,(bottom-top)*.48f,panelTop,panelBottom);
-        circle(c,l+19,(top+bottom)*.5f,12,0xff496ddb);
-        centeredText(c,icon,l+19,(top+bottom)*.5f+4,12,ink,true);
-        fitText(c,label,l+39,(top+bottom)*.5f+4,12,rr-l-50,ink,true);
-    }
-    private void arrow(Canvas c,float sx,float sy,float ex,float ey,int color) {
-        float dx=ex-sx,dy=ey-sy;
-        float cx=sx+dx*.48f-dy*.12f,cy=sy+dy*.48f+dx*.12f;
-        leader.reset();leader.moveTo(sx,sy);
-        if(Math.abs(dx)<6) leader.lineTo(ex,ey); else leader.quadTo(cx,cy,ex,ey);
-        p.setColor(color);p.setAlpha(210);p.setStyle(Paint.Style.STROKE);p.setStrokeWidth(1.8f);p.setStrokeCap(Paint.Cap.ROUND);p.setStrokeJoin(Paint.Join.ROUND);c.drawPath(leader,p);
-        float angle=(float)Math.atan2(dy,dx),size=6;
-        leader.reset();leader.moveTo(ex,ey);
-        leader.lineTo(ex-size*(float)Math.cos(angle-.48f),ey-size*(float)Math.sin(angle-.48f));
-        leader.lineTo(ex-size*(float)Math.cos(angle+.48f),ey-size*(float)Math.sin(angle+.48f));
-        leader.close();p.setStyle(Paint.Style.FILL);p.setAlpha(220);c.drawPath(leader,p);p.setAlpha(255);p.setStrokeCap(Paint.Cap.BUTT);
+        float labelWidth=p.measureText(label), barsWidth=12, gap=5;
+        float start=(l+rr-(barsWidth+gap+labelWidth))*.5f;
+        float[] heights={3,6,9,12};
+        for(int i=0;i<heights.length;i++){
+            // Полоски по очереди вспыхивают, как замер задержки.
+            float glow=.55f+.45f*clamp(1-Math.abs(((t%2400)/2400f)*5-1-i));
+            stroke(alpha(accent,glow),2.2f);
+            c.drawLine(start+1+i*3.6f,baseline+1,start+1+i*3.6f,baseline+1-heights[i],p);
+        }
+        fill();text(c,label,start+barsWidth+gap,baseline,10,accent,true);
     }
 }

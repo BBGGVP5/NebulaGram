@@ -37,11 +37,13 @@ class CapsuleCheck {
  Avatar nebulaChatAvatarContainer=new Avatar();Draw glassDrawableMenu=new Draw();Animated animatorHasMenuItems=new Animated();
  float actionModeFactor,searchFactor;int menuWidth=96,s=48,p=6,t=0,b=60;Object canvas;
  boolean isNebulaSharedHeaderGlass(){return nebulaHomeTabsGlass||nebulaCommunityGlass;}
+ boolean isMenuPillInOverlay(){return false;}
  static class NebulaSelectionGlass {
   static int counterRight(Menu menu,int fallback){return Math.min(fallback,menu.x-4);}
   static void drawActions(Object c,Menu menu,Draw draw,int w,int t,int b,float f){}
  }
  NebulaSelectionGlass nebulaSelectionGlass=new NebulaSelectionGlass();
+ void nebulaActionsBacking(Object c,float f){} // NebulaGram: solid backing drawn after the actions glass
  int getWidth(){return 400;}
  int dp(int value){return value;}
  ALPHA

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index f0e3191b..450d0e79 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -792,7 +792,13 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -796,7 +796,13 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          int title = (int) Math.ceil(titleTextView.getExactWidthIncludeDrawables());
          View subtitle = getSubtitleTextView();
          int status = subtitle != null && subtitle.getVisibility() == VISIBLE ? subtitle.getMeasuredWidth() : 0;

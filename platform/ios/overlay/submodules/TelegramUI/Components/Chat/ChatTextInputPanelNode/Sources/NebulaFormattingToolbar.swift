@@ -40,24 +40,40 @@ enum NebulaFormattingFeedback {
 /// Native editor actions are supplied by the input panel; this view never rewrites a draft.
 final class NebulaFormattingToolbar: UIView {
     var action: ((Int) -> Void)?
+    /// Width at the right end kept clear of tiles: the floating "A" sits over it.
+    var trailingReserve: CGFloat = 0 { didSet { if trailingReserve != oldValue { setNeedsLayout() } } }
     private var presented = false
-    func setPresented(_ value: Bool) {
+    /// `origin` is the "A" centre in the superview: the toolbar unfolds sideways out of it
+    /// (leftwards, Android 0297) and folds back into it.
+    func setPresented(_ value: Bool, from origin: CGPoint? = nil) {
         guard presented != value else { return }
         presented = value
         isUserInteractionEnabled = value
         accessibilityElementsHidden = !value
-        if value { isHidden = false }
+        var folded = CGAffineTransform(translationX: 0, y: 8)
+        if let origin, bounds.width > 0 {
+            // A strip as wide as the "A", centred on it, grows to the full row.
+            let scale = min(1, max(0.05, 40 / bounds.width))
+            folded = CGAffineTransform(translationX: origin.x - center.x, y: origin.y - center.y).scaledBy(x: scale, y: 1)
+        }
+        let foldedTransform = folded
+        if value {
+            isHidden = false
+            if !UIAccessibility.isReduceMotionEnabled { transform = foldedTransform }
+        }
         let changes = {
             self.alpha = value ? 1 : 0
-            self.transform = value ? .identity : CGAffineTransform(translationX: 0, y: 8)
+            self.transform = value ? .identity : foldedTransform
         }
         if UIAccessibility.isReduceMotionEnabled || !UIView.areAnimationsEnabled {
             layer.removeAllAnimations()
             changes()
             isHidden = !value
+        } else if value && origin != nil {
+            UIView.animate(withDuration: 0.34, delay: 0, usingSpringWithDamping: 0.82, initialSpringVelocity: 0, options: [.beginFromCurrentState], animations: changes)
         } else {
-            UIView.animate(withDuration: 0.18, delay: 0, options: [.beginFromCurrentState, .curveEaseOut], animations: changes) { _ in
-                if !self.presented { self.isHidden = true }
+            UIView.animate(withDuration: origin == nil ? 0.18 : 0.24, delay: 0, options: [.beginFromCurrentState, .curveEaseInOut], animations: changes) { _ in
+                if !self.presented { self.isHidden = true; self.transform = .identity }
             }
         }
     }
@@ -129,7 +145,7 @@ final class NebulaFormattingToolbar: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         background.frame = bounds
-        scroll.frame = bounds.insetBy(dx: 8, dy: 0)
+        scroll.frame = CGRect(x: 8, y: 0, width: max(0, bounds.width - 16 - trailingReserve), height: bounds.height)
         let width = CGFloat(symbols.count) * 44 + CGFloat(symbols.count - 1) * 4 + 8
         stack.frame = CGRect(x: 0, y: 0, width: width, height: scroll.bounds.height)
         scroll.contentSize = stack.bounds.size
@@ -162,5 +178,41 @@ private final class NebulaFormattingButton: UIButton {
             UIView.animate(withDuration: pressed ? 0.08 : 0.16, delay: 0,
                 options: [.beginFromCurrentState, .allowUserInteraction, .curveEaseOut], animations: changes)
         }
+    }
+}
+
+/// Floating "A" above the round voice/send button (Android `registerFormatToggle`): opens and
+/// closes the formatting toolbar, which unfolds sideways out of it.
+final class NebulaFormattingToggleButton: UIButton {
+    private var expanded = false
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        layer.cornerRadius = 20
+        layer.shadowColor = UIColor.black.cgColor
+        layer.shadowOpacity = 0.12
+        layer.shadowRadius = 6
+        layer.shadowOffset = CGSize(width: 0, height: 2)
+        setImage(UIImage(systemName: "textformat", withConfiguration: UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)), for: .normal)
+        accessibilityLabel = Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "Форматирование" : "Formatting"
+        accessibilityTraits.insert(.button)
+    }
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
+
+    func update(fill: UIColor) {
+        if backgroundColor?.isEqual(fill) != true { backgroundColor = fill }
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        layer.shadowPath = UIBezierPath(ovalIn: bounds).cgPath
+    }
+
+    func setExpanded(_ value: Bool) {
+        guard expanded != value else { return }
+        expanded = value
+        accessibilityValue = value ? (Locale.preferredLanguages.first?.hasPrefix("ru") == true ? "открыто" : "open") : nil
+        let changes = { self.imageView?.transform = value ? CGAffineTransform(scaleX: 1.12, y: 1.12) : .identity; self.alpha = value ? 1 : 0.85 }
+        if UIAccessibility.isReduceMotionEnabled { changes() } else { UIView.animate(withDuration: 0.2, animations: changes) }
     }
 }

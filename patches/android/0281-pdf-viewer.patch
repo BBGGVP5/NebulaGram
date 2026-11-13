@@ -1,0 +1,33 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index cf51ff55..087e514a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -4319,6 +4319,8 @@ public class AndroidUtilities {
+                     builder.setPositiveButton(getString(R.string.OK), null);
+                     parentFragment.showDialog(builder.create());
+                 }
++            } else if (app.nebulagram.ui.NebulaPdfViewer.open(f, fileName, document.mime_type, activity, message.messageOwner.noforwards)) {
++                return;
+             } else {
+                 String realMimeType = null;
+                 try {
+@@ -4379,6 +4381,9 @@ public class AndroidUtilities {
+ 
+     public static boolean openForView(File f, String fileName, String mimeType, final Activity activity, Theme.ResourcesProvider resourcesProvider, boolean restrict) {
+         if (f != null && f.exists()) {
++            if (app.nebulagram.ui.NebulaPdfViewer.open(f, fileName, mimeType, activity, false)) {
++                return true;
++            }
+             String realMimeType = null;
+             Intent intent = new Intent(Intent.ACTION_VIEW);
+             intent.setFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+@@ -4437,6 +4442,9 @@ public class AndroidUtilities {
+             f = FileLoader.getInstance(message.currentAccount).getPathToMessage(message.messageOwner);
+         }
+         String mimeType = message.type == MessageObject.TYPE_FILE || message.type == MessageObject.TYPE_TEXT ? message.getMimeType() : null;
++        if (f != null && f.exists() && app.nebulagram.ui.NebulaPdfViewer.open(f, message.getFileName(), mimeType, activity, message.messageOwner.noforwards)) {
++            return true;
++        }
+         return openForView(f, message.getFileName(), mimeType, activity, resourcesProvider, restrict);
+     }
+ 

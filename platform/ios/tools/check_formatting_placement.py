@@ -31,13 +31,14 @@ typealias NebulaSettingsStore=Store
 enum Mode {case text,other}
 struct Interface {var inputMode:Mode}
 final class NativeCheck {
- var isFocused=false,sendingTextDisabled=false
+ var isFocused=false,sendingTextDisabled=false,nebulaFormattingExpanded=false
  func height(_ bits:Int)->CGFloat {
   Store.shared.formattingToolbar=bits&1 != 0;isFocused=bits&2 != 0
   let interfaceState=Interface(inputMode:bits&4 != 0 ? .text:.other)
   let mediaRecordingState:Int?=bits&8 != 0 ? 1:nil
   let hasMediaDraft=bits&16 != 0,isEditingMedia=bits&32 != 0,displayBotStartButton=bits&64 != 0
   sendingTextDisabled=bits&128 != 0
+  nebulaFormattingExpanded=bits&256 == 0
   ELIGIBILITY
   return formattingHeight
  }
@@ -57,9 +58,9 @@ func frames(width:CGFloat,contentHeight:CGFloat,formattingHeight:CGFloat) {
  precondition(containerFrame.minY==formattingHeight)
 }
 let check=NativeCheck()
-for bits in 0..<256 {precondition(check.height(bits)==(bits==7 ? RESERVED:0),"recording/media/disabled keyboard shows formatting")}
+for bits in 0..<512 {precondition(check.height(bits)==(bits & 255==7 ? RESERVED:0),"recording/media/disabled keyboard shows formatting, or the \"A\" row is missing")}
 for width in [CGFloat(240),320,390,720] {for height in [CGFloat(44),88,176,224] {for accessory in [CGFloat(0),RESERVED] {frames(width:width,contentHeight:height,formattingHeight:accessory)}}}
-print("Native iOS formatting: 256 eligibility states, 32 toolbar/native/root-button frame combinations passed")
+print("Native iOS formatting: 512 eligibility states (the A row is reserved folded or open), 32 toolbar/native/root-button frame combinations passed")
 '''.replace('ELIGIBILITY', eligibility).replace('CONTAINER', container).replace('TOOLBAR', toolbar).replace('RESERVED', str(reserved_height))
     for token, frame in zip(['LIVE', 'STAR', 'SETTINGS'], frames):
         program = program.replace(token, frame)

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index ced3dd30..a7dacdfb 100644
+index acec35a3..642abfaf 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -764,6 +764,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -929,6 +929,10 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              return menu;
          }
          menu = new ActionBarMenu(getContext(), this);
@@ -14,12 +14,12 @@ index ced3dd30..a7dacdfb 100644
          return menu;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 67a617e5..82ab799a 100644
+index 6621f6a0..60483fea 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3535,6 +3535,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3503,6 +3503,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
          viewPositionWatcher = new ViewPositionWatcher(fragmentView);
-         iBlur3FactoryLiquidGlass.setSourceRootView(viewPositionWatcher, (ViewGroup) fragmentView);
          scrimBlur3Factory.setSourceRootView(viewPositionWatcher, (ViewGroup) fragmentView);
 +        if (app.nebulagram.ui.NebulaAppearance.profileStyle()) {
 +            // Keep edit and overflow actions as separate glass controls over the
