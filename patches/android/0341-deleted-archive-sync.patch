@@ -1,0 +1,48 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index 385ea914..84a77990 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -21184,7 +21184,10 @@ public class MessagesController extends BaseController implements NotificationCe
+         LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesFinal = scheduledDeletedMessages;
+         LongSparseArray<ArrayList<Integer>> scheduledDeletedMessagesSentFinal = scheduledDeletedMessagesSent;
+         LongSparseIntArray clearHistoryMessagesFinal = clearHistoryMessages;
+-        getMessagesStorage().getStorageQueue().postRunnable(() -> {
++        // Через очередь базы идём, только когда архиву удалённых есть что
++        // проверить. Иначе прочитанность, счётчики и прочее из этой пачки
++        // ждали бы, пока база разгребёт синхронизацию, — у всех и всегда.
++        app.nebulagram.ui.NebulaDeletedArchive.beforeDeletes(currentAccount, deletedMessagesFinal != null, () -> {
+             LongSparseArray<ArrayList<Integer>> nebulaNotificationDeletes = new LongSparseArray<>();
+             if (deletedMessagesFinal != null) {
+                 for (int i = 0; i < deletedMessagesFinal.size(); i++) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index ca1b9149..107b327c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+@@ -4765,7 +4765,15 @@ public class MessagesStorage extends BaseController {
+                 database.executeFast("DELETE FROM chat_pinned_count WHERE uid IN " + ids).stepThis().dispose();
+                 database.executeFast("DELETE FROM chat_pinned_v2 WHERE uid IN " + ids).stepThis().dispose();
+                 database.executeFast("DELETE FROM dialogs WHERE did IN " + ids).stepThis().dispose();
+-                database.executeFast("DELETE FROM messages_v2 WHERE uid IN " + ids).stepThis().dispose();
++                // Сброс списка чатов после долгого офлайна стирал и сохранённые
++                // удалённые сообщения: архив держит их прямо в messages_v2.
++                if (app.nebulagram.ui.NebulaDeletedArchive.active(currentAccount)) {
++                    for (long nebulaDid : dids) {
++                        database.executeFast("DELETE FROM messages_v2 WHERE uid = " + nebulaDid + app.nebulagram.ui.NebulaDeletedArchive.keepClause(currentAccount, nebulaDid)).stepThis().dispose();
++                    }
++                } else {
++                    database.executeFast("DELETE FROM messages_v2 WHERE uid IN " + ids).stepThis().dispose();
++                }
+                 database.executeFast("DELETE FROM polls_v2 WHERE 1").stepThis().dispose();
+                 database.executeFast("DELETE FROM widget_state WHERE uid IN " + ids).stepThis().dispose();
+                 database.executeFast("DELETE FROM widget_heights WHERE uid IN " + ids).stepThis().dispose();
+@@ -11625,7 +11633,9 @@ public class MessagesStorage extends BaseController {
+ 
+                 database.executeFast("DELETE FROM chat_pinned_count WHERE uid = " + did).stepThis().dispose();
+                 database.executeFast("DELETE FROM chat_pinned_v2 WHERE uid = " + did).stepThis().dispose();
+-                database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did).stepThis().dispose();
++                // Канал перезагружается целиком после долгого перерыва, но
++                // сообщения из архива удалённых живут только в этой таблице.
++                database.executeFast("DELETE FROM messages_v2 WHERE uid = " + did + app.nebulagram.ui.NebulaDeletedArchive.keepClause(currentAccount, did)).stepThis().dispose();
+                 database.executeFast("DELETE FROM bot_keyboard WHERE uid = " + did).stepThis().dispose();
+                 database.executeFast("DELETE FROM bot_keyboard_topics WHERE uid = " + did).stepThis().dispose();
+                 database.executeFast("UPDATE media_counts_v2 SET old = 1 WHERE uid = " + did).stepThis().dispose();

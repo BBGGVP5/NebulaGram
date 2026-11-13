@@ -170,6 +170,7 @@ jobs:
           python3 scripts/check-phone-confirmation.py vendor/telegram-android
           python3 scripts/check-deleted-retention.py vendor/telegram-android
           python3 scripts/check-archive-pipeline.py
+          python3 scripts/check-forward-archive-fixes.py vendor/telegram-android
           python3 scripts/check-glass-edge.py vendor/telegram-android
           python3 scripts/check-sync-hot-path.py
           python3 scripts/check-tab-release.py vendor/telegram-android

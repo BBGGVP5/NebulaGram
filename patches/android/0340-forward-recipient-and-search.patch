@@ -1,0 +1,92 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index db375d66..385ea914 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+@@ -22520,6 +22520,7 @@ public class MessagesController extends BaseController implements NotificationCe
+         dialogsUsersOnly.clear();
+         dialogsForBlock.clear();
+         dialogsForward.clear();
++        ArrayList<TLRPC.Dialog> nebulaArchivedForward = new ArrayList<>();
+         checkCollapsedDialogsInCommunity();
+         for (int a = 0; a < dialogsByFolder.size(); a++) {
+             ArrayList<TLRPC.Dialog> arrayList = dialogsByFolder.valueAt(a);
+@@ -22661,6 +22662,11 @@ public class MessagesController extends BaseController implements NotificationCe
+                     } else {
+                         dialogsForward.add(d);
+                     }
++                } else if (d.folder_id == 1 && d.id != selfId && canAddToForward(d)) {
++                    // Архивные чаты Telegram в список пересылки не берёт, а
++                    // «Поделиться» берёт: из одного окна чат находился, из
++                    // другого — нет. Ставим их после основных, как там.
++                    nebulaArchivedForward.add(d);
+                 }
+             } else if (d instanceof TLRPC.TL_dialogCommunity) {
+                 TLRPC.Chat chat = getChat(-d.id);
+@@ -22695,6 +22701,7 @@ public class MessagesController extends BaseController implements NotificationCe
+             allDialogs.add(0, promoDialog);
+             addDialogToItsFolder(-2, promoDialog);
+         }
++        dialogsForward.addAll(nebulaArchivedForward);
+         if (!selfAdded) {
+             TLRPC.User user = getUserConfig().getCurrentUser();
+             if (user != null) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Adapters/DialogsSearchAdapter.java b/TMessagesProj/src/main/java/org/telegram/ui/Adapters/DialogsSearchAdapter.java
+index 4fb4706d..bb31e4aa 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Adapters/DialogsSearchAdapter.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Adapters/DialogsSearchAdapter.java
+@@ -1073,9 +1073,6 @@ public class DialogsSearchAdapter extends RecyclerListView.SelectionAdapter {
+                 }
+             }
+             MessagesController.getInstance(currentAccount).putUsers(encUsers, true);
+-            for (app.nebulagram.ui.NebulaSettingsSearch.Entry entry : app.nebulagram.ui.NebulaSettingsSearch.match(lastSearchText)) {
+-                result.add(entry); names.add(entry.title);
+-            }
+             searchResult = result;
+             searchResultNames = names;
+          //   searchContacts = contacts;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index eea46661..07f7bb6e 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -15733,6 +15733,18 @@ public class ChatActivity extends BaseFragment implements
+         showFieldPanel(show, null, null, null, webPage, true, 0, null, cancel, 0, true);
+     }
+ 
++    /**
++     * «Изменить получателя» уносит черновик пересылки в другой чат. Этот чат
++     * остаётся в стеке под новым и раньше хранил ту же пересылку: вернувшись,
++     * пользователь видел её снова и мог отправить второй раз.
++     */
++    private void nebulaDropMovedForwardDraft() {
++        if (messagePreviewParams == null || messagePreviewParams.forwardMessages == null) return;
++        forbidForwardingWithDismiss = false;
++        messagePreviewParams.updateForward(null, dialog_id);
++        fallbackFieldPanel();
++    }
++
+     private void nebulaShowForwardDraft(ArrayList<MessageObject> messages, boolean withoutAuthor) {
+         if (messagePreviewParams == null) {
+             messagePreviewParams = new MessagePreviewParams(currentEncryptedChat != null, isPeerNoForwards(), ChatObject.isMonoForum(currentChat));
+@@ -36230,6 +36242,7 @@ public class ChatActivity extends BaseFragment implements
+                         chatActivity.showFieldPanelForReplyQuote(replyingMessageObject, replyingQuote);
+                     } else {
+                         chatActivity.nebulaShowForwardDraft(fmessages, withoutAuthor);
++                        nebulaDropMovedForwardDraft();
+                     }
+                     if (chatActivity.getDialogId() == getDialogId() && !AndroidUtilities.isTablet()) {
+                         removeSelfFromStack();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index a06aba6d..4fb13d35 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -6979,7 +6979,9 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                     filterTabsView.resetTabId();
+                     selectWithStableId = true;
+                 }
+-                boolean nebulaHideAll = app.nebulagram.ui.NebulaAppearance.hideAllChats() && filters.size() > 1;
++                // В окне выбора чата (пересылка, «Поделиться») «Все чаты» нужны всегда:
++                // без них там видны только папки, и чатов вне папок не найти.
++                boolean nebulaHideAll = app.nebulagram.ui.NebulaAppearance.hideAllChats() && !onlySelect && filters.size() > 1;
+                 int nebulaFirstFolder = -1;
+                 for (int i = 0; i < filters.size(); i++) {
+                     if (!filters.get(i).isDefault() && !filters.get(i).locked) { nebulaFirstFolder = i; break; }

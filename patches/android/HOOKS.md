@@ -1412,3 +1412,50 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 (`missed_summary` в настройках ИИ), отправляет только текст и подписи — не медиа — не больше
 200 сообщений и 12 000 символов (`NebulaMissedPrompt`) через `NebulaAiReplacements.request`, а без
 настроенного сервиса открывает настройки ИИ.
+
+### 0340 — пересылка: смена получателя, список чатов, поиск
+
+`0340-forward-recipient-and-search.patch`:
+
+- `ChatActivity.nebulaDidSelectDialogs`: когда «Изменить получателя» открывает другой чат и
+  `nebulaShowForwardDraft` переносит туда черновик, исходный чат вызывает
+  `nebulaDropMovedForwardDraft()` — `updateForward(null, dialog_id)` и `fallbackFieldPanel()`, как
+  кнопка «Отменить пересылку». Раньше исходный чат оставался в стеке с той же пересылкой. Если
+  выбран тот же чат или несколько получателей, работает прежний код.
+- `MessagesController.sortDialogs`: архивные чаты (`folder_id == 1`, `canAddToForward`) идут в
+  `dialogsForward` после основных. Telegram брал в список пересылки только `folder_id == 0`, а
+  `ShareAlert` — и архив; из одного окна чат находился, из другого — нет. Папки (`dialogFilter.dialogsForward`)
+  не меняются.
+- `DialogsActivity`: настройка «Скрыть Все чаты» (`hide_all_chats`) не действует при `onlySelect` —
+  в окне выбора без вкладки «Все чаты» видны только папки.
+- `DialogsSearchAdapter`: строки `NebulaSettingsSearch` больше не добавляются в глобальный поиск
+  чатов. Поиск в настройках (`ProfileActivity`, `NebulaSettingsSearch.append`) их показывает, как раньше.
+
+Проверка: `check-forward-archive-fixes.py`.
+
+### 0341 — архив удалённых и очередь базы
+
+`0341-deleted-archive-sync.patch`:
+
+- `MessagesController.processUpdateArray`: вторая пачка интерфейсных обновлений (прочитанность,
+  удаления, очистка истории) идёт через очередь базы только через
+  `NebulaDeletedArchive.beforeDeletes(account, есть удаления, задача)` — когда в пачке есть удаления
+  и у аккаунта включён архив (или есть его файл). Иначе задача выполняется сразу, как у Telegram.
+  Раньше каждая пачка ждала очередь базы, занятую синхронизацией.
+- `MessagesStorage.overwriteChannel` (канал перезагружается после `channelDifferenceTooLong`) и
+  `resetDialogs` (сброс после долгого офлайна) стирали `messages_v2` чата целиком, а с ним и
+  сообщения архива, которые хранятся там же. Теперь к удалению добавляется
+  `NebulaDeletedArchive.keepClause(account, did)` — ` AND mid NOT IN(…)` с сохранёнными id этого чата.
+  Без архива `resetDialogs` выполняет исходный запрос.
+
+Оверлей: кэш снимков архива — по одному на аккаунт (`cachedSnapshots`; раньше один слот, и при двух
+аккаунтах каждое событие удаления заново расшифровывало архив на очереди базы под общим замком);
+`retain` выходит без замка, если архив выключен и файла нет; `NebulaDeletedStyle.retains` дочитывает
+из базы чат или бота, которых нет в памяти (иначе канал принимался за группу); при включённом
+журнале `retain` пишет счётчики причин пропуска (`notInDb`, `protected`, `scopeOff`, `policy`,
+`unreadable`, `error`) без текста сообщений. NebulaLink: если туннель в прошлый раз поднимался сам
+(`tunnel_autostart`), записанный прокси при запуске не снимается — ядро поднимет тот же порт, и
+Telegram не переподключается дважды. Прокси снимается, если ядро не стартовало, автоподключение
+выключено, порт другой, `tunnel.start` не удался или туннель не подключился за 30 секунд.
+
+Проверка: `check-forward-archive-fixes.py`, `check-archive-pipeline.py`, `check-sync-hot-path.py`.
