@@ -73,8 +73,11 @@ func Normalize(raw []byte, o Options) ([]byte, error) {
 		if o.StatsAPI {
 			enableStats(cfg)
 		}
-	} else if tag := renameProxyOutbound(cfg); tag != "" && o.StatsAPI {
-		enableStats(cfg)
+	} else {
+		if tag := renameProxyOutbound(cfg); tag != "" && o.StatsAPI {
+			enableStats(cfg)
+		}
+		applyRouting(cfg, o.Routing, o.GeoAssets)
 	}
 	return json.MarshalIndent(cfg, "", "  ")
 }

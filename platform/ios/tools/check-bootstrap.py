@@ -665,6 +665,11 @@ public class ASDisplayNode: NSObject {
             subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',
                             *[str(settings_ui / name) for name in ai_sources]], check=True)
             print('OK: AI chat/settings/service parsed; full module typecheck runs in ios-native.yml')
+            link_ui = temp / 'submodules/NebulaLinkUI/Sources'
+            subprocess.run(['swiftc', '-frontend', '-parse', '-swift-version', '5',
+                            *[str(link_ui / name) for name in ['NebulaLinkController.swift', 'NebulaRoutingController.swift',
+                                                               'NebulaLinkService.swift', 'NebulaServerSortController.swift']]], check=True)
+            print('OK: NebulaLink server list, auto row and routing screen parsed')
             auth = temp / 'submodules/AuthorizationUI/Sources'
             subprocess.run(['swiftc', *ios_flags, '-typecheck', str(auth / 'NebulaAuthPresentation.swift'),
                             str(auth / 'NebulaWelcomeController.swift')], check=True)

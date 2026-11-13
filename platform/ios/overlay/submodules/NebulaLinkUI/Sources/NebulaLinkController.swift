@@ -22,6 +22,9 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
     private var probeCompleted = 0
     private var probeTotal = 0
     private var urlProbeId: String?
+    /// Last auto-select state from the core ("auto.status").
+    private var autoState: [String: Any] = [:]
+    private var autoEnabled: Bool { autoState["enabled"] as? Bool ?? false }
     private let service = NebulaLinkService.shared
 
     public init(russian: Bool, introduction: UIView? = nil, introductionVisibility: ((Bool) -> Void)? = nil, continueAction: (() -> Void)? = nil) {
@@ -84,13 +87,18 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             self.view.endEditing(true)
             if self.service.state == "connected" || self.service.state == "connecting" {
                 self.request("tunnel.stop")
+            } else if self.autoEnabled {
+                // No id: the core measures the list and connects to the fastest.
+                self.request("tunnel.start")
             } else if !self.selected.isEmpty {
                 self.request("tunnel.start", ["id": self.selected])
             }
         }
         NotificationCenter.default.addObserver(self, selector: #selector(statusUpdated), name: NebulaLinkService.statusChanged, object: service)
         NotificationCenter.default.addObserver(self, selector: #selector(probeUpdated(_:)), name: NebulaLinkService.probeProgress, object: service)
+        NotificationCenter.default.addObserver(self, selector: #selector(autoUpdated(_:)), name: NebulaLinkService.autoChanged, object: service)
         reloadServers()
+        reloadAuto()
         reloadSort()
     }
     private func reloadPresentation() {
@@ -186,6 +194,78 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             self.page = (data["page"] as? Int) ?? 1
             self.pages = (data["pages"] as? Int) ?? 1
         }
+    }
+    private func reloadAuto() {
+        service.call("auto.status") { [weak self] result in
+            guard let self = self, case let .success(data) = result, let state = data as? [String: Any] else { return }
+            self.autoState = state
+            self.reloadAutoRow()
+        }
+    }
+    @objc private func autoUpdated(_ notification: Notification) {
+        guard let state = notification.userInfo as? [String: Any] else { return }
+        autoState = state
+        if state["state"] as? String == "ready", let id = state["server_id"] as? String, !id.isEmpty, id != selected {
+            // Auto moved the tunnel: the selection in the list follows it.
+            selected = id
+            if !busy { tableView.reloadSections(IndexSet(integer: 2), with: .none) }
+        }
+        reloadAutoRow()
+    }
+    private func reloadAutoRow() {
+        guard !busy, tableView.numberOfSections > 3 else { return }
+        tableView.reloadRows(at: [IndexPath(row: 0, section: 3)], with: .none)
+    }
+    private var autoDetail: String {
+        let phase = autoState["state"] as? String ?? "idle"
+        if phase == "checking" {
+            let measured = autoState["measured"] as? Int ?? 0
+            let total = autoState["total"] as? Int ?? 0
+            let progress = total > 0 && measured > 0 ? " \(measured)/\(total)" : ""
+            return text("Проверяю серверы…", "Checking servers…") + progress
+        }
+        guard autoEnabled else {
+            return text("Подключаться к серверу с наименьшим откликом", "Connect to the server with the lowest latency")
+        }
+        if phase == "no_answer" { return text("Ни один сервер не ответил", "No server answered") }
+        if phase == "failed" { return text("Не удалось подключиться", "Could not connect") }
+        let id = autoState["server_id"] as? String ?? ""
+        guard !id.isEmpty, let name = autoState["server_name"] as? String else {
+            return text("Выберет сервер при подключении", "Picks a server on connect")
+        }
+        let latency = NebulaLatency.format(autoState["latency_ms"] as? Int ?? 0,
+                method: autoState["latency_method"] as? String ?? "",
+                checkedAt: (autoState["checked_at"] as? NSNumber)?.int64Value ?? 0,
+                unit: text("мс", "ms"), unknown: "—", failed: text("Нет ответа", "No reply"))
+        let flag = autoState["flag"] as? String ?? ""
+        return [flag.isEmpty ? name : flag + " " + name, latency].joined(separator: " · ")
+    }
+    private func chooseAuto(from cell: UIView?) {
+        guard autoEnabled else {
+            request("auto.set", ["enabled": true]) { [weak self] data in
+                if let state = data as? [String: Any] { self?.autoState = state }
+                self?.reloadServers()
+            }
+            return
+        }
+        let sheet = UIAlertController(title: text("Автовыбор", "Auto"), message: autoDetail, preferredStyle: .actionSheet)
+        sheet.addAction(UIAlertAction(title: text("Проверить серверы сейчас", "Check servers now"), style: .default) { [weak self] _ in
+            self?.request("auto.check") { [weak self] data in
+                if let state = data as? [String: Any] { self?.autoState = state }
+                self?.reloadServers()
+            }
+        })
+        sheet.addAction(UIAlertAction(title: text("Выключить автовыбор", "Turn auto off"), style: .destructive) { [weak self] _ in
+            self?.request("auto.set", ["enabled": false]) { [weak self] data in
+                if let state = data as? [String: Any] { self?.autoState = state }
+            }
+        })
+        sheet.addAction(UIAlertAction(title: text("Отмена", "Cancel"), style: .cancel))
+        if let popover = sheet.popoverPresentationController, let cell = cell {
+            popover.sourceView = cell
+            popover.sourceRect = cell.bounds
+        }
+        present(sheet, animated: true)
     }
     private func reloadSort() {
         service.call("settings.get") { [weak self] result in
@@ -306,12 +386,13 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             self.reloadPresentation()
         }
     }
-    public override func numberOfSections(in tableView: UITableView) -> Int { continueAction == nil ? 3 : 4 }
+    public override func numberOfSections(in tableView: UITableView) -> Int { continueAction == nil ? 4 : 5 }
     public override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0: return 4
         case 1: return 4
         case 2: return max(1, servers.count + (pages > 1 ? 1 : 0))
+        case 3: return 2
         default: return 1
         }
     }
@@ -320,6 +401,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
         case 0: return text("Подписки и ключи", "Subscriptions and keys")
         case 1: return text("Действия с серверами", "Server actions")
         case 2: return text("Серверы", "Servers")
+        case 3: return text("Автовыбор и маршрутизация", "Auto and routing")
         default: return nil
         }
     }
@@ -330,6 +412,7 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             return status.isEmpty ? nil : status
         }
         if section == 2 { return text("Выберите сервер, затем нажмите «Подключить». Работает внутри приложения. Фоновая работа зависит от ограничений iOS; уведомления доставляются отдельно через APNs.", "Select a server, then tap Connect. Runs inside the app. Background activity is subject to iOS limits; notifications use APNs separately.") }
+        if section == 3 { return text("Авто сам выбирает самый быстрый сервер и меняет его, только когда другой заметно быстрее или текущий перестал отвечать. Выбор сервера вручную выключает авто.", "Auto picks the fastest server and moves only when another is clearly faster or the current one stops answering. Choosing a server by hand turns auto off.") }
         return nil
     }
     public override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -384,7 +467,24 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
                 cell.detailTextLabel?.text = serverDetail(server)
                 cell.detailTextLabel?.numberOfLines = 0
                 cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
-                cell.accessoryType = server["id"] as? String == selected ? .checkmark : .none
+                // With auto on the checkmark belongs to the Auto row, which names the pick.
+                cell.accessoryType = !autoEnabled && server["id"] as? String == selected ? .checkmark : .none
+            }
+        } else if indexPath.section == 3 {
+            cell.detailTextLabel?.numberOfLines = 0
+            cell.detailTextLabel?.adjustsFontForContentSizeCategory = true
+            if indexPath.row == 0 {
+                cell.textLabel?.text = text("Авто — самый быстрый", "Auto — the fastest")
+                cell.imageView?.image = UIImage(systemName: "bolt.horizontal")
+                cell.detailTextLabel?.text = autoDetail
+                cell.accessoryType = autoEnabled ? .checkmark : .none
+                cell.accessibilityIdentifier = "NebulaLink.Auto"
+            } else {
+                cell.textLabel?.text = text("Маршрутизация", "Routing")
+                cell.imageView?.image = UIImage(systemName: "arrow.triangle.branch")
+                cell.detailTextLabel?.text = text("Что идёт напрямую, что через прокси, что блокируется", "What goes direct, through the proxy or nowhere")
+                cell.accessoryType = .disclosureIndicator
+                cell.accessibilityIdentifier = "NebulaLink.Routing"
             }
         } else {
             cell.textLabel?.text = service.state == "connected" ? text("Продолжить с NebulaLink", "Continue with NebulaLink") : text("Продолжить без NebulaLink", "Continue without NebulaLink")
@@ -428,9 +528,13 @@ public final class NebulaLinkController: UITableViewController, UITextFieldDeleg
             else if let id = servers[indexPath.row]["id"] as? String {
                 request("server.select", ["id": id]) { [weak self] _ in
                     self?.selected = id
+                    // The core turns auto off on a manual pick; mirror it at once.
+                    self?.autoState["enabled"] = false
                 }
             }
-        case (3, _):
+        case (3, 0): chooseAuto(from: tableView.cellForRow(at: indexPath))
+        case (3, 1): navigationController?.pushViewController(NebulaRoutingController(russian: ru), animated: true)
+        case (4, _):
             if service.state == "connected" { finish() }
             else { request("tunnel.stop") { [weak self] _ in self?.finish() } }
         default: break

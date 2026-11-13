@@ -60,6 +60,16 @@ public final class NebulaLink {
     }
     public static void removeProbeListener(ProbeListener listener) { probeListeners.remove(listener); }
 
+    /** Автовыбор сервера: какой сервер выбран и с каким откликом. Главный поток. */
+    public interface AutoListener { void onAuto(JSONObject state); }
+    private static final ArrayList<AutoListener> autoListeners = new ArrayList<>();
+    private static JSONObject autoState;
+    public static JSONObject autoState() { return autoState; }
+    public static void addAutoListener(AutoListener listener) {
+        if (!autoListeners.contains(listener)) autoListeners.add(listener);
+    }
+    public static void removeAutoListener(AutoListener listener) { autoListeners.remove(listener); }
+
     public static JSONObject status() {
         return tunnelStatus;
     }
@@ -272,6 +282,14 @@ public final class NebulaLink {
                 JSONObject progress = envelope.optJSONObject("data");
                 if (progress != null) AndroidUtilities.runOnUIThread(() -> {
                     for (ProbeListener listener : new ArrayList<>(probeListeners)) listener.onProgress(progress);
+                });
+                return;
+            }
+            if ("auto.status".equals(envelope.optString("event"))) {
+                JSONObject state = envelope.optJSONObject("data");
+                if (state != null) AndroidUtilities.runOnUIThread(() -> {
+                    autoState = state;
+                    for (AutoListener listener : new ArrayList<>(autoListeners)) listener.onAuto(state);
                 });
                 return;
             }

@@ -62,12 +62,15 @@ const (
 	ScreenServers  = "nebulalink.servers"
 	ScreenAdvanced = "nebulalink.advanced"
 	ScreenAbout    = "nebulalink.about"
+	// ScreenRouting is drawn natively by the clients: a rule list does not fit
+	// the row schema. The schema screen is a fallback for clients without one.
+	ScreenRouting = "nebulalink.routing"
 )
 
 // Menu returns the full declarative UI. Clients render it top to bottom; the
 // order here is the order on screen.
 func Menu() []Screen {
-	return []Screen{homeScreen(), serversScreen(), advancedScreen(), aboutScreen()}
+	return []Screen{homeScreen(), serversScreen(), advancedScreen(), routingScreen(), aboutScreen()}
 }
 
 func homeScreen() Screen {
@@ -88,6 +91,9 @@ func homeScreen() Screen {
 				{Key: "advanced", Type: RowNav, Screen: ScreenAdvanced, Icon: "settings",
 					TitleKey: "nl_advanced", Title: "Connection settings",
 					SubtitleKey: "nl_advanced_sub", Subtitle: "Automatic connection, ping and calls"},
+				{Key: "routing", Type: RowNav, Screen: ScreenRouting, Icon: "route",
+					TitleKey: "nl_routing", Title: "Routing",
+					SubtitleKey: "nl_routing_sub", Subtitle: "What goes direct, through the proxy or nowhere"},
 				{Key: "about", Type: RowNav, Screen: ScreenAbout, Icon: "info",
 					TitleKey: "nl_about", Title: "About NebulaLink"},
 			}},
@@ -184,6 +190,16 @@ func advancedScreen() Screen {
 					TitleKey: "nl_dns", Title: "DNS inside the tunnel"},
 			}},
 		},
+	}
+}
+
+func routingScreen() Screen {
+	return Screen{
+		ID: ScreenRouting, TitleKey: "nl_routing", Title: "Routing",
+		Sections: []Section{{Rows: []Row{
+			{Key: "routing_info", Type: RowInfo, Icon: "route", TitleKey: "nl_routing_info",
+				Title: "Rules are edited on their own screen"},
+		}}},
 	}
 }
 
