@@ -1459,3 +1459,22 @@ Telegram не переподключается дважды. Прокси сни
 выключено, порт другой, `tunnel.start` не удался или туннель не подключился за 30 секунд.
 
 Проверка: `check-forward-archive-fixes.py`, `check-archive-pipeline.py`, `check-sync-hot-path.py`.
+
+### 0342 — тайминги загрузки в журнале
+
+`0342-load-timings.patch`: `ApplicationLoader.onCreate` — `NebulaTimings.processStart()` сразу после
+`applicationLoaderInstance = this` и `NebulaTimings.step(…)` после наших инициализаторов
+(`NebulaLink.init`, `NebulaGlassRuntime.init`, `NebulaMotion.apply`); `LaunchActivity.onResume` —
+`NebulaTimings.onResume()` после `NebulaStorySchedule.onWake()`; `ChatActivity.onFragmentCreate` —
+`NebulaTimings.chatOpened(currentAccount, classGuid)`.
+
+`NebulaTimings` пишет строки `NebulaTimings:` в журнал Telegram только при `BuildVars.LOGS_ENABLED`.
+Без журнала `onResume`/`chatOpened` сразу выходят, а `processStart`/`step` лишь запоминают время.
+В журнал попадают: наши шаги старта дольше 15 мс; переходы состояния соединения каждого аккаунта
+с длительностью (все выходы из «Соединение…», «Обновление…», «Ожидание сети», а также «подключено»
+дольше 1,5 с); первый `dialogsNeedReload` после показа; ожидание очереди базы аккаунта дольше 250 мс
+(проба на каждом показе и открытии чата); зависания UI-потока дольше 700 мс (сторож кадров
+останавливается в фоне); время от открытия чата до первых сообщений из кэша и с сервера
+(`messagesDidLoad` с тем же `classGuid`). Текстов, id чатов и пользователей в строках нет.
+
+Проверка: `check-load-timings.py`.
