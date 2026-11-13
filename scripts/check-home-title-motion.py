@@ -28,6 +28,10 @@ begin=stories.index('    public void setActionBar(ActionBar actionBar)');end=sto
 while depth:
     depth+=(stories[end]=='{')-(stories[end]=='}');end+=1
 binding=stories[begin:end]
+begin=stories.index('    private void invalidateNebulaHomeStack()');end=stories.index('{',begin)+1;depth=1
+while depth:
+    depth+=(stories[end]=='{')-(stories[end]=='}');end+=1
+binding+=chr(10)+stories[begin:end]
 harness='''
 class HeaderTitleMotionCheck {
  static final int VISIBLE=0,GONE=8;
@@ -79,6 +83,7 @@ class HeaderTitleMotionCheck {
  static class ActionBar extends HeaderTitleMotionCheck {}
  static class StoryBinding {
   ActionBar actionBar;Object telegramLogoView;int invalidations;
+  static class Mini {int invalidations;void invalidate(){invalidations++;}}Mini listViewMini=new Mini();
   void invalidate(){invalidations++;}void publishNebulaHomeHeader(){}
 ''' + binding + '''
  }
@@ -169,7 +174,7 @@ class HeaderTitleMotionCheck {
   }
   System.out.println(frames+" native folder fade/interruption frames and exact removal endpoints passed");
   var row=new StoryBinding();var first=new ActionBar();var second=new ActionBar();
-  row.setActionBar(first);first.nebulaHomeTitleLayoutChanged.run();check(row.invalidations==1,"Native story binding does not invalidate");
+  row.setActionBar(first);first.nebulaHomeTitleLayoutChanged.run();check(row.invalidations==1,"Native story binding does not invalidate");check(row.listViewMini.invalidations==1,"Collapsed stack keeps a stale frame after the title changes");
   row.setActionBar(second);check(first.nebulaHomeTitleLayoutChanged==null,"Replaced toolbar retains an obsolete story callback");
   second.nebulaHomeTitleLayoutChanged.run();check(row.invalidations==2,"New toolbar does not own story callback");
   row.setActionBar(null);check(second.nebulaHomeTitleLayoutChanged==null,"Unbound toolbar retains story callback");

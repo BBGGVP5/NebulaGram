@@ -105,8 +105,8 @@ class HomeMotionCheck {
    int visible=NebulaHomeTitleGeometry.visibleStories(count,available,title,footprint,step,gap);
    int prefix=NebulaHomeTitleGeometry.storyPrefix(visible,footprint,step,gap);
    for(int frame=0;frame<=120;frame++)for(float extra:new float[]{0,(float)Math.ceil(8*density)+(float)Math.ceil(16*density)})for(int barHeight:new int[]{48,56}) {
-    float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p),lift=NebulaHomeTitleGeometry.lift(p);
-    check(q>=0 && q<=1 && lift>=0 && lift<=1,"Invalid scroll fraction");
+    float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p);
+    check(q>=0 && q<=1,"Invalid scroll fraction");
     float cellWidth=(float)Math.ceil(70*density),size=(float)Math.ceil(48*density)+extra;
     float finalSize=size+((float)Math.ceil(26.33f*density)-size)*q;
     float radius=finalSize/2+(float)Math.ceil(4*density),bottom=100*density,barCenter=bottom-barHeight/2f*density;
@@ -114,17 +114,19 @@ class HomeMotionCheck {
     // down by storiesOverscroll/2 (90 dp / 2), not just by the added radius.
     float expanded=bottom+(float)Math.ceil(5*density)+(float)Math.ceil(48*density)/2-(float)Math.ceil(8*density)+extra/2;
     if(extra>0)expanded+=(float)Math.ceil(90*density)/2;
-    // The ring rides up with its row (the cell scrolls 81 dp), held under the bar only while it still overlaps.
-    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded-81*density*p,barCenter,p);
+    // Every ring rides with its row (the cell scrolls 81 dp) but never above the bar centre:
+    // one shared y for the whole stack, so it can never fan out into a triangle.
+    float row=expanded-81*density*p;
+    float y=NebulaHomeTitleGeometry.avatarCenterY(row,barCenter,p,density);
     check(Float.isFinite(y),"Invalid vertical pose");
+    check(y>=barCenter-.001f,"Ring rises above the toolbar centre");
+    check(y<=Math.max(row,barCenter)+1.5f*density+.001f,"Ring drops below its row and hangs over the chats");
     float slot=NebulaHomeTitleGeometry.groupLeftFloat(w,left,right,title,prefix,q),titleLeft=slot+prefix*q;
     for(int i=0;i<visible;i++) {
      float startLeft=(i+1)*cellWidth,target=slot+(float)Math.ceil(4*density)+i*step;
      float avatarCx=(cellWidth-finalSize)/2*(1-q)+finalSize/2;
      float x=startLeft+(target-startLeft)*q+avatarCx;
-     float ry=NebulaHomeTitleGeometry.clearCenterY(y,barCenter,radius,x-radius,x+radius,titleLeft,density);
-     check(ry>=y-.001f,"Hold lifts a ring above its path");
-     if(frame==120)check(Math.abs(ry-y)<.001f,"Collapsed stack is held under the bar; rings stop sharing one row");
+     float ry=y;
      // Edit occupies x=8..76 dp, height=44 dp. The title slot starts at 84 dp.
      if(ry-radius<barCenter+22*density)check(x-radius>=76*density-.001f,"Ring overlaps Edit");
      if(ry-radius<barCenter+14*density)check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");
@@ -133,21 +135,22 @@ class HomeMotionCheck {
     if(frame==120)check(Math.abs(y-barCenter)<.001f,"Mini-list handoff jumps vertically");
    }
   }
-  float previous=0;
-  for(int frame=1;frame<=120;frame++){
-   float p=frame/120f,lift=NebulaHomeTitleGeometry.lift(p);
-   check(lift>previous,"Vertical movement stops between phases");previous=lift;
-   float y=NebulaHomeTitleGeometry.avatarCenterY(121,72,p);
-   float previousY=NebulaHomeTitleGeometry.avatarCenterY(121,72,(frame-1)/120f);
-   check(y<=previousY,"Opening reverses vertical direction");
-   if(frame>6)check(y<previousY,"Vertical path contains an intermediate stop");
+  float previousY=Float.MAX_VALUE;
+  for(int frame=0;frame<=120;frame++){
+   float p=frame/120f,row=121-81*p;
+   float y=NebulaHomeTitleGeometry.avatarCenterY(row,72,p,1);
+   check(y<=previousY+.0001f,"Opening reverses vertical direction");
+   if(row>72+6 && frame>0)check(y<previousY,"Vertical path stops while its row still moves");
+   previousY=y;
   }
+  check(NebulaHomeTitleGeometry.avatarCenterY(121,72,0,1)==121,"Expanded ring leaves its row");
+  check(NebulaHomeTitleGeometry.avatarCenterY(140,72,1,1)==72,"Collapsed stack leaves the bar (tabs push the row down)");
   check(NebulaHomeTitleGeometry.lift(-1)==0 && NebulaHomeTitleGeometry.lift(2)==1,"Overscroll escapes endpoints");
   int escapedFrames=0;
   for(int frame=0;frame<=120;frame++)for(float d:new float[]{1,1.5f,2.625f,3.5f})for(int barHeight:new int[]{48,56}){
    float p=frame/120f,q=NebulaHomeTitleGeometry.gather(p);
    float radius=(48+(26.33f-48)*q)/2*d+4*d;
-   float globalCenter=NebulaHomeTitleGeometry.avatarCenterY(121*d,(100-barHeight/2f)*d,p);
+   float globalCenter=NebulaHomeTitleGeometry.avatarCenterY(121*d-81*d*p,(100-barHeight/2f)*d,p,d);
    float movingViewY=100*d-81*d*p-8*d;
    float localBottom=globalCenter-movingViewY+radius;
    if(localBottom>81*d){escapedFrames++;check(!nativeLayer(true,p,80*d*p-6*d),"Legacy layer slices a reversed home ring");}
