@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
+index 2c6b0f07..1eb1f404 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFixed.java
 @@ -564,8 +564,19 @@ public class ViewPagerFixed extends FrameLayout {
@@ -22,6 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ViewPagerFix
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index 82debcc3..3d5f28ed 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 @@ -295,6 +295,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
@@ -37,9 +39,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
  
          if (tabAnimationBot !=  null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index c704690c..727e1d2e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -13284,6 +13284,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13286,6 +13286,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  
@@ -57,7 +60,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      @Override
      public boolean canParentTabsSlide(MotionEvent ev, boolean forward) {
          if (searchIsShowed || rightSlidingDialogContainer != null && rightSlidingDialogContainer.hasFragment()) {
-@@ -13307,11 +13318,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13309,11 +13320,6 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (forward) {
              return isLastTab && !isFirstTab;
          } else {
@@ -70,6 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 9142b532..9204f01d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -342,6 +342,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
@@ -233,6 +237,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b
          final BaseFragment fragment = getCurrentVisibleFragment();
          if (fragment instanceof TabFragmentDelegate) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+index 5667c398..d6f98f41 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 @@ -66,7 +66,12 @@ public class MainTabsLayout extends AnimatedLinearLayout {
@@ -250,6 +255,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
          int chosenPass = PASS_TEXT_SIZES_DP.length - 1;
          float lastMeasuredTextSize = -1;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index cc07eb1e..d51777ac 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 @@ -449,7 +449,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter
@@ -368,6 +374,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b
                  presentSettingFragment(new ThemeActivity(ThemeActivity.THEME_TYPE_BASIC));
                  break;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
+index fd237eab..e13f4854 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ViewPagerActivity.java
 @@ -135,6 +135,10 @@ public abstract class ViewPagerActivity extends BaseFragment {

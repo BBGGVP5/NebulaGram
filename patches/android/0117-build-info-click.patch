@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index a20c4d93..ba99f482 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 @@ -190,7 +190,6 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter

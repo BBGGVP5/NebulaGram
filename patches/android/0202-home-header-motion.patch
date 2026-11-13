@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 8639bbe7..e9d4eb60 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -238,18 +238,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -25,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          for (SimpleTextView title : titleTextView) {
              if (title != null) title.setTranslationX(left - title.getLeft());
          }
-@@ -2960,6 +2960,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2962,6 +2962,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              glassDrawableHomeLeading.setBounds(nebulaHomeLeadingView.getLeft(), nebulaHomeLeadingView.getTop(),
                      nebulaHomeLeadingView.getRight(), nebulaHomeLeadingView.getBottom());
              glassDrawableHomeLeading.setAlpha(Math.round(255 * nebulaHomeLeadingView.getAlpha()));
@@ -33,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              glassDrawableHomeLeading.draw(canvas);
          }
          final boolean nebulaPlainHeaderButtons = (nebulaHomeGlass || isNebulaSharedHeaderGlass()) && !nebulaHomeTabsGlass
-@@ -2971,6 +2972,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2973,6 +2974,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              final int cy = (t + b) / 2;
              glassDrawableBack.setBounds(cx - dp(23), cy - dp(23), cx + dp(23), cy + dp(23));
              glassDrawableBack.setAlpha(Math.round(255 * actionModeFactor));
@@ -41,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              if (!nebulaPlainHeaderButtons) glassDrawableBack.draw(canvas);
          } else if (glassDrawableBack != null && hasBackButton) {
              glassDrawableBack.setAlpha(255);
-@@ -3022,6 +3024,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -3024,6 +3026,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
                              Math.min(getWidth() - dp(4), last + dp(4)), b);
                      glassDrawableMenu.setAlpha(Math.round(255 * actionModeFactor));
@@ -49,7 +50,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      if (!nebulaPlainHeaderButtons) glassDrawableMenu.draw(canvas);
                  }
              } else if (nebulaHomeTabsGlass && actionModeFactor < 0.01f
-@@ -3042,6 +3045,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -3044,6 +3047,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      glassDrawableMenu.setBounds(Math.max(0, first - dp(4)), t,
                              Math.min(getWidth(), last + dp(4)), b);
                      glassDrawableMenu.setAlpha(Math.round(255 * menuAlpha * (1f - searchFactor)));
@@ -58,6 +59,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  }
              } else if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index 1f389658..7afd921f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 @@ -704,6 +704,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
@@ -82,6 +84,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
  
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index f5a158aa..6914cad3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -126,7 +126,6 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 3fffa216..c8bb4420 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -639,8 +639,8 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -115,7 +116,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
  
              if (aiHint != null) {
                  aiHint.hide();
-@@ -8992,9 +9000,8 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8997,9 +9005,8 @@ public class ChatActivityEnterView extends FrameLayout implements
      private void updateFieldRight(int attachVisible) {
          lastAttachVisible = attachVisible;
          nebulaComposerStyle.restoreInsets();
@@ -127,7 +128,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (messageEditText == null || (editingMessageObject != null && !editingMessageObject.needResendWhenEdit())) {
              return;
          }
-@@ -9021,26 +9028,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9026,26 +9033,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
              layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
          }
@@ -155,7 +156,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (oldRightMargin != layoutParams.rightMargin) {
              messageEditText.setLayoutParams(layoutParams);
          }
-@@ -15011,10 +14999,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15016,10 +15004,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
@@ -167,7 +168,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          updateNebulaDraftTranslation();
          if (botCommandLastPosition != -1 && botCommandsMenuContainer != null) {
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
-@@ -15027,7 +15012,6 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15032,7 +15017,6 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      private void beginDelayedTransition() {
          animationParamsX.put(emojiButton, emojiButton.getX());
@@ -175,7 +176,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          if (messageEditText != null) {
              animationParamsX.put(messageEditText, messageEditText.getX());
          }
-@@ -15141,7 +15125,6 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15146,7 +15130,6 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButtonPaddingAlpha = progress;
          updateEmojiButtonParams();
          emojiButton.setTranslationX(-leftPadding);
@@ -183,7 +184,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          messageTextPaddingTranslationX = -leftPadding - (messageEditText == null ? 0 : dp(40) + (senderSelectView != null && senderSelectView.getVisibility() == View.VISIBLE ? dp(18) : 0)) * (1f - progress);
          if (recordDeleteImageView != null) {
              recordDeleteImageView.setTranslationX(-leftPadding);
-@@ -15234,11 +15217,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15239,11 +15222,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          emojiButton.setScaleX(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setScaleY(emojiButtonPaddingScale * emojiButtonScale);
          emojiButton.setAlpha(emojiButtonPaddingAlpha * emojiButtonAlpha);

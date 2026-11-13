@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index ed3f928e..bba28328 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2885,7 +2885,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2887,7 +2887,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              // Keep the counter clear of independently drawn selection actions.
              if (actionModeFactor > 0f && actionMode != null
                      && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
@@ -11,9 +12,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index ab6fe2c2..804c76a9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -3739,6 +3739,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -3746,6 +3746,10 @@ public class ChatActivity extends BaseFragment implements
                  // the chat's menu is also opened from the sidebar: what it does is in the chat
                  if (id != chat_menu_options && id != chat_menu_topics_panel && id != -1 && topicsPanel != null && topicsPanel.isOpen()) {
                      topicsPanel.close();
@@ -24,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == 0x4e4443) {
                      app.nebulagram.ui.NebulaPrivacyFragment.confirmClear(ChatActivity.this, currentAccount, dialog_id, null);
                      return;
-@@ -4532,7 +4536,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -4539,7 +4543,11 @@ public class ChatActivity extends BaseFragment implements
              closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
          }
          if (headerItem != null) {
@@ -37,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
                      app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
          }
-@@ -10941,9 +10949,14 @@ public class ChatActivity extends BaseFragment implements
+@@ -10945,9 +10953,14 @@ public class ChatActivity extends BaseFragment implements
          ThemeBind.textColor(selectedMessagesCountTextView, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider());
          selectedMessagesCountTextView.setOnTouchListener((v, event) -> true);
          selectedMessagesCountTextView.setEllipsizeByGradient(true);

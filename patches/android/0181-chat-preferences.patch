@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index 4dc2816c..0ff96652 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 @@ -2865,6 +2865,7 @@ public class MessagesStorage extends BaseController {
@@ -155,6 +156,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
                              TLRPC.User user = usersDict.get(did);
                              if (user != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index 50055566..020a06e6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 @@ -3406,6 +3406,7 @@ public class NotificationsController extends BaseController implements Notificat
@@ -174,9 +176,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
              dismissNotification();
              return;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 8d7d95a1..9c5e3c25 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -15727,6 +15727,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -15761,6 +15761,8 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          final boolean isInWelcomeMessages = delegate != null && delegate.getChatMode() == ChatActivity.MODE_WELCOME_MESSAGES;
          if ((messageObject.messageOwner.flags & TLRPC.MESSAGE_FLAG_HAS_VIEWS) != 0 && !isInWelcomeMessages) {
              currentViewsString = String.format("%s", LocaleController.formatShortNumber(Math.max(1, messageObject.messageOwner.views), null));
@@ -185,7 +188,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              viewsTextWidth = (int) Math.ceil(Theme.chat_timePaint.measureText(currentViewsString));
              float drawableWidth = Theme.chat_msgInViewsDrawable.getIntrinsicWidth() * (Theme.chat_timePaint.getTextSize() - dp(2)) / Theme.chat_msgInViewsDrawable.getIntrinsicHeight();
              timeWidth += viewsTextWidth + drawableWidth + dp(10);
-@@ -21354,6 +21356,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -21388,6 +21390,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      }
  
      public void drawTime(Canvas canvas, float alpha, boolean fromParent) {
@@ -193,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
              return;
          }
-@@ -21472,6 +21475,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -21506,6 +21509,12 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
              Theme.chat_timePaint.setAlpha((int) (Theme.chat_timePaint.getAlpha() * alpha));
          }
          canvas.save();
@@ -207,6 +210,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              canvas.translate(0, dp(2));
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 5ac54d75..3fffa216 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -237,6 +237,7 @@ public class ChatActivityEnterView extends FrameLayout implements

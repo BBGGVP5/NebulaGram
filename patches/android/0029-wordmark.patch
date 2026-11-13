@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 81ccaa52..0fef3fcf 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -337,6 +337,8 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

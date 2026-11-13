@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 28bb95ab..92e199bd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -5163,7 +5163,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -5167,7 +5167,7 @@ public class ChatActivity extends BaseFragment implements
                  }
                  if (pullingDownOffset != 0 && (e.getAction() == MotionEvent.ACTION_UP || e.getAction() == MotionEvent.ACTION_CANCEL)) {
                      float progress = Math.min(1f, pullingDownOffset / AndroidUtilities.dp(110));
@@ -11,9 +12,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              ValueAnimator animator = ValueAnimator.ofFloat(pullingDownOffset, pullingDownOffset + AndroidUtilities.dp(8));
                              pullingDownBackAnimator = animator;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index cef00c45..8646850a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -11337,7 +11337,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -11342,7 +11342,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (defPeer == null && delegate.getSendAsPeers() != null && !delegate.getSendAsPeers().peers.isEmpty()) {
              defPeer = delegate.getSendAsPeers().peers.get(0).peer;
          }

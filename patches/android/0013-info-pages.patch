@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
+index e38ea60c..056523c7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java
 @@ -1629,6 +1629,7 @@ public class ChatEditActivity extends BaseFragment implements ImageUpdater.Image
@@ -20,6 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatEditActivity.java b
              undoView.setTranslationY(-bottom);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
+index 537a992e..abbde221 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
 @@ -774,8 +774,8 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
@@ -34,6 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java 
              @Override
              public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+index 4e843716..1be3cebc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 @@ -322,6 +322,7 @@ public class ProfileActionsView extends View {
@@ -86,6 +89,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActio
          return dp(16);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
+index 2e1926da..aa9c451f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScrollView.java
 @@ -40,7 +40,7 @@ public class SectionsScrollView extends ScrollView implements IBlur3Capture {
@@ -149,9 +153,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SectionsScro
  
      @Override
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index aba73083..476e2ad1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
-@@ -7185,7 +7185,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
+@@ -7225,7 +7225,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
                  }
              }
              updateProgressViewLayout(mediaPages[a]);
@@ -163,9 +168,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaL
              } else {
                  mediaPages[a].listView.disableSections();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 23ba4bc0..87ca0605 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -3861,7 +3861,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3867,7 +3867,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  }
              });
  
@@ -174,7 +180,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              setActionsMode();
              updateNotifications(false);
  
-@@ -4185,7 +4185,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -4191,7 +4191,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              }
          };
          listView.setLegacySections(false);
@@ -183,7 +189,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          listView.applyPaddingToSections = false;
          // the rows above the list's top go under the header's blur, with their cards
          listView.setSectionsOverscanTop(AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight());
-@@ -5210,10 +5210,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5216,10 +5216,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          };
          avatarContainer2 = new FrameLayout(context) {
  
@@ -198,7 +204,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  super.dispatchDraw(canvas);
                  if (transitionOnlineText != null) {
                      canvas.save();
-@@ -6165,9 +6169,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6171,9 +6175,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
      private int getHeaderOnlyExtraHeight() {
          if (getActionsExtraHeight() == 0) {
@@ -210,7 +216,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
      }
  
      private int getActionsExtraHeight() {
-@@ -6522,8 +6526,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6528,8 +6532,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          onlineTextView.setTextColor(ColorUtils.blendARGB(applyPeerColor(statusColor, true, online), 0xB3FFFFFF, value));
          if (extraHeight > getHeaderOnlyExtraHeight()) {
              nameTextView.setPivotY(AndroidUtilities.lerp(0, nameTextView.getMeasuredHeight(), value));
@@ -221,16 +227,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          }
          needLayoutText(Math.min(1f, diff));
  
-@@ -9001,7 +9005,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -9012,7 +9016,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  if (giftsView != null) {
                      giftsView.setCollapseProgress(diff, openAnimationInProgress);
                  }
--                final float nameScale = 1.0f + 0.12f * diff;
-+                final float nameScale = app.nebulagram.ui.NebulaProfileStyle.titleScale(diff, isInLandscapeMode);
+-                final float nameScale = openAnimationInProgress ? AndroidUtilities.lerp(getPreviousHeaderTextScale(PREVIOUS_HEADER_TITLE), 1.12f, diff) : 1.0f + 0.12f * diff;
++                final float nameScale = openAnimationInProgress ? AndroidUtilities.lerp(getPreviousHeaderTextScale(PREVIOUS_HEADER_TITLE), app.nebulagram.ui.NebulaProfileStyle.titleScale(1f, isInLandscapeMode), diff) : app.nebulagram.ui.NebulaProfileStyle.titleScale(diff, isInLandscapeMode);
                  if (expandAnimator == null || !expandAnimator.isRunning()) {
                      avatarContainer.setScaleX(avatarScale);
                      avatarContainer.setScaleY(avatarScale);
-@@ -9026,7 +9030,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -9037,7 +9041,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  }
                  final float avatarBottom = (float) Math.floor(endNameY) + (avatarContainer.getHeight() * avatarContainer.getScaleY() + dpf2(8)) * (openAnimationInProgress ? avatarAnimationProgress : diff);
                  nameY = avatarBottom + dp(1.3f) + dp(7) * diff + titleAnimationsYDiff * (1f - avatarAnimationProgress);
@@ -239,7 +245,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  final float minimizedX = openAnimationInProgress ? (prevAvatarTranslation - dp(109) + dp(48)) : -dpf2(42 + 4);
  
                  if (showStatusButton != null) {
-@@ -9111,7 +9115,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -9125,7 +9129,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
          needLayoutText(1f);
  
@@ -248,7 +254,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();
          nameX = listView.getMeasuredWidth() / 2f - (params.leftMargin + nameTextView.getExactWidth() * nameScale * 0.5f);
          params = (FrameLayout.LayoutParams) onlineTextView.getLayoutParams();
-@@ -9206,10 +9210,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -9220,10 +9224,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          if (extraHeight > getHeaderExtraHeight() || expandAnimator != null && expandAnimator.isRunning()) {
              minScale = maxScale = nameTextView.getScaleX();
          } else if (diff >= 1f){
@@ -262,6 +268,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
  
          int viewWidth = AndroidUtilities.isTablet() ? AndroidUtilities.dp(490) : AndroidUtilities.displaySize.x;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+index c964b546..ecaf0fe6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
 @@ -1206,8 +1206,13 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No

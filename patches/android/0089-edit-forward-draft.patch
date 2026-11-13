@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
+index 2adb9152..c773b6d6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewParams.java
 @@ -140,7 +140,7 @@ public class MessagePreviewParams {
@@ -19,6 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagePreviewPa
          hasSenders = false;
          isSecret = DialogObject.isEncryptedDialog(dialogId);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+index 55452d3d..fec396d3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 @@ -2247,6 +2247,7 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
@@ -49,9 +51,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
              ArrayList<MessageObject> objArr = new ArrayList<>();
              ArrayList<TLRPC.Message> arr = new ArrayList<>();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index b1ed8b5d..d4c85781 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -11634,6 +11634,32 @@ public class ChatActivity extends BaseFragment implements
+@@ -11652,6 +11652,32 @@ public class ChatActivity extends BaseFragment implements
          keyboardWasVisible = chatActivityEnterView.isKeyboardVisible();
          forwardingPreviewView = new MessagePreviewView(contentView.getContext(), this, scrimBlur3Factory, messagePreviewParams, currentUser, currentChat, currentAccount, themeDelegate, startTab, replyingQuote != null && replyingQuote.outdated) {
  
@@ -85,6 +88,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              protected void removeLink() {
                  dismiss(true);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
+index fb91d886..5c8e8d7a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MessagePreviewView.java
 @@ -1037,6 +1037,15 @@ public class MessagePreviewView extends FrameLayout {

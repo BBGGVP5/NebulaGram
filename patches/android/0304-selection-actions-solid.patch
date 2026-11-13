@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-index 19fb2eb0..d6db573e 100644
+index df6c042d..91b84776 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -100,6 +100,23 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -26,7 +26,7 @@ index 19fb2eb0..d6db573e 100644
      private INavigationLayout.BackButtonState backButtonState = INavigationLayout.BackButtonState.BACK;
      public ImageView backButtonImageView;
      private BackupImageView avatarSearchImageView;
-@@ -3069,6 +3086,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -3071,6 +3088,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
              nebulaSelectionGlass.drawActions(canvas, actionMode, glassDrawableMenu,
                      getWidth(), t, b, actionModeFactor);

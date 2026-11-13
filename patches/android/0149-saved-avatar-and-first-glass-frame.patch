@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 99c0ba63..69bfd070 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4142,6 +4142,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4149,6 +4149,7 @@ public class ChatActivity extends BaseFragment implements
              @Override
              protected boolean onAvatarClick() {
                  if (app.nebulagram.ui.NebulaAppearance.chatHeader()
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
                          && headerItem != null && headerItem.hasSubMenu()) {
                      headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
-@@ -18194,6 +18195,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -18209,6 +18210,12 @@ public class ChatActivity extends BaseFragment implements
  
              navbarContentSourceWallpaper.setSource(source);
              invalidateGlassSources();
@@ -22,7 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (chatActivityFadeView != null) {
                  chatActivityFadeView.setOverlayColor(isCompactMode() ? getThemedColor(Theme.key_chat_compact_backgroundGradient) : 0);
                  chatActivityFadeView.invalidate();
-@@ -19639,6 +19646,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -19655,6 +19662,7 @@ public class ChatActivity extends BaseFragment implements
              notifyHeightChanged();
  
              checkUi_topFade();

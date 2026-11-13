@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 3be27b92..bb6b11ba 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -853,12 +853,17 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T

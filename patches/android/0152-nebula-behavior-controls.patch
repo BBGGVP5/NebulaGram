@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index b729b3da..4eb37f25 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -727,6 +727,14 @@ public class ApplicationLoader extends Application {
+@@ -736,6 +736,14 @@ public class ApplicationLoader extends Application {
      public float getDownloadingUpdateProgress() {
          return 0.0f;
      }
@@ -17,6 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
      public BetaUpdate getUpdate() {
          return null;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index 1fa6fc79..50055566 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 @@ -1246,7 +1246,7 @@ public class NotificationsController extends BaseController implements Notificat
@@ -78,6 +80,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
  
      @SuppressLint("NewApi")
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+index d469961f..bc66ff21 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 @@ -1996,7 +1996,7 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F
@@ -99,6 +102,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayo
                          containerViewBack.setScaleX(0.9f + 0.1f * (1.0f - interpolated));
                          containerViewBack.setScaleY(0.9f + 0.1f * (1.0f - interpolated));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
+index 63cf64fa..a2799443 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.java
 @@ -630,6 +630,7 @@ public abstract class BaseFragment {
@@ -110,6 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BaseFragment.
          getMessagesStorage().cancelTasksForGuid(classGuid);
          isFinished = true;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index 38f0b22a..403667e3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 @@ -3384,6 +3384,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
@@ -129,9 +134,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b
                              unreadCount = newCount;
                              mentionCount = newMentionCount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 69bfd070..922e1a19 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -5149,7 +5149,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -5156,7 +5156,7 @@ public class ChatActivity extends BaseFragment implements
                          if (Math.abs(dx) >= AndroidUtilities.dp(50)) {
                              if (!wasTrackingVibrate) {
                                  try {
@@ -140,7 +146,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                                  } catch (Exception ignore) {}
                                  wasTrackingVibrate = true;
                              }
-@@ -13928,7 +13928,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -13943,7 +13943,7 @@ public class ChatActivity extends BaseFragment implements
          }
  
          try {
@@ -149,7 +155,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          } catch (Exception e) {
              FileLog.e(e);
          }
-@@ -15605,7 +15605,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -15620,7 +15620,13 @@ public class ChatActivity extends BaseFragment implements
      }
  
      public void showFieldPanelForReply(MessageObject messageObjectToReply) {
@@ -164,7 +170,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      }
  
      private Runnable onHideFieldPanelRunnable;
-@@ -19231,6 +19237,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -19247,6 +19253,7 @@ public class ChatActivity extends BaseFragment implements
                  canvas.restore();
              }
  
@@ -172,7 +178,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              emojiAnimationsOverlay.draw(canvas);
  
              if (restoreToCount >= 0) {
-@@ -24201,7 +24208,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -24217,7 +24224,7 @@ public class ChatActivity extends BaseFragment implements
                          }
                          if (hasChosen) {
                              try {
@@ -181,7 +187,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              } catch (Exception ignored) {
                              }
                              if (isQuizWin) {
-@@ -29571,7 +29578,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -29587,7 +29594,7 @@ public class ChatActivity extends BaseFragment implements
                          if (buttonTypeUrl != null) {
                              openClickableLink(null, buttonTypeUrl.url, true, null, buttonMessage, false);
                              try {
@@ -190,7 +196,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              } catch (Exception ignore) {}
                              return true;
                          }
-@@ -34169,7 +34176,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -34219,7 +34226,7 @@ public class ChatActivity extends BaseFragment implements
              if (bigEmoji) {
                  if (cell != null) {
                      try {
@@ -199,7 +205,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      } catch (Exception ignored) {}
                  }
                  ArrayList<TLRPC.MessageReactor> reactors = null;
-@@ -34191,7 +34198,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -34241,7 +34248,7 @@ public class ChatActivity extends BaseFragment implements
              }
              if (fragmentView != null) {
                  try {
@@ -208,7 +214,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  } catch (Exception ignore) {}
              }
              final long chatId = -StarsController.MessageId.from(primaryMessage).did;
-@@ -34658,6 +34665,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -34708,6 +34715,13 @@ public class ChatActivity extends BaseFragment implements
              case 7912:
                  presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
                  break;
@@ -222,7 +228,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              case OPTION_RETRY: {
                  final MessageObject object = selectedObject;
                  final MessageObject.GroupedMessages group = selectedObjectGroup;
-@@ -35247,7 +35261,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -35294,7 +35308,7 @@ public class ChatActivity extends BaseFragment implements
                      View view = bulletin.getLayout();
                      view.postDelayed(() -> {
                          try {
@@ -231,7 +237,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          } catch (Exception ignored) {}
                      }, 550);
                  });
-@@ -41536,7 +41550,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -41603,7 +41617,7 @@ public class ChatActivity extends BaseFragment implements
                      getMessagesController().pressTranscribeButton();
                  });
                  try {
@@ -240,7 +246,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  } catch (Exception ignored) {}
              } else if (type == 1) {
                  String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
-@@ -41545,7 +41559,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -41612,7 +41626,7 @@ public class ChatActivity extends BaseFragment implements
                      AndroidUtilities.replaceTags(LocaleController.formatPluralString("TranscriptionTrialLeft", TranscribeButton.getTranscribeTrialCount(currentAccount)));
                  BulletinFactory.of(ChatActivity.this).createSimpleBulletin(R.raw.transcribe, text, 6).show(true);
                  try {
@@ -249,7 +255,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  } catch (Exception ignored) {}
              } else if (type == 2 || type == 3) {
                  String until = LocaleController.formatDateTime(getMessagesController().transcribeAudioTrialCooldownUntil, true);
-@@ -41597,7 +41611,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -41664,7 +41678,7 @@ public class ChatActivity extends BaseFragment implements
              if (buttonTypeUrl != null) {
                  openClickableLink(null, buttonTypeUrl.url, true, cell, cell.getMessageObject(), false);
                  try {
@@ -258,7 +264,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  } catch (Exception ignore) {}
              }
          }
-@@ -44716,6 +44730,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -44784,6 +44798,7 @@ public class ChatActivity extends BaseFragment implements
          }
  
          private void setupChatTheme(EmojiThemes chatTheme, TLRPC.WallPaper wallPaper, boolean withAnimation, boolean createNewResources) {
@@ -266,7 +272,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (parentThemeDelegate != null) return;
  
              this.chatTheme = chatTheme;
-@@ -46366,7 +46381,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -46434,7 +46449,7 @@ public class ChatActivity extends BaseFragment implements
              return;
          }
          if (longpress && reaction.reaction instanceof TLRPC.TL_reactionPaid) {
@@ -275,7 +281,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              ArrayList<TLRPC.MessageReactor> reactors = null;
              if (messageObject.messageOwner != null && messageObject.messageOwner.reactions != null) {
                  reactors = messageObject.messageOwner.reactions.top_reactors;
-@@ -46379,7 +46394,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -46447,7 +46462,7 @@ public class ChatActivity extends BaseFragment implements
              return;
          }
          if (longpress || messageObject.areTags() && (isInsideContainer || searchingReaction != null && searchingReaction.isSame(reaction.reaction))) {
@@ -284,7 +290,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              FrameLayout scrimPopupContainerLayout = new FrameLayout(getParentActivity()) {
                  @Override
                  public boolean dispatchKeyEvent(KeyEvent event) {
-@@ -46856,6 +46871,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -46925,6 +46940,8 @@ public class ChatActivity extends BaseFragment implements
                  && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
              items.add(app.nebulagram.ui.NebulaText.text("Инструменты Nebula", "Nebula tools"));
              icons.add(R.drawable.nebula_ai_spark); options.add(7912);
@@ -293,7 +299,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
          boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
-@@ -48072,7 +48089,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -48152,7 +48169,7 @@ public class ChatActivity extends BaseFragment implements
              }
          });
          try {
@@ -302,7 +308,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          } catch (Exception ignored) {}
          return true;
      }
-@@ -48263,7 +48280,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -48343,7 +48360,7 @@ public class ChatActivity extends BaseFragment implements
          }
          fireworksOverlay.start();
          try {
@@ -312,6 +318,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+index d214b185..328478de 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 @@ -2632,6 +2632,7 @@ public class AlertsCreator {
@@ -339,9 +346,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreato
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 67669130..882b2833 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1099,6 +1099,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1100,6 +1100,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              updateContextViewPosition();
              updateStoriesViewAlpha(storiesAlpha);
              super.dispatchDraw(canvas);
@@ -349,7 +357,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              drawHeaderShadow(canvas, top + actionBarHeight);
  
              /*if (fragmentContextView != null && fragmentContextView.isCallStyle()) {
-@@ -11095,11 +11096,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -11097,11 +11098,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @NonNull
      public ArrayList<TLRPC.Dialog> getDialogsArray(int currentAccount, int dialogsType, int folderId, boolean frozen) {
          if (frozen && frozenDialogsList != null) {
@@ -364,9 +372,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              return messagesController.dialogsServerOnly;
          } else if (dialogsType == DIALOGS_TYPE_ADD_USERS_TO) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index fcd89871..2d64d398 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -773,6 +773,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -787,6 +787,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                      }
  
                      private void onBackStartedInternal(BackEvent backEvent) {
@@ -374,7 +383,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                          if (AndroidUtilities.isTablet()) return;
                          if (!onBackPressed(false)) return;
                          if (actionBarLayout != null) {
-@@ -790,6 +791,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -804,6 +805,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
  
                      @Override
                      public void onBackProgressed(@NonNull BackEvent backEvent) {
@@ -383,6 +392,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
  
                          final float progress = backEvent.getProgress();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
+index 529eb5ca..489c1ea6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/StoriesController.java
 @@ -154,6 +154,7 @@ public class StoriesController {

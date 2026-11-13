@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index a5b48240..9ecdc187 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 @@ -332,7 +332,7 @@ public class ActionBarMenuItem extends FrameLayout {
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
                      if (getParent() != null) {
                          getParent().requestDisallowInterceptTouchEvent(true);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 93cf14fd..a0f90b8f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -894,6 +894,7 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -38,9 +40,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              if (!isShowing()) nebulaViewport.restore();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index fc48839c..d9f93517 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -6816,6 +6816,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -6830,6 +6830,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.activityPermissionsGranted, requestCode, permissions, grantResults);
      }
  

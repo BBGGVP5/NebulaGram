@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index 9b011858..db857eb8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 @@ -426,16 +426,11 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
@@ -72,6 +73,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
  
      public void setText(CharSequence text) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index a5ecd6c9..8c8d831b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -336,6 +336,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC

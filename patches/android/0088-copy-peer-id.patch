@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 7b5dcf97..6672794f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -608,6 +608,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
      private final static int set_username = 43;
      private final static int bot_privacy = 44;
      private final static int delete_group = 45;
-@@ -2838,6 +2839,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -2839,6 +2840,22 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      TLRPC.User user = getMessagesController().getUser(userId);
                      if (AndroidUtilities.addToClipboard(getMessagesController().linkPrefix + "/" + UserObject.getPublicUsername(user))) {
                          BulletinFactory.of(ProfileActivity.this).createCopyLinkBulletin().show();
@@ -32,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      }
                  } else if (id == set_username) {
                      presentFragment(new ChangeUsernameActivity());
-@@ -12272,6 +12289,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12385,6 +12402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  if (myProfile) {
                      setUsernameItem = otherItem.addSubItem(set_username, R.drawable.menu_username_change, getString(R.string.ProfileUsernameEdit));
                      linkItem = otherItem.addSubItem(copy_link_profile, R.drawable.msg_link2, getString(R.string.ProfileCopyLink));

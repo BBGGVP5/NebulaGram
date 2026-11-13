@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index d59b29a6..854c5c5f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 @@ -3762,7 +3762,7 @@ public class AndroidUtilities {
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities
                  if (!storageDir.exists()) {
                      if (BuildVars.LOGS_ENABLED) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FilesMigrationService.java b/TMessagesProj/src/main/java/org/telegram/messenger/FilesMigrationService.java
+index 28d73e41..1612bbdb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FilesMigrationService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FilesMigrationService.java
 @@ -103,8 +103,8 @@ public class FilesMigrationService extends Service {
@@ -34,6 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FilesMigrationSe
          }
          if (hasOldFolder) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
+index 427d8eeb..1194a0b0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
 @@ -2481,14 +2481,14 @@ public class ImageLoader {
@@ -144,6 +147,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ImageLoader.java
                          if (videoPath.isDirectory() && canMoveFiles(cachePath, videoPath, FileLoader.MEDIA_DIR_VIDEO)) {
                              mediaDirs.put(FileLoader.MEDIA_DIR_VIDEO_PUBLIC, videoPath);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index b1e2120a..be38bbf3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 @@ -5875,7 +5875,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
@@ -224,6 +228,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                  uriToInsert = MediaStore.Audio.Media.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
                  contentValues.put(MediaStore.Audio.Media.DISPLAY_NAME, filename);
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+index 85ab1d8a..f61eb88e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
 @@ -1561,10 +1561,10 @@ public class SharedConfig {

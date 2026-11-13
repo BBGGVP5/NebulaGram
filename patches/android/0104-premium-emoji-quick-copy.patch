@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index f61159aa..db056eec 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -2014,7 +2014,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -2017,7 +2017,7 @@ public class ChatActivity extends BaseFragment implements
              if (action != 0) {
                  if (action == 1) startEditingMessageObject(messageObject);
                  else if (action == 2) showFieldPanelForReply(messageObject);
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  return;
              }
              if (messageObject.isSecret() || !messageObject.canSetReaction() || messageObject.isExpiredStory() || messageObject.type == MessageObject.TYPE_JOINED_CHANNEL) {
-@@ -31878,7 +31878,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31927,7 +31927,7 @@ public class ChatActivity extends BaseFragment implements
              return messageObject.getVoiceTranscription();
          }
          if (messageObject.caption != null) {
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          if (group == null) {
              return null;
-@@ -31890,7 +31890,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -31939,7 +31939,7 @@ public class ChatActivity extends BaseFragment implements
                  if (caption != null) {
                      return null;
                  }
@@ -28,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (msgId != null) {
                      msgId[0] = message.getId();
                  }
-@@ -34531,9 +34531,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -34581,9 +34581,9 @@ public class ChatActivity extends BaseFragment implements
          if (!TextUtils.isEmpty(restrictionReason)) {
              str.append(restrictionReason);
          } else if (messageObject.caption != null) {

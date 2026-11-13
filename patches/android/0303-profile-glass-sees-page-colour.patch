@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 73b5b0d7..4d9b9296 100644
+index ac19bdef..f08759c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -1434,7 +1434,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -1435,7 +1435,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  // the pages reach up past their top by their overscan, the gap is only above it
                  final float mediaTop = listView.getY() + sharedMediaLayout.getY() - pagesOverscanTop;
                  if (mediaTop > y1) {
@@ -12,7 +12,7 @@ index 73b5b0d7..4d9b9296 100644
                      canvas.drawRect(0, y1, getMeasuredWidth(), Math.min(v, mediaTop), gapPaint);
                  }
              }
-@@ -5964,6 +5965,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5970,6 +5971,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              final ViewGroup root = (ViewGroup) fragmentView;
              // over the media only they are under the glass: the rows above them would show through the pages' overscan
              final float mediaProgress = sharedMediaLayout != null && sharedMediaLayout.getParent() == listView ? mediaHeaderAnimationProgress : 0f;
@@ -25,7 +25,7 @@ index 73b5b0d7..4d9b9296 100644
              if (mediaProgress < 1f) {
                  if (isUnderGlass(topView, p, root)) {
                      Blur3Utils.captureRelativeParent((canvas, position) -> topView.drawForCapture(canvas), c, p, topView, root);
-@@ -5975,7 +5982,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5981,7 +5988,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              if (mediaProgress > 0f) {
                  // going over to the media: the rows above them fade into the background of the pages
                  final float mediaTop = mediaProgress < 1f ? listView.getY() + sharedMediaLayout.getY() : Float.MAX_VALUE;

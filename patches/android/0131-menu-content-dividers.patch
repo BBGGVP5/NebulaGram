@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index 42d338d7..a5b48240 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 @@ -2631,6 +2631,7 @@ public class ActionBarMenuItem extends FrameLayout {
@@ -40,9 +41,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
          return putLazyItem(Item.asText(text, textSizeDp));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 3c8875c3..99c0ba63 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4531,7 +4531,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4538,7 +4538,7 @@ public class ChatActivity extends BaseFragment implements
              closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
          }
          if (headerItem != null) {
@@ -52,6 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 8c8d831b..a3bdfb4e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 @@ -450,7 +450,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC

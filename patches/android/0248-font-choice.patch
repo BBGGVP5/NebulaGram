@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index 4a897c2a..cf51ff55 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 @@ -2498,7 +2498,24 @@ public class AndroidUtilities {

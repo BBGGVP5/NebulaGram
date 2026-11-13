@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 2f35062f..93cf14fd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -602,7 +602,6 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -39,9 +40,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                          content != null ? content : (ActionBarPopupWindowLayout) viewGroup);
              } else if (scaleOut) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 71d72308..c0698452 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -32332,6 +32332,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -32381,6 +32381,7 @@ public class ChatActivity extends BaseFragment implements
              }
  
              ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), R.drawable.popup_fixed_alert4, themeDelegate, flags);
@@ -49,7 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              popupLayout.setMinimumWidth(AndroidUtilities.dp(200));
              Rect backgroundPaddings = new Rect();
              Drawable shadowDrawable = getParentActivity().getResources().getDrawable(R.drawable.popup_fixed_alert4).mutate();
-@@ -33650,7 +33651,6 @@ public class ChatActivity extends BaseFragment implements
+@@ -33699,7 +33700,6 @@ public class ChatActivity extends BaseFragment implements
              } else {
                  scrimPopupWindow.setAnimationStyle(0);
              }
@@ -57,15 +59,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              popupLayout.nebulaReveal.setAnchor(v);
              scrimPopupWindow.setFocusable(true);
              scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
-@@ -33786,7 +33786,6 @@ public class ChatActivity extends BaseFragment implements
-                     return;
+@@ -33836,7 +33836,6 @@ public class ChatActivity extends BaseFragment implements
                  }
                  scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
+                 keepScrimPopupAboveKeyboard(scrimPopupWindow);
 -                if (app.nebulagram.ui.NebulaMenuStyle.animated()) scrimPopupWindow.startAnimation();
                  if (isReactionsAvailableFinal && finalReactionsLayout != null) {
                      finalReactionsLayout.startEnterAnimation(true);
                  }
-@@ -41725,6 +41724,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -41792,6 +41791,7 @@ public class ChatActivity extends BaseFragment implements
              };
              scrimPopupContainerLayout.setLayoutParams(LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT));
              ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);
@@ -73,7 +75,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              scrimPopupContainerLayout.addView(popupLayout);
  
              boolean showCompletion = false;
-@@ -46483,6 +46483,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -46551,6 +46551,7 @@ public class ChatActivity extends BaseFragment implements
                  MessagesController.getGlobalMainSettings().edit().putInt("savedsearchtaghint", 1).apply();
  
                  ActionBarPopupWindow.ActionBarPopupWindowLayout popupLayout = new ActionBarPopupWindow.ActionBarPopupWindowLayout(getParentActivity(), 0, getResourceProvider(), 0);

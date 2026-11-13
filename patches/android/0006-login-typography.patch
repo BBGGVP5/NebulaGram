@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/CodeFieldContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/CodeFieldContainer.java
+index 9cfc4ddf..bb034823 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/CodeFieldContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/CodeFieldContainer.java
 @@ -43,6 +43,10 @@ public class CodeFieldContainer extends LinearLayout {
@@ -22,6 +23,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/CodeFieldContainer.java
          }
          super.dispatchDraw(canvas);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/OutlineTextContainerView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/OutlineTextContainerView.java
+index 4190859e..4e6402a1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/OutlineTextContainerView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/OutlineTextContainerView.java
 @@ -214,6 +214,10 @@ public class OutlineTextContainerView extends FrameLayout implements Theme.Color
@@ -45,6 +47,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/OutlineTextC
  
          float left = getPaddingLeft() + AndroidUtilities.dp(PADDING_LEFT - PADDING_TEXT), lineY = getPaddingTop() + stroke,
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+index dac59c13..67296e60 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 @@ -357,6 +357,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
@@ -169,7 +172,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              phoneOutlineView.addView(linearLayout, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_VERTICAL, 16, 8, 16, 8));
              phoneOutlineView.setText(getString(R.string.PhoneNumber));
              addView(phoneOutlineView, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 58, 16, 8, 16, 8));
-@@ -3988,7 +4014,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -3982,7 +4008,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
                  addView(confirmTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL | Gravity.TOP, sideMargin, 17, sideMargin, 0));
              }
              if (currentType != AUTH_TYPE_MISSED_CALL) {
@@ -178,7 +181,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
                      @Override
                      protected void processNextPressed() {
                          onNextPressed(null);
-@@ -5636,7 +5662,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -5630,7 +5656,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
              confirmTextView.setText(getString(R.string.LoginPasswordTextShort));
              addView(confirmTextView, LayoutHelper.createLinear(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.CENTER_HORIZONTAL, 12, 8, 12, 0));
  
@@ -187,7 +190,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              outlineCodeField.setText(getString(R.string.EnterPassword));
              codeField = new EditTextBoldCursor(context);
              codeField.setCursorSize(AndroidUtilities.dp(20));
-@@ -8781,6 +8807,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -8775,6 +8801,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          }
  
          keyboardView.updateColors();
@@ -195,7 +198,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
          if (phoneNumberConfirmView != null) {
              phoneNumberConfirmView.updateColors();
          }
-@@ -8977,7 +9004,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -8971,7 +8998,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          private final PointF pointF = new PointF();
          private void updateFabPosition() {
              ViewPositionWatcher.computeCoordinatesInParent(fabContainer, fragmentView, pointF);

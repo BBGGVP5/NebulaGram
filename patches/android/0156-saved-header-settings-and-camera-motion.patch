@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index 942ec811..eac52ba5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
-@@ -424,16 +424,17 @@ public class Camera2Session {
+@@ -453,16 +453,17 @@ public class Camera2Session {
                      imageReader = null;
                  }
                  thread.quitSafely();
@@ -30,9 +31,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
          } else {
              if (captureSession != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 4db675e1..6aed2de0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -2757,7 +2757,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2759,7 +2759,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  int left, right;
                  final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
                          ? nebulaChatAvatarContainer : null;
@@ -47,6 +49,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      // compact real glass capsule stays centred, while the avatar
                      // remains a reachable round control at the trailing edge.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 1e4d3cb6..fb2ad0e9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -3897,7 +3897,17 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
@@ -69,9 +72,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
          final Camera2Session next = Camera2Session.create(front, size, size, id);
          camera2SessionCurrent = camera2Sessions[front ? 0 : 1] = next;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 00e2f815..f0b5a698 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -14001,28 +14001,28 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14114,28 +14114,28 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          textCell.setTextAndValueAndIcon(LocaleController.getString(R.string.NebulaSettings), "", false, R.drawable.nebula_settings_mark, true);
                          textCell.setImageLeft(23);
                      } else if (position == languageRow) {
@@ -111,7 +115,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      } else if (position == sendLogsRow) {
                          textCell.setText(LocaleController.getString(R.string.DebugSendLogs), true);
                      } else if (position == sendLastLogsRow) {
-@@ -14032,7 +14032,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -14145,7 +14145,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      } else if (position == switchBackendRow) {
                          textCell.setText("Switch Backend", false);
                      } else if (position == devicesRow) {
@@ -121,6 +125,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                          cellCameraDrawable.setCustomEndFrame(86);
                          cellCameraDrawable.setCurrentFrame(85, false);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
+index ba99f482..65d4908f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SettingsActivity.java
 @@ -1374,7 +1374,7 @@ public class SettingsActivity extends BaseFragment implements NotificationCenter

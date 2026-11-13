@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index 8e69c92d..db375d66 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 @@ -8231,13 +8231,15 @@ public class MessagesController extends BaseController implements NotificationCe
@@ -38,9 +39,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                      if (BuildVars.LOGS_ENABLED) {
                          FileLog.d("ADD UPDATE TO QUEUE seq = " + seq);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index ce0d48fd..dcbea248 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -9768,13 +9768,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -9770,13 +9770,17 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          setDialogsListFrozen(true);
          checkAnimationFinished();
          for (int i = 0; i < dialogs.size(); i++) {

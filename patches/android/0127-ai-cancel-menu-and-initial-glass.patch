@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index e1a078c3..3c8875c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -30979,6 +30979,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -30995,6 +30995,7 @@ public class ChatActivity extends BaseFragment implements
          }
          if (contentView != null) {
              contentView.onResume();
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
          checkChecksHint();
  
-@@ -34649,10 +34650,6 @@ public class ChatActivity extends BaseFragment implements
+@@ -34699,10 +34700,6 @@ public class ChatActivity extends BaseFragment implements
              case 7912:
                  presentFragment(new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
                  break;
@@ -20,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              case OPTION_RETRY: {
                  final MessageObject object = selectedObject;
                  final MessageObject.GroupedMessages group = selectedObjectGroup;
-@@ -46847,16 +46844,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -46916,16 +46913,10 @@ public class ChatActivity extends BaseFragment implements
          }
          allowPin = allowPin && message.getId() > 0 && (message.messageOwner.action == null || message.messageOwner.action instanceof TLRPC.TL_messageActionEmpty) && !message.isExpiredStory() && message.type != MessageObject.TYPE_STORY_MENTION;
          boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
@@ -40,9 +41,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          boolean noforwardsOrPaidMedia = noforwards || message.type == MessageObject.TYPE_PAID_MEDIA;
          boolean allowUnpin = !isEphemeral && message.getDialogId() != mergeDialogId && allowPin && (pinnedMessageObjects.containsKey(message.getId()) || groupedMessages != null && !groupedMessages.messages.isEmpty() && pinnedMessageObjects.containsKey(groupedMessages.messages.get(0).getId())) && !message.isExpiredStory();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 4f8f2912..254e4d74 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -7027,6 +7027,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7029,6 +7029,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      public void onResume() {
          super.onResume();
          updateNebulaAiShortcut();

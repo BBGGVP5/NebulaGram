@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 5f3a2247..2f35062f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -263,7 +263,7 @@ public class ActionBarPopupWindow extends PopupWindow {

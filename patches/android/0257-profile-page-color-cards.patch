@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
+index 3d1cadf7..42cdf7c9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
 @@ -182,6 +182,8 @@ public class ProfileHoursCell extends LinearLayout {
@@ -20,6 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCe
              if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
              canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
+index 340adf0e..7110efa7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
 @@ -104,6 +104,8 @@ public class ProfileLocationCell extends LinearLayout implements Theme.Colorable
@@ -41,6 +43,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocatio
              if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
              canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+index d3e209b7..ec9cef6c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
 @@ -294,12 +294,14 @@ public class AboutLinkCell extends FrameLayout implements Theme.Colorable {
@@ -61,6 +64,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.jav
              canvas.save();
              canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), (int) (viewAlpha * 255), Canvas.ALL_SAVE_FLAG);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
+index 2fe8fb30..e303d353 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
 @@ -46,6 +46,8 @@ public class TextDetailCell extends FrameLayout implements Theme.Colorable {
@@ -82,9 +86,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.ja
              if (paint == null) paint = Theme.dividerPaint;
              canvas.drawLine(
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index de48e4e2..83bd8187 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -4224,6 +4224,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -4230,6 +4230,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          // the rows above the list's top go under the header's blur, with their cards
          listView.setSectionsOverscanTop(AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight());
          ThemeBind.backgroundColor(listView, Theme.key_windowBackgroundGray, resourcesProvider);
@@ -92,7 +97,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          listView.setVerticalScrollBarEnabled(false);
          final IBlur3Capture listViewCapture = new ViewGroupPartRenderer(listView, (ViewGroup) fragmentView, (canvas, child, drawingTime) -> {
              if (child == sharedMediaLayout) {
-@@ -5252,6 +5253,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5258,6 +5259,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2 = new FrameLayout(context) {
  
              final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
@@ -100,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
              private boolean nebulaForegroundDrawn;
              CanvasButton canvasButton;
  
-@@ -12205,6 +12207,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12318,6 +12320,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          if (topView != null) {
              topView.setBackgroundColorId(peerColor, true);
          }
@@ -108,7 +113,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
          if (onlineTextView != null) {
              int statusColor;
              if (onlineTextView.getTag() instanceof Integer) {
-@@ -13706,13 +13709,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13819,13 +13822,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                  : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
                                  ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
                                  : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
@@ -128,7 +133,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      } else if (position == noteRow) {
                          final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                          if (userInfo == null) return;
-@@ -13855,6 +13859,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13968,6 +13972,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                          qrRowIconDrawable = drawable;
                          detailCell.setImage(drawable, LocaleController.getString(R.string.GetQRCode));
                          detailCell.setImageClickListener(ProfileActivity.this::onTextDetailCellImageClicked);
@@ -140,7 +145,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      } else {
                          detailCell.setImage(null);
                          detailCell.setImageClickListener(null);
-@@ -17187,6 +17196,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -17307,6 +17316,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void themeDelegateThemeColors() {

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+index 80c18f0c..a4c88150 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 @@ -137,6 +137,7 @@ public class TranslateController extends BaseController {
@@ -40,6 +41,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          final TLRPC.TL_messages_summarizeText req = new TLRPC.TL_messages_summarizeText();
          req.peer = MessagesController.getInstance(currentAccount).getInputPeer(message.getDialogId());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+index 9b94fff0..b2726299 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 @@ -406,6 +406,7 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No

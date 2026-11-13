@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 4633b9a1..86ffb5cd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -13863,7 +13863,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -13897,7 +13897,22 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          }
      }
  
@@ -25,9 +26,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 5c0e5a81..ea89acc3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -944,10 +944,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -945,10 +945,21 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
  
          private BlurredBackgroundDrawable nebulaHeaderGlass;
@@ -49,7 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  if (nebulaHeaderGlass == null) {
                      nebulaHeaderGlass = iBlur3FactoryLiquidGlass.create(this, BlurredBackgroundProviderImpl.topPanel(resourceProvider));
                      nebulaHeaderGlass.setPadding(0);
-@@ -3162,8 +3173,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3164,8 +3175,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          nebulaHomeEditButton = null;
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
                  && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)) {

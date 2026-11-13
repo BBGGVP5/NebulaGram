@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 642abfaf..b6a2b28f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -201,6 +201,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -52,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
          if (menu != null && menu.getVisibility() != GONE) {
              int menuLeft = menu.searchFieldVisible() ? dp(menuOccupyBack ? 0 : AndroidUtilities.isTablet() ? 74 : 66) : (getMeasuredWidth()) - menu.getMeasuredWidth();
-@@ -2792,7 +2801,27 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2794,7 +2803,27 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
                  && (!separateAvatar || actionModeFactor > 0f)) {
              final float menuAlpha = hasForcedMenuWidth ? 1f : animatorHasMenuItems.getFloatValue();
@@ -82,6 +83,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  // Three independent round surfaces follow the actual visible
                  // actions. Passcode/downloads remain accessible when present.
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 3e108ba9..44117763 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -507,6 +507,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
@@ -92,7 +94,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private ActionBarMenuItem speedItem;
      public static boolean switchingTheme;
      private ActionBarMenuItem doneItem;
-@@ -3120,11 +3121,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3122,11 +3123,29 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_actionBarActionModeDefaultSelector, getResourceProvider(), true);
          ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarDefaultIcon, getResourceProvider(), false);
          ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), true);
@@ -122,7 +124,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
          actionBar.createAdditionalSubTitleOverlayContainer();
          actionBar.getAdditionalSubTitleOverlayContainer().setTranslationX(dp(4));
-@@ -13857,6 +13876,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13859,6 +13878,14 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();
@@ -137,7 +139,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
  
          final float factor0 = isSupportSearch() && (!app.nebulagram.ui.NebulaAppearance.hideSearchField() || searchFieldVisible > 0) ? 1 : 0;
          final float factor1 = (1f - actionModeVisible) * (1f - animatorDoneButtonVisible.getFloatValue());
-@@ -14410,6 +14437,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14412,6 +14439,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          actionBar.setPopupItemsSelectorColor(getThemedColor(Theme.key_dialogButtonSelector), true);
                          actionBar.updateColors();
                      }

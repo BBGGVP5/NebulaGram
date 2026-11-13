@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
+index dbcbdf72..4cdfa385 100644
 --- a/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 +++ b/TMessagesProj/src/main/res/raw/liquid_glass_shader.agsl
 @@ -21,6 +21,14 @@ half4 srcOver(half4 src, half4 dst) {

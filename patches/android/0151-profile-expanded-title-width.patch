@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 81c73c56..00e2f815 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -9081,7 +9081,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -9095,7 +9095,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  needLayoutText(diff, 0, false);
  
                  final FrameLayout.LayoutParams params1 = (FrameLayout.LayoutParams) nameTextView.getLayoutParams();

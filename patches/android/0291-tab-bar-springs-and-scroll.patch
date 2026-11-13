@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index db857eb8..40995077 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 @@ -152,13 +152,17 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
@@ -45,9 +46,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
          checkPlayAnimation(animated);
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index ea89acc3..c5951254 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -4554,6 +4554,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4556,6 +4556,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                          contentView.updateBlurContent();
                      }
                      app.nebulagram.ui.NebulaEdgeCompression.apply(recyclerView);
@@ -58,7 +60,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      viewPage.dialogsItemAnimator.onListScroll(-dy);
                      int firstVisiblePosition = -1;
                      int lastVisiblePosition = -1;
-@@ -13984,7 +13988,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13986,7 +13990,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void checkUi_mainTabsVisible() {

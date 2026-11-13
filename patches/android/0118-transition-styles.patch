@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
+index 7b3d8538..d469961f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarLayout.java
 @@ -1944,7 +1944,9 @@ public class ActionBarLayout extends FrameLayout implements INavigationLayout, F

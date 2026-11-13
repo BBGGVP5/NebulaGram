@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 760d8de3..88eba606 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -896,10 +896,10 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -32,6 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
              windowAnimatorSet.setDuration(150 + 16 * visibleCount);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index 47494249..97347865 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 @@ -5349,10 +5349,14 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N
@@ -52,6 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
          photoLayout.setTranslationX(0);
          mediaPreviewView.setAlpha(0);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+index 6682c321..2d20c8e8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 @@ -1370,6 +1370,8 @@ public class ItemOptions {
@@ -76,6 +79,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
                  .setColorProvider(BlurredBackgroundProviderImpl.scrimMenuBackground(resourcesProvider))
                  .setPadding(dp(8))
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+index f0822667..97838ffe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 @@ -105,7 +105,8 @@ public class BlurredBackgroundProviderImpl {
@@ -99,6 +103,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
              .setStrokeColorBottom(0x22FFFFFF, 0)
              .setShadowColor(0x26000000, 0)
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+index 562cedd2..6324571d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 @@ -643,7 +643,9 @@ public class MainTabsLayout extends AnimatedLinearLayout {

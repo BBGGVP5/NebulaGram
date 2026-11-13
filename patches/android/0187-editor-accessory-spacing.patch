@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 2872c29f..59bd15aa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -4785,7 +4785,12 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -23,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          aiButton.animate().cancel();
          aiButton.setVisibility(View.VISIBLE);
          aiButton.animate()
-@@ -14962,6 +14968,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14967,6 +14973,9 @@ public class ChatActivityEnterView extends FrameLayout implements
          updateBotCommandsMenuContainerTopPadding();
          updateFieldRight(lastAttachVisible);
          nebulaComposerStyle.prepare(this, messageEditText, MeasureSpec.getSize(widthMeasureSpec), nebulaSupported);
@@ -33,7 +34,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
-@@ -14983,6 +14992,10 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14988,6 +14997,10 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (wasHeight > 0 && textFieldContainer.getMeasuredHeight() != wasHeight) {
              for (int i = 0; i < 2; ++i) {
                  final View view = i == 0 ? aiButton : richButton;

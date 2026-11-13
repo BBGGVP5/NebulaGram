@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 9b2b53e4..20f7935f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 @@ -50,6 +50,14 @@ import java.io.File;
@@ -17,6 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoade
      public static ApplicationLoader applicationLoaderInstance;
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
+index dc1165e7..5414ad51 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.java
 @@ -134,7 +134,13 @@ public class BackDrawable extends Drawable {
@@ -34,6 +36,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/BackDrawable.
          float endYDiff = AndroidUtilities.dp(AndroidUtilities.lerp(7f, 8f, rotation)) - (paint.getStrokeWidth() / 4f) * (1f - rotation);
          float startXDiff = AndroidUtilities.dp(AndroidUtilities.lerp(-7f - 0.25f, 0f, rotation));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
+index de892962..4c76bdef 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterViewAnimatedIconView.java
 @@ -53,6 +53,15 @@ public class ChatActivityEnterViewAnimatedIconView extends RLottieImageView {
@@ -53,6 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              RLottieDrawable drawable = stateMap.get(getAnyState(currentState));
              drawable.stop();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 9c5dbe09..4eb638fe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -760,7 +760,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -79,6 +83,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          glassMode = true;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index 3d5f28ed..7fc4fd61 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 @@ -300,6 +300,16 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
@@ -107,6 +112,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 928e8b7e..c3feceb3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 @@ -266,6 +266,14 @@ import java.util.zip.ZipInputStream;

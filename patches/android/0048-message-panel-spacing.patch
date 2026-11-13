@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 5dc090fb..7e15010d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -12191,9 +12191,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -12223,9 +12223,9 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
  //            pad += dp(4);
  //        }
          if (SharedConfig.bubbleRadius >= 15) {
@@ -14,6 +15,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          return pad;
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityTopPanelLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityTopPanelLayout.java
+index 197aecf8..4360a48c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityTopPanelLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityTopPanelLayout.java
 @@ -68,14 +68,14 @@ public class ChatActivityTopPanelLayout extends AnimatedLinearLayout {

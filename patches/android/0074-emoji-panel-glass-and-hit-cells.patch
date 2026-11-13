@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index bacb1c37..b50182a0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -438,7 +438,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -440,7 +440,7 @@ public class ChatActivity extends BaseFragment implements
      private @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactory;
      private @NonNull BlurredBackgroundDrawableViewFactory glassBackgroundDrawableFactoryFrosted;
      public org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable createNebulaEmojiBackground(View view) {
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  .setRadius(dp(22));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
+index 00573b52..1bbfbf4f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.java
 @@ -1575,17 +1575,21 @@ public class EmojiView extends FrameLayout implements
@@ -52,6 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/EmojiView.ja
  
          glassEngine.setRoot(this);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
+index 36a5f681..e18185b5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PagerSlidingTabStrip.java
 @@ -85,6 +85,14 @@ public class PagerSlidingTabStrip extends HorizontalScrollView implements Theme.

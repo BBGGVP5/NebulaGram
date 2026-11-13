@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index d688a547..045c4eea 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -1856,7 +1856,16 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -31,6 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              } else {
                  textToSet = null;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index bb6b11ba..750a8fa1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -1762,7 +1762,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -43,9 +45,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          if (title == null) {
              if (lastSubtitle != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 92d0234a..e2bc8bca 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -8402,8 +8402,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8416,8 +8416,10 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
              title = "Updating";
              titleId = R.string.Updating;
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnectingToProxy) {
@@ -58,7 +61,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
          } else if (currentConnectionState == ConnectionsManager.ConnectionStateConnecting) {
              title = "Connecting";
              titleId = R.string.Connecting;
-@@ -8420,6 +8422,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -8434,6 +8436,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                          lastFragment = mainFragmentsStack.get(mainFragmentsStack.size() - 1);
                      }
                  }
@@ -73,6 +76,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/T
                      return;
                  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 2798a1c2..da9a845d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -1286,7 +1286,7 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

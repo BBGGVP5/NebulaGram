@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
+index 3a5413ce..bc5e6dd0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocaleController.java
 @@ -82,6 +82,11 @@ public class LocaleController {

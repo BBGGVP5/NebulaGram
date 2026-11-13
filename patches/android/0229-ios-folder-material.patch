@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 1794595e..bd311a1c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -1203,6 +1203,7 @@ public class FilterTabsView extends FrameLayout {
@@ -38,9 +39,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
                      nebulaLens.drawOutline(canvas, outline);
                  } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index dcbea248..ed7496af 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -5197,6 +5197,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5199,6 +5199,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              app.nebulagram.ui.NebulaFolderTabs.removeChangeListener(nebulaFolderChangeListener);
              nebulaFolderChangeListener = () -> {
                  if (filterTabsView == null || !(filterTabsView.getLayoutParams() instanceof FrameLayout.LayoutParams)) return;

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+index 1be3cebc..00da7de4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 @@ -303,7 +303,11 @@ public class ProfileActionsView extends View {
@@ -23,9 +24,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActio
      protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) { }
      protected int actionTextColor(int color) { return color; }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index f0b5a698..1f33ad7c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5250,10 +5250,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5256,10 +5256,26 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
              CanvasButton canvasButton;
  

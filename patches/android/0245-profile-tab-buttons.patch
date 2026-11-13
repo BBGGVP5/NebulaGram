@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
+index ead2e94e..7c31886e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrollSlidingTextTabStrip.java
 @@ -717,6 +717,9 @@ public class ScrollSlidingTextTabStrip extends HorizontalScrollView implements T

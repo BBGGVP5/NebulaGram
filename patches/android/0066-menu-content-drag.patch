@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 9d807c81..12728587 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -613,7 +613,12 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -16,9 +17,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
  
          @Override
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index b7d5eec0..6d591c71 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -18762,6 +18762,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -18778,6 +18778,16 @@ public class ChatActivity extends BaseFragment implements
                          viewClipTop += clipTop;
                          viewClipBottom -= clipBottom;
  
@@ -36,6 +38,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              viewClipLeft = Math.max(viewClipLeft, chatListView.getLeft() + child.getX());
                              viewClipTop = Math.max(viewClipTop, chatListView.getY() + child.getY());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 669ed807..8f4159cb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -865,18 +865,17 @@ public class FilterTabsView extends FrameLayout {
@@ -186,6 +189,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
                  setEnabled(true);
                  if (delegate != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
+index 6b91a8bc..967def12 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ScrimOptions.java
 @@ -355,9 +355,12 @@ public class ScrimOptions extends Dialog {

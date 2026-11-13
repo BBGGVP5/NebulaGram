@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 55e94a0a..e8201b31 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1827,7 +1827,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -1830,7 +1830,7 @@ public class ChatActivity extends BaseFragment implements
                          return;
                      }
                      if (messageObject.contentType == 0) {
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                              limitReached = true;
                          } else {
                              limitReached = false;
-@@ -3746,6 +3746,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -3753,6 +3753,10 @@ public class ChatActivity extends BaseFragment implements
                      nebulaSelectAllLoadedMessages();
                      return;
                  }
@@ -21,7 +22,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (id == 0x4e4753) {
                      jumpToDate(1);
                      return;
-@@ -4548,6 +4552,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -4555,6 +4559,10 @@ public class ChatActivity extends BaseFragment implements
                  headerItem.lazilyAddSubItem(0x4e4753, R.drawable.msg_go_up,
                          app.nebulagram.ui.NebulaText.text("В начало", "Go to beginning"));
              }
@@ -32,7 +33,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
                      app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
          }
-@@ -10972,7 +10980,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -10976,7 +10984,7 @@ public class ChatActivity extends BaseFragment implements
          actionMode.setOnLayoutListener(actionBar::invalidate);
          ActionBarMenuItem selectLoaded = actionMode.addItemWithWidth(0x4e5341,
                  R.drawable.nebula_selection_all, dp(48),
@@ -41,7 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          selectLoaded.setVisibility(!isReport() && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() > 1 ? View.VISIBLE : View.GONE);
          actionModeViews.add(selectLoaded);
  
-@@ -20196,7 +20204,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -20212,7 +20220,7 @@ public class ChatActivity extends BaseFragment implements
      private void nebulaSelectAllLoadedMessages() {
          if (!actionBar.isActionModeShowed() || isReport()) return;
          for (MessageObject message : new ArrayList<>(messages)) {
@@ -50,7 +51,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              if (message == null || message.isDateObject || message.getId() == 0
                      || message.isSending() || message.isEditing() || message.isAnyGift()
                      || message.isWallpaperAction() || message.isSponsored() || message.isEphemeral()
-@@ -20290,7 +20298,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -20306,7 +20314,7 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
              } else {

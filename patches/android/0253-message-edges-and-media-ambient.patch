@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index e8201b31..c1b60796 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -6130,6 +6130,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -6134,6 +6134,13 @@ public class ChatActivity extends BaseFragment implements
  
              @Override
              public boolean drawChild(Canvas canvas, View child, long drawingTime) {
@@ -16,6 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      invalidated = false;
                      invalidate();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index bfe3a0cb..3fcb8a9e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 @@ -19549,6 +19549,8 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat

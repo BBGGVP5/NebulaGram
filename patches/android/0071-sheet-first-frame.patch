@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
+index 82a3fa5a..adf50fd7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlert.java
 @@ -1155,6 +1155,7 @@ public class ChatAttachAlert extends BottomSheet implements NotificationCenter.N

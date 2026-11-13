@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index bbc32ea5..81c73c56 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11739,7 +11739,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11852,7 +11852,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              {
                  // NebulaGram: the supporter badge is appended to the name as a span;
                  // verification and emoji status keep their places on the right.
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  nameTextView.setOnClickListener(v -> app.nebulagram.ui.NebulaBadges.showInfo(this, user.id));
                  if (simpleActionBar != null) {
                      simpleActionBar.setTitle(newString);
-@@ -11777,6 +11777,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11890,6 +11890,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      nameTextView.setRightDrawable(null);
                      nameTextViewRightDrawableContentDescription = null;
                  }

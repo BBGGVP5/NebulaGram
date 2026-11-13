@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
+index f3d333e7..0ab81a6b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 @@ -943,6 +943,7 @@ public class ActionBarMenuItem extends FrameLayout {
@@ -10,6 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenu
          if (subMenuDelegate != null) {
              subMenuDelegate.onShowSubMenu();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
+index 68c44f16..3bc19ccc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 @@ -130,6 +130,7 @@ public class ActionBarPopupWindow extends PopupWindow {
@@ -77,9 +79,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopu
                  windowAnimatorSet.playTogether(
                          ObjectAnimator.ofFloat(viewGroup, View.SCALE_Y, 0.8f),
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 5677a146..54cc0fd2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1063,7 +1063,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -1065,7 +1065,7 @@ public class ChatActivity extends BaseFragment implements
      private boolean scrimProgressDirection;
      private View scrimView;
      private int nebulaBlurGeneration;
@@ -88,7 +91,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private float scrimViewAlpha = 1f;
      private float scrimViewProgress = 0f;
      private Integer scrimViewReaction;
-@@ -4126,6 +4126,13 @@ public class ChatActivity extends BaseFragment implements
+@@ -4133,6 +4133,13 @@ public class ChatActivity extends BaseFragment implements
          avatarContainer = new ChatAvatarContainer(context, this, currentEncryptedChat != null, themeDelegate) {
              @Override
              protected boolean onAvatarClick() {
@@ -102,7 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (currentUser != null && currentUser.linked_community_id != 0) {
                      showDialog(new CommunitySheet(ChatActivity.this, currentUser.linked_community_id));
                      return true;
-@@ -11384,7 +11391,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -11388,7 +11395,7 @@ public class ChatActivity extends BaseFragment implements
                      scrimBlurBitmapShader = null;
                      if (scrimBlurBitmapPaint != null) scrimBlurBitmapPaint.setShader(null);
                      nebulaScrimScale = 1f;
@@ -111,7 +114,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      scrimViewTask = null;
                      scrimViewReaction = null;
                      contentView.invalidate();
-@@ -18612,6 +18619,11 @@ public class ChatActivity extends BaseFragment implements
+@@ -18628,6 +18635,11 @@ public class ChatActivity extends BaseFragment implements
              int nebulaScrimSave = canvas.save();
              if (scrimView instanceof ChatMessageCell && nebulaScrimSourceTop != 0) {
                  float fraction = Utilities.clamp(scrimViewProgress, 1f, 0f);
@@ -123,7 +126,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  canvas.translate(0, (nebulaScrimTop - nebulaScrimSourceTop) * fraction);
                  float scale = 1f + (nebulaScrimScale - 1f) * fraction;
                  canvas.scale(scale, scale, getWidth() / 2f, nebulaScrimSourceTop);
-@@ -33456,12 +33468,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -33505,12 +33517,12 @@ public class ChatActivity extends BaseFragment implements
                  popupY = inBubbleMode ? 0 : AndroidUtilities.statusBarHeight;
              }
              nebulaScrimScale = 1f;
@@ -138,7 +141,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  scrimPopupContainerLayout.setMaxHeight(menuLimit);
                  scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
                          View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
-@@ -33482,6 +33494,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33531,6 +33543,7 @@ public class ChatActivity extends BaseFragment implements
                          nebulaScrimSourceTop, sourceBottom - nebulaScrimSourceTop, minY, totalHeight - dp(16), height, dp(8));
                  nebulaScrimTop = placement.top;
                  nebulaScrimScale = placement.scale;
@@ -146,7 +149,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  popupY = (int) placement.menuTop;
                  maxY = totalHeight - height - dp(8);
              }
-@@ -33504,7 +33517,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33553,7 +33566,7 @@ public class ChatActivity extends BaseFragment implements
                          popupY = (int) sourceTop - height - dp(8);
                      } else {
                          // Wide media cannot fit beside the menu. Keep both visible instead of covering the bubble.
@@ -155,7 +158,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          scrimPopupContainerLayout.setMaxHeight(menuLimit);
                          scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(dp(1000), View.MeasureSpec.AT_MOST),
                                  View.MeasureSpec.makeMeasureSpec(menuLimit, View.MeasureSpec.AT_MOST));
-@@ -33524,6 +33537,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33573,6 +33586,7 @@ public class ChatActivity extends BaseFragment implements
                                  nebulaScrimSourceTop, sourceBottom - nebulaScrimSourceTop, minY, totalHeight - dp(16), height, dp(8));
                          nebulaScrimTop = placement.top;
                          nebulaScrimScale = placement.scale;
@@ -163,7 +166,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          popupY = (int) placement.menuTop;
                          maxY = totalHeight - height - dp(8);
                      }
-@@ -48256,7 +48270,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -48336,7 +48350,7 @@ public class ChatActivity extends BaseFragment implements
          // scrimPopupWindowItems (ActionBarMenuSubItem) recolor themselves as Theme.Colorable
          if (scrimPopupWindow != null && scrimPopupWindow.getContentView() != null) {
              final View contentView = scrimPopupWindow.getContentView();
@@ -173,6 +176,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  contentView.setBackgroundColor(color);
                  contentView.invalidate();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 9ee8374d..62fd384d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -1820,6 +1820,10 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -187,6 +191,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
+index f1dfcbf0..bd83a8ed 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.java
 @@ -1611,10 +1611,14 @@ public class ItemOptions {
@@ -205,6 +210,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ItemOptions.
          actionBarPopupWindow.setScaleOut(scaleOut);
          actionBarPopupWindow.showAtLocation(
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+index 80bb9b06..774f16bc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
 @@ -458,7 +458,7 @@ public class PopupSwipeBackLayout extends FrameLayout {
@@ -217,6 +223,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBa
              mRect.set(getWidth() - w, y, getWidth(), y + h);
          } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index 33887234..8150f757 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 @@ -266,6 +266,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
@@ -230,6 +237,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
          updateColors();
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+index 238b3940..c70b1529 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 @@ -448,7 +448,7 @@ public class MainTabsLayout extends AnimatedLinearLayout {
@@ -242,6 +250,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/T
              }
              lastLongSelectedView = found;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MessageSeenView.java b/TMessagesProj/src/main/java/org/telegram/ui/MessageSeenView.java
+index 57e30de4..ca1feb79 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MessageSeenView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MessageSeenView.java
 @@ -90,6 +90,7 @@ public class MessageSeenView extends FrameLayout implements Theme.Colorable {

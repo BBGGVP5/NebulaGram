@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index b8c83792..3d263059 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -214,6 +214,60 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -62,7 +63,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      public void setupGlass(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
          setupGlass(factory, colorProvider, false);
      }
-@@ -2431,6 +2485,30 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2433,6 +2487,30 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          super.draw(canvas);
      }
  
@@ -93,7 +94,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      @Override
      protected void dispatchDraw(Canvas canvas) {
          if (drawSectionsBackground) {
-@@ -2492,7 +2570,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2494,7 +2572,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  final int rightDefault = getWidth() - rightOffset;
                  final int widthDefault = rightDefault - leftDefault;
                  final int left, right;
@@ -115,9 +116,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      left = (rightDefault + leftDefault - width) / 2;
                      right = left + width;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index a54b1341..28bb95ab 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4549,6 +4549,12 @@ public class ChatActivity extends BaseFragment implements
+@@ -4556,6 +4556,12 @@ public class ChatActivity extends BaseFragment implements
              BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
              ChatObject.isForum(currentChat));
          setupHeaderMenuOverlay(parentView);
@@ -130,7 +132,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          if (chatMode == MODE_PINNED) {
              actionBar.setChatAvatarContainer(avatarContainer);
-@@ -8110,6 +8116,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -8114,6 +8120,7 @@ public class ChatActivity extends BaseFragment implements
          checkSendButtonBlockedByTyping(false);
  
          chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
@@ -138,7 +140,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          int chatListIndex = contentView.indexOfChild(chatListView);
          chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
-@@ -30643,6 +30650,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -30659,6 +30666,10 @@ public class ChatActivity extends BaseFragment implements
      @Override
      public void onResume() {
          super.onResume();
@@ -150,6 +152,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          activityResumeTime = System.currentTimeMillis();
          if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 266e5709..cef00c45 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 @@ -669,6 +669,7 @@ public class ChatActivityEnterView extends FrameLayout implements
@@ -160,7 +163,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private CloseProgressDrawable2 progressDrawable;
      private Paint dotPaint;
      private int searchingType;
-@@ -14741,6 +14742,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14746,6 +14747,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -168,7 +171,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14780,6 +14782,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14785,6 +14787,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
@@ -180,7 +183,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
-@@ -14820,6 +14827,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14825,6 +14832,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -189,6 +192,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index c4bb8eca..255a2182 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 @@ -668,7 +668,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
@@ -276,6 +280,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          int l = leftPadding + (avatarImageView.getVisibility() == VISIBLE ? dp(glassMode ? 49.66f : 55) : dp(glassMode ? 13 : 1)) + rightAvatarPadding;
          SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+index 05b593a8..7a9cf752 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 @@ -74,6 +74,7 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 6519d5a4..6962b1b3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -7684,9 +7684,13 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7689,9 +7689,13 @@ public class ChatActivityEnterView extends FrameLayout implements
          final String voiceSendText = nebulaVoiceSendText;
          final boolean allowConfirmFinal = allowConfirm && !animatorEphemeralMessageVisibility.getValue();
  
@@ -16,7 +17,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  if (delegate != null) {
                      delegate.scrollToSendingMessage();
                  }
-@@ -7708,7 +7712,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7713,7 +7717,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
              if (allowConfirmFinal && showConfirmAlert(() -> {
                  if (nebulaVoiceSendCurrent(voiceSendAttempt, voiceSendSource)) {
@@ -25,7 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  }
              })) {
                  return;
-@@ -7716,7 +7720,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7721,7 +7725,7 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (!nebulaApplyVoiceText(voiceSendAttempt, voiceSendSource, voiceSendText)) return;
              dismissSendPreviewSent = true;
              if (videoToSendMessageObject != null) {
@@ -34,7 +35,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  sendButton.setEffect(effectId = 0);
                  hideRecordedAudioPanel(true);
                  checkSendButton(true);
-@@ -7758,7 +7762,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7763,7 +7767,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                          }
                      }
                  }
@@ -43,7 +44,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  params.sendMessageChatArguments = parentFragment != null ? parentFragment.getMessageChatSendParams() : null;
                  params.effect_id = effectId;
                  params.payStars = payStars;
-@@ -7773,7 +7777,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7778,7 +7782,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  applyStoryToSendMessageParams(params);
                  SendMessagesHelper.getInstance(currentAccount).sendMessage(params);
                  if (delegate != null) {
@@ -52,7 +53,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  }
                  hideRecordedAudioPanel(true);
                  checkSendButton(true);
-@@ -7785,7 +7789,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7790,7 +7794,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  millisecondsRecorded = 0;
                  return;
              } else if (richDraftActive && richDraftMessage != null) {
@@ -61,7 +62,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  return;
              }
              CharSequence message = messageEditText == null ? "" : messageEditText.getTextToUse();
-@@ -7804,13 +7808,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7809,13 +7813,14 @@ public class ChatActivityEnterView extends FrameLayout implements
              if (checkPremiumAnimatedEmoji(currentAccount, dialog_id, parentFragment, null, message)) {
                  return;
              }
@@ -79,7 +80,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                      }
                  } else {
                      messageTransitionIsRunning = false;
-@@ -7821,14 +7826,14 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -7826,14 +7831,14 @@ public class ChatActivityEnterView extends FrameLayout implements
                              messageEditText.setText("");
                          }
                          if (delegate != null) {
@@ -96,7 +97,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
                  }
              }
              updateSendButtonPaid();
-@@ -8361,8 +8366,22 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -8366,8 +8371,22 @@ public class ChatActivityEnterView extends FrameLayout implements
          return encryptedChat == null || AndroidUtilities.getPeerLayerVersion(encryptedChat.layer) >= 101;
      }
  

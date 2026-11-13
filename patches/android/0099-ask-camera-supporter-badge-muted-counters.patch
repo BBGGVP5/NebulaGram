@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index e2fb0155..4dc2816c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 @@ -2855,6 +2855,26 @@ public class MessagesStorage extends BaseController {
@@ -42,9 +43,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
                  if ((flags & MessagesController.DIALOG_FILTER_FLAG_CONTACTS) != 0) {
                      if ((flags & MessagesController.DIALOG_FILTER_FLAG_ONLY_ARCHIVED) == 0) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 6672794f..54cc689c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -11703,7 +11703,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11816,7 +11816,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  avatarImage.setAnimateFromImageReceiver(fromAvatarImage.getImageReceiver());
              }
              {

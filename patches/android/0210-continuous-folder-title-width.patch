@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 9aad7184..ea69a108 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -211,6 +211,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -66,7 +67,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              canvas.restore();
          }
          return result;
-@@ -2436,11 +2464,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2438,11 +2466,12 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              setTitle(title);
              return;
          }
@@ -81,7 +82,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          boolean crossfade = overlayTitleAnimation && !TextUtils.isEmpty(subtitle);
          if (crossfade) {
-@@ -2467,12 +2496,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2469,12 +2498,18 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              titleTextView[0].setTranslationY(fromBottom ? dp(nebulaHomeLayout ? 8 : 20) : -dp(nebulaHomeLayout ? 8 : 20));
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
@@ -102,6 +103,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (!crossfade) {
              a.translationY(fromBottom ? -dp(nebulaHomeLayout ? 8 : 20) : dp(nebulaHomeLayout ? 8 : 20));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index ba46c1fc..6fc47079 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -1427,7 +1427,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

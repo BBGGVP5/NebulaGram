@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index a6f291d5..acec35a3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -200,6 +200,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -44,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                          }
                          if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
                              subtitleTextView.setTextSize(!AndroidUtilities.isTablet() && getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE ? 14 : 16);
-@@ -2706,7 +2712,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2708,7 +2714,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  final int leftDefault = lerp(hasBackButton ? nebulaBackWidth - p : 0, nebulaBackWidth - p, chatAvatarContainer == null? 0f : 1f - animatorAvatarContainerHasAvatar.getFloatValue());
                  final int rightDefault = getWidth() - rightOffset;
                  final int widthDefault = rightDefault - leftDefault;
@@ -53,7 +54,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                  final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
                          ? nebulaChatAvatarContainer : null;
                  if (centeredNebulaAvatar != null) {
-@@ -2743,6 +2749,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2745,6 +2751,17 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                      left = leftDefault;
                      right = rightDefault;
                  }
@@ -71,7 +72,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
                  glassDrawable.setBounds(left, t, right, b);
                  if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
-@@ -2770,10 +2787,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2772,10 +2789,25 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          // Fade the selection capsule in as the separate avatar backdrop fades out.
          if (glassDrawableMenu != null && menuWidth > 0 && !glassOnlyBack && !doNotDrawGlassMenu && !isMenuPillInOverlay()
                  && (!separateAvatar || actionModeFactor > 0f)) {
@@ -101,9 +102,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
  
          if (blurredBackground && actionBarColor != Color.TRANSPARENT) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 254e4d74..3e108ba9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3120,6 +3120,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3122,6 +3122,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          ThemeBind.actionBarItemsBackgroundColor(actionBar, Theme.key_actionBarActionModeDefaultSelector, getResourceProvider(), true);
          ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarDefaultIcon, getResourceProvider(), false);
          ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), true);

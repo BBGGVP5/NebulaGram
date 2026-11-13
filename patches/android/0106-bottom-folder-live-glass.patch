@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 795ba70f..37a4d761 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -1190,6 +1190,11 @@ public class FilterTabsView extends FrameLayout {
@@ -14,9 +15,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
          } else if (nebulaPanelStyle == app.nebulagram.ui.NebulaFolderTabs.ORDINARY) {
              setBackground(new android.graphics.drawable.InsetDrawable(
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 277a2924..fbde82d6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -13968,7 +13968,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13970,7 +13970,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final int actionBarHeight = actionBar.getMeasuredHeight()
              + dp(nebulaSearchSlotHeight())
              + dp(hasStories ? DialogStoriesCell.HEIGHT_IN_DP : 0)
@@ -25,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              + (topPanelLayout != null && topPanelLayout.getVisibility() == View.VISIBLE ? topPanelLayout.getSumHeightOfAllVisibleChild() : 0)
              + ((int) scrollYOffset);
  
-@@ -13995,6 +13995,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13997,6 +13997,23 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
              scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
          }

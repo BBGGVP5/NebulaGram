@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 3cbc750a..a350a8c7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -17323,18 +17323,43 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -17357,18 +17357,43 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
          drawInternal(canvas);
      }
      private Paint nebulaDeletedPaint;
@@ -55,6 +56,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          try { drawNebulaMessageInternal(canvas); }
          finally { if (layer != -1) canvas.restoreToCount(layer); }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 1cc89d73..3a211c74 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -736,9 +736,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica

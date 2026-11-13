@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+index 48d4c00d..e323378c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
 @@ -292,7 +292,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
@@ -20,6 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorC
              setSelected(LauncherIconController.isEnabled(icon), false);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
+index 19d0473f..36e01bb9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
 @@ -39,6 +39,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {

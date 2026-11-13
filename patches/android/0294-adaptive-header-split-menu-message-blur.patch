@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
+index a5c1589e..3f580f29 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawable.java
 @@ -588,7 +588,9 @@ public class MessageDrawable extends Drawable {
@@ -25,6 +26,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/MessageDrawab
              int color = getColor(Theme.key_chat_outBubbleGradientSelectedOverlay);
              selectedPaint.setColor(ColorUtils.setAlphaComponent(color, (int) (Color.alpha(color) * alpha / 255f)));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+index a2ba04a6..d61d392a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 @@ -8728,6 +8728,11 @@ public class Theme {
@@ -40,6 +42,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
          applyServiceShaderMatrix(serviceBitmap, serviceBitmapShader, serviceBitmapMatrix, w, h, translationX, translationY);
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
+index b7b9891c..1aa243a5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity.java
 @@ -938,6 +938,10 @@ public class ChannelAdminLogActivity extends BaseFragment implements Notificatio
@@ -54,9 +57,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChannelAdminLogActivity
          ActionBarMenu menu = actionBar.createMenu();
          searchItem = menu.addItem(0, R.drawable.outline_header_search).setIsSearchField(true).setActionBarMenuItemSearchListener(new ActionBarMenuItem.ActionBarMenuItemSearchListener() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 62672c29..1dfd6894 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4157,7 +4157,6 @@ public class ChatActivity extends BaseFragment implements
+@@ -4164,7 +4164,6 @@ public class ChatActivity extends BaseFragment implements
              @Override
              protected boolean onAvatarClick() {
                  if (app.nebulagram.ui.NebulaAppearance.chatHeader()
@@ -64,7 +68,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                          && chatMode == 0 && !isInPreviewMode() && !inBubbleMode && !searching
                          && headerItem != null && headerItem.hasSubMenu()) {
                      headerItem.toggleSubMenu(null, avatarContainer.getAvatarImageView());
-@@ -4648,7 +4647,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -4655,7 +4654,9 @@ public class ChatActivity extends BaseFragment implements
              actionBar.setForcedMenuWidth(dp(46));
              actionBar.doNotDrawGlassMenu = true;
              avatarContainer.setActionBar(actionBar);
@@ -75,7 +79,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              actionBar.setChatAvatarContainer(avatarContainer);
              actionBar.setForcedMenuMinWidth(dp(46));
              avatarContainer.setActionBar(actionBar);
-@@ -8726,7 +8727,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -8730,7 +8731,7 @@ public class ChatActivity extends BaseFragment implements
              if (getParentActivity() == null || pullingDownOffset != 0) {
                  return;
              }
@@ -84,7 +88,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  Bundle discussionArgs = new Bundle();
                  discussionArgs.putLong("chat_id", chatInfo.linked_chat_id);
                  presentFragment(new ChatActivity(discussionArgs));
-@@ -29359,6 +29360,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -29375,6 +29376,9 @@ public class ChatActivity extends BaseFragment implements
          bottomOverlayChatText.setTextColorKey(accentTextButton ? Theme.key_featuredStickers_buttonText : Theme.key_glass_defaultText);
  
          boolean separateDiscussion = hasNebulaDiscussion() && bottomChannelButtonsLayout.getVisibility() == View.VISIBLE;
@@ -94,7 +98,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          bottomChannelButtonsLayout.setDiscussionMode(separateDiscussion,
                  getMessagesController().isDialogMuted(dialog_id, getTopicId()), animated);
          if (separateDiscussion) {
-@@ -29374,6 +29378,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -29390,6 +29394,8 @@ public class ChatActivity extends BaseFragment implements
          checkRaiseSensors();
      }
  
@@ -103,7 +107,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
      private boolean hasNebulaDiscussion() {
          return app.nebulagram.ui.NebulaAppearance.iosComposer() && chatMode == 0
                  && !isThreadChat() && !isComments && ChatObject.isChannelAndNotMegaGroup(currentChat)
-@@ -33247,6 +33253,8 @@ public class ChatActivity extends BaseFragment implements
+@@ -33296,6 +33302,8 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
                  app.nebulagram.ui.NebulaMessageMenuSettings.filter(items, icons, options);
@@ -112,7 +116,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  scrimPopupWindowItems = new ActionBarMenuSubItem[items.size()];
                  scrimPopupRedItem = null;
                  for (int a = 0, N = items.size(); a < N; a++) {
-@@ -33254,6 +33262,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -33303,6 +33311,9 @@ public class ChatActivity extends BaseFragment implements
                      if (option == OPTION_DELETE && showWelcomeMessageRevertOption(selectedObject)) {
                          continue;
                      }
@@ -122,7 +126,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
                      ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
                      cell.setMinimumWidth(AndroidUtilities.dp(200));
-@@ -33479,6 +33490,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -33528,6 +33539,17 @@ public class ChatActivity extends BaseFragment implements
                          }
                      }
                  }
@@ -140,7 +144,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  if (selectedObject != null && selectedObject.messageOwner != null && selectedObject.messageOwner.video_processing_pending) {
                      popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
                      FrameLayout layout = new FrameLayout(getParentActivity());
-@@ -33814,12 +33836,17 @@ public class ChatActivity extends BaseFragment implements
+@@ -33863,12 +33885,17 @@ public class ChatActivity extends BaseFragment implements
              scrimPopupWindow.setDismissAnimationDuration(220);
              scrimPopupWindow.setOutsideTouchable(true);
              scrimPopupWindow.setClippingEnabled(true);
@@ -159,10 +163,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              scrimPopupWindow.setFocusable(true);
              scrimPopupContainerLayout.measure(View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST), View.MeasureSpec.makeMeasureSpec(AndroidUtilities.dp(1000), View.MeasureSpec.AT_MOST));
              scrimPopupWindow.setInputMethodMode(ActionBarPopupWindow.INPUT_METHOD_NOT_NEEDED);
-@@ -33954,6 +33981,13 @@ public class ChatActivity extends BaseFragment implements
-                     return;
+@@ -34004,6 +34031,13 @@ public class ChatActivity extends BaseFragment implements
                  }
                  scrimPopupWindow.showAtLocation(chatListView, Gravity.LEFT | Gravity.TOP, finalPopupX, finalPopupY);
+                 keepScrimPopupAboveKeyboard(scrimPopupWindow);
 +                if (nebulaMenuPop) {
 +                    final float messageCenterX = chatListView.getX() + v.getX() + v.getWidth() / 2f;
 +                    final float messageCenterY = chatListView.getY() + v.getY() + v.getHeight() / 2f;

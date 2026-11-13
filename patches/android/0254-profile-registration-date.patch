@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 281f967d..de48e4e2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -2559,6 +2559,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -2560,6 +2560,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          actionBar.setActionBarMenuOnItemClick(new ActionBar.ActionBarMenuOnItemClick() {
              @Override
              public void onItemClick(final int id) {
@@ -12,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  if (getParentActivity() == null) {
                      return;
                  }
-@@ -12349,6 +12353,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12462,6 +12466,9 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              if (user == null) {
                  return;
              }

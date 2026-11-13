@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+index 67296e60..184b0c66 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 @@ -717,7 +717,8 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No

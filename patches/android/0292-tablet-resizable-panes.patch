@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index 087e514a..c723feb2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 @@ -3144,7 +3144,9 @@ public class AndroidUtilities {
@@ -13,9 +14,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities
  
      public static int getPhotoSize() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index d9f93517..4e0a8cff 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1002,6 +1002,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1016,6 +1016,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                          layersActionBarLayout.parentDraw(this, canvas);
                      }
                      super.dispatchDraw(canvas);

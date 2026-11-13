@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 49914aff..795ba70f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 @@ -1166,9 +1166,41 @@ public class FilterTabsView extends FrameLayout {
@@ -93,9 +94,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
  
      @Override
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index ac7995f4..277a2924 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -934,6 +934,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -935,6 +935,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
          @Override
          public void drawBlurRect(Canvas canvas, float y, Rect rectTmp, Paint blurScrimPaint, boolean top) {
@@ -109,7 +111,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q || !SharedConfig.chatBlurEnabled() || iBlur3SourceGlassFrosted == null || !BlurredBackgroundProviderImpl.checkBlurEnabled(currentAccount, resourceProvider)) {
                  canvas.drawRect(rectTmp, blurScrimPaint);
                  return;
-@@ -2916,6 +2923,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2918,6 +2925,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
       * под вкладками, а кнопка записи — на них.
       */
      private void nebulaApplyBottomReserve() {
@@ -117,7 +119,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          updateNebulaBottomInsets();
      }
  
-@@ -5086,6 +5094,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -5088,6 +5096,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              filterTabsViewBackground.setPadding(dp(6.666f));
              filterTabsView.setPadding(0, dp(7), 0, dp(7));
              filterTabsView.setBlurredBackground(filterTabsViewBackground);
@@ -125,7 +127,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              contentView.addView(filterTabsView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 36 + 7 + 7,
                      app.nebulagram.ui.NebulaFolderTabs.gravity(), 4, 0, 4, 0));
              // Список чатов — корневой экран: из настроек сюда не возвращаются
-@@ -14083,7 +14092,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14085,7 +14094,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          }
      }
  

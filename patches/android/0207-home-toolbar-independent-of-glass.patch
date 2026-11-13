@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index e9d4eb60..14b77d0d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 @@ -192,7 +192,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
@@ -133,7 +134,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (nebulaCommunityGlass) textLeft = Math.max(textLeft, nebulaCommunityTitleInset);
  
          if (menu != null && menu.getVisibility() != GONE) {
-@@ -2460,7 +2464,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2462,7 +2466,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          this.fromBottom = fromBottom;
          titleTextView[0].setAlpha(0);
          if (!crossfade) {
@@ -142,7 +143,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          }
          ViewPropertyAnimator a1 = titleTextView[0].animate().alpha(1f).translationY(0).setDuration(duration);
          if (interpolator != null) {
-@@ -2471,7 +2475,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -2473,7 +2477,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          titleAnimationRunning = true;
          ViewPropertyAnimator a = titleTextView[1].animate().alpha(0);
          if (!crossfade) {
@@ -152,9 +153,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          if (interpolator != null) {
              a.setInterpolator(interpolator);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 1b6363c0..56797411 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -1663,7 +1663,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -1664,7 +1664,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      }
  
      private void updateStoriesViewAlpha(float alpha) {
@@ -163,7 +165,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  || dialogStoriesCell.getVisibility() != View.VISIBLE || progressToDialogStoriesCell == 0f)) {
              actionBar.setNebulaHomeStories(0, 0f);
          }
-@@ -3146,11 +3146,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3148,11 +3148,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          ThemeBind.actionBarItemsColor(actionBar, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), true);
          nebulaHomeEditButton = null;
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
@@ -181,6 +183,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              nebulaHomeEditButton.setText(app.nebulagram.ui.NebulaText.text("Изм.", "Edit"));
              nebulaHomeEditButton.setContentDescription(app.nebulagram.ui.NebulaText.text("Выбрать чаты", "Select chats"));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 652b2311..ba46c1fc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
 @@ -372,11 +372,11 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter

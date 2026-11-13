@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index d229b6c3..d50b4ec9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 @@ -6429,7 +6429,7 @@ public class MessagesController extends BaseController implements NotificationCe
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          SharedPreferences.Editor editor = notificationsPreferences.edit();
          editor.clear().commit();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
+index 87cc9787..a2ba04a6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java
 @@ -2251,9 +2251,27 @@ public class Theme {
@@ -103,6 +105,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/Theme.java b/
                  ArrayList<Object> oldServerThemes = new ArrayList<>();
                  for (int a = 0, N = themes.size(); a < N; a++) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
+index 5ac01f4d..2b60ce65 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentContextView.java
 @@ -1442,7 +1442,7 @@ public class FragmentContextView extends FrameLayout implements NotificationCent
@@ -149,9 +152,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FragmentCont
              }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 695cd82a..ee7aa85f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -652,7 +652,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -653,7 +653,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      private String addToGroupAlertString;
      public boolean resetDelegate = true;
  
@@ -166,7 +170,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private boolean searching;
      private boolean searchWas;
      private boolean onlySelect;
-@@ -2954,7 +2960,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2956,7 +2962,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      public static void loadDialogs(AccountInstance accountInstance) {
          int currentAccount = accountInstance.getCurrentAccount();
@@ -175,7 +179,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              MessagesController messagesController = accountInstance.getMessagesController();
              messagesController.loadGlobalNotificationsSettings();
              messagesController.loadDialogs(0, 0, 100, true);
-@@ -2966,7 +2972,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -2968,7 +2974,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              for (String emoji : messagesController.diceEmojies) {
                  accountInstance.getMediaDataController().loadStickersByEmojiOrName(emoji, true, true);
              }
@@ -184,7 +188,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
      }
  
-@@ -10758,7 +10764,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10760,7 +10766,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              }
              updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
          } else if (id == NotificationCenter.appDidLogout) {
@@ -193,7 +197,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          } else if (id == NotificationCenter.encryptedChatUpdated) {
              updateVisibleRows(0);
          } else if (id == NotificationCenter.contactsDidLoad) {
-@@ -10971,7 +10977,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -10973,7 +10979,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              updateStatus(UserConfig.getInstance(account).getCurrentUser(), true);
              updateStoriesPosting();
          } else if (id == NotificationCenter.onDatabaseReset) {
@@ -203,6 +207,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
              getMessagesController().loadPinnedDialogs(folderId, 0, null);
          } else if (id == NotificationCenter.chatlistFolderUpdate) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
+index 6328e319..eea03a00 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/SelectAnimatedEmojiDialog.java
 @@ -3674,13 +3674,13 @@ public class SelectAnimatedEmojiDialog extends FrameLayout implements Notificati

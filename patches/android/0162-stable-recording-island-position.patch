@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 922e1a19..7520163d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -19152,21 +19152,23 @@ public class ChatActivity extends BaseFragment implements
+@@ -19168,21 +19168,23 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
  
@@ -38,7 +39,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
              if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
                  if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
-@@ -34072,6 +34074,21 @@ public class ChatActivity extends BaseFragment implements
+@@ -34122,6 +34124,21 @@ public class ChatActivity extends BaseFragment implements
                  }
              });
              scrimViewAlphaAnimator.setDuration(150);
@@ -61,9 +62,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 41318373..180ef50e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14810,6 +14810,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14815,6 +14815,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                  && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
          nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
          boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();
