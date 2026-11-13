@@ -1,0 +1,52 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 903135f9..48894b45 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+@@ -297,6 +297,7 @@ public class ApplicationLoader extends Application {
+     @Override
+     public void onCreate() {
+         applicationLoaderInstance = this;
++        app.nebulagram.ui.NebulaTimings.processStart();
+         try {
+             applicationContext = getApplicationContext();
+         } catch (Throwable ignore) {
+@@ -310,11 +311,15 @@ public class ApplicationLoader extends Application {
+             return;
+         }
+ 
++        app.nebulagram.ui.NebulaTimings.step("telegram application setup");
+         app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
++        app.nebulagram.ui.NebulaTimings.step("NebulaLink.init");
+         app.nebulagram.ui.NebulaGlassRuntime.init(this);
++        app.nebulagram.ui.NebulaTimings.step("NebulaGlassRuntime.init");
+         // Кривая движения настроек не читает — значение приносят ей сюда,
+         // один раз за запуск, чтобы выбор пережил перезапуск приложения.
+         app.nebulagram.ui.NebulaMotion.apply();
++        app.nebulagram.ui.NebulaTimings.step("NebulaMotion.apply");
+ 
+         // AndroidUtilities must be initialized before FileLog
+         final String helloWorld = AndroidUtilities.getHelloWorld();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 07f7bb6e..469cd56a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -2675,6 +2675,7 @@ public class ChatActivity extends BaseFragment implements
+ 
+     @Override
+     public boolean onFragmentCreate() {
++        app.nebulagram.ui.NebulaTimings.chatOpened(currentAccount, classGuid);
+         final long chatId = arguments.getLong("chat_id", 0);
+         final long userId = arguments.getLong("user_id", 0);
+         final int encId = arguments.getInt("enc_id", 0);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+index 691a36cd..3455b31b 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
+@@ -7185,6 +7185,7 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+         WidgetMedia.onAppPaused(false);
+         app.nebulagram.ui.NebulaSettingsSync.get().start(currentAccount);
+         app.nebulagram.ui.NebulaStorySchedule.onWake();
++        app.nebulagram.ui.NebulaTimings.onResume();
+         isResumed = true;
+         PipCoordinator.getInstance().onActivityResume(this);
+         if (onResumeStaticCallback != null) {
