@@ -33,6 +33,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     /** Ниже прежних 52: панель стоит над полем ввода и отъедает у переписки. */
     public static final int HEIGHT_DP = 44;
     public static final int GAP_DP = 3;
+    /** Плавающая «A»: диаметр и то, насколько она заходит в прозрачный верх поля ввода. */
+    static final int OPENER_DP = 36, OPENER_DIP_DP = 4;
     private final EditTextCaption editor;
     private final Runnable layoutChanged;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {
@@ -251,7 +253,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
      * анимация вылета сообщения от него не зависят.
      */
     public int openerRow() {
-        return openerVisible() ? Math.max(0, AndroidUtilities.dp(HEIGHT_DP + GAP_DP) - reservedHeight) : 0;
+        // Ровно та часть «A», что выступает над полем: раньше резервировался ряд
+        // высотой с панель (47 dp), и сообщения висели заметно выше кнопки.
+        return openerVisible() ? Math.max(0, AndroidUtilities.dp(OPENER_DP - OPENER_DIP_DP) - reservedHeight) : 0;
     }
 
     /** Нажатие на плавающую «A»: открыть или свернуть панель. */
@@ -473,7 +477,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             super(toolbar.getContext());
             this.toolbar = toolbar;
             this.host = host;
-            int size = AndroidUtilities.dp(40);
+            int size = AndroidUtilities.dp(OPENER_DP);
             circle.setShape(GradientDrawable.OVAL);
             setBackground(circle);
             setElevation(AndroidUtilities.dp(3));
@@ -561,7 +565,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             // верх поля ввода выше на этот ряд. Свёрнутое положение считаем от
             // самого поля: иначе при закрытии «A» уезжала вверх на последнее
             // сообщение, а в конце рывком падала на место.
-            float y = composerLocation[1] - hostLocation[1] + toolbar.reservedHeight - size - AndroidUtilities.dp(6);
+            // Нижний край «A» заходит в прозрачный верх поля ввода, а не висит над ним.
+            float y = composerLocation[1] - hostLocation[1] + toolbar.reservedHeight - size + AndroidUtilities.dp(OPENER_DIP_DP);
             // По центру кнопки голосового/отправки, а не на глаз от края поля.
             View target = toolbar.anchor != null ? toolbar.anchor.get() : null;
             if (target != null && target.isShown() && target.getWidth() > 0) {
@@ -570,7 +575,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 // кнопка голосового/отправки — его правые 48 точек.
                 float button = Math.min(target.getWidth(), AndroidUtilities.dp(48));
                 x = anchorLocation[0] - hostLocation[0] + target.getWidth() - (button + size) / 2f;
-                y = Math.min(y, anchorLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(8));
+                y = Math.min(y, anchorLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(2));
             }
             // Открытая панель: «A» стоит в её правом конце, панель разворачивается
             // из кнопки влево. Между положениями кнопка едет вместе с разворотом.
