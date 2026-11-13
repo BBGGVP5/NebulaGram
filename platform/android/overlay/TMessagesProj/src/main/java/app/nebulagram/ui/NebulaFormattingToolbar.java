@@ -459,7 +459,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         private final ImageView icon;
         private final GradientDrawable circle = new GradientDrawable();
         private boolean shown;
-        private Boolean shownOpen;
+        /** Какой значок уже стоит; до первого update() — никакой. */
+        private boolean iconSet, shownOpen;
 
         static FloatingOpener attach(NebulaFormattingToolbar toolbar) {
             android.view.ViewParent parent = toolbar.getParent();
@@ -513,7 +514,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             circle.setColor(open ? theme.primary() : theme.surfaceContainer());
             circle.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.onSurface(), open ? 0f : .12f));
             icon.setColorFilter(open ? theme.onPrimary() : theme.onSurface());
-            if (shownOpen != open) {
+            if (!iconSet || shownOpen != open) {
+                iconSet = true;
                 // Значок меняется коротким «поджатием», без поворота: повёрнутая
                 // на 90° «A» выглядела как стрелка «Отправить».
                 shownOpen = open;

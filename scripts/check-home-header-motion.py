@@ -124,6 +124,7 @@ class HomeMotionCheck {
      float x=startLeft+(target-startLeft)*q+avatarCx;
      float ry=NebulaHomeTitleGeometry.clearCenterY(y,barCenter,radius,x-radius,x+radius,titleLeft,density);
      check(ry>=y-.001f,"Hold lifts a ring above its path");
+     if(frame==120)check(Math.abs(ry-y)<.001f,"Collapsed stack is held under the bar; rings stop sharing one row");
      // Edit occupies x=8..76 dp, height=44 dp. The title slot starts at 84 dp.
      if(ry-radius<barCenter+22*density)check(x-radius>=76*density-.001f,"Ring overlaps Edit");
      if(ry-radius<barCenter+14*density)check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");
