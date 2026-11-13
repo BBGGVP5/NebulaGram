@@ -1392,3 +1392,23 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 `NebulaStoryScheduleReceiver` (свой будильник, `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`);
 `LaunchActivity.onResume` — `NebulaStorySchedule.onWake()` переставляет будильник и публикует пропущенное.
 Проверка: `check-story-schedule.py`.
+
+### 0330 — локальные заметки в профиле
+
+`0330-profile-local-notes.patch`, `ProfileActivity.java`: строка `nebulaNoteRow` после родной
+`noteRow` у пользователей и после `nebulaIdRow` у групп и каналов (`NebulaNotes.row`). Заметка
+хранится на устройстве для каждого аккаунта отдельно и по желанию синхронизируется страницами
+`#NebulaGramNotesV1` в «Избранном» (`NebulaNoteDocument`, своя метка, не пересекается с
+`#NebulaGramSettingsV1`). Контакты используют родную заметку Telegram: пустая строка открывает
+`ContactAddActivity` с `focus_notes`, а при уже заданной родной заметке своя строка не показывается.
+Тип ячейки, привязка, клик, долгое нажатие и `fillPositions` повторяют родную `noteRow`.
+
+### 0331 — «Кратко о пропущенном»
+
+`0331-chat-missed-summary.patch`, `ChatActivity.java`: после `floatingDateView` создаётся
+`NebulaMissed.attach` — плашка над сообщениями при 30+ непрочитанных (состояние диалога
+снимается при открытии). `updateChatListViewTopPadding` ставит её на высоту плавающей даты и
+прячет, пока дата видна; `onFragmentDestroy` отменяет запросы. Функция выключена по умолчанию
+(`missed_summary` в настройках ИИ), отправляет только текст и подписи — не медиа — не больше
+200 сообщений и 12 000 символов (`NebulaMissedPrompt`) через `NebulaAiReplacements.request`, а без
+настроенного сервиса открывает настройки ИИ.

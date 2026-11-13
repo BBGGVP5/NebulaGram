@@ -238,6 +238,8 @@ jobs:
           python3 scripts/check-audio-setup.py vendor/telegram-android
           python3 scripts/check-local-audio.py
           python3 scripts/check-ai-availability.py
+          python3 scripts/check-missed-summary.py vendor/telegram-android
+          python3 scripts/check-local-notes.py vendor/telegram-android
           python3 scripts/check-private-features.py
           python3 scripts/check-settings-design.py
           python3 scripts/check-nano-state.py

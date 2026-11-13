@@ -1,0 +1,38 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 0cc05518..9c79a811 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1000,6 +1000,7 @@ public class ChatActivity extends BaseFragment implements
+     private int first_unread_id;
+     private boolean loadingForward;
+     private MessageObject unreadMessageObject;
++    private app.nebulagram.ui.NebulaMissed nebulaMissed; // NebulaGram: «Кратко о пропущенном»
+     private MessageObject scrollToMessage;
+     public int highlightMessageId = Integer.MAX_VALUE;
+     public boolean showNoQuoteAlert;
+@@ -3367,6 +3368,7 @@ public class ChatActivity extends BaseFragment implements
+     @Override
+     public void onFragmentDestroy() {
+         clearNebulaAlbumPreview();
++        if (nebulaMissed != null) { nebulaMissed.destroy(); nebulaMissed = null; }
+         super.onFragmentDestroy();
+         if (messageMetricsView != null) {
+             messageMetricsView.finish();
+@@ -7293,6 +7295,9 @@ public class ChatActivity extends BaseFragment implements
+         floatingDateView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+         floatingDateView.setInvalidateColors(true);
+         contentView.addView(floatingDateView, LayoutHelper.createFrame(LayoutHelper.WRAP_CONTENT, LayoutHelper.WRAP_CONTENT, Gravity.TOP | Gravity.CENTER_HORIZONTAL, 0, 4, 0, 0));
++        if (nebulaMissed != null) nebulaMissed.destroy();
++        nebulaMissed = app.nebulagram.ui.NebulaMissed.attach(this, contentView, currentAccount, dialog_id,
++                chatMode != 0 || isThreadChat() || currentEncryptedChat != null || isReport());
+         floatingDateView.setOnActionClickListener(view -> {
+             if (floatingDateView.getAlpha() == 0 || actionBar.isActionModeShowed() || isReport()) {
+                 return;
+@@ -12797,6 +12802,7 @@ public class ChatActivity extends BaseFragment implements
+ 
+         if (floatingDateView != null) {
+             floatingDateView.setTranslationY(chatListView.getTranslationY() - searchExpandOffset + chatListViewPaddingTop + floatingDateViewOffset - dp(4));
++            app.nebulagram.ui.NebulaMissed.position(nebulaMissed, chatListView.getTranslationY() - searchExpandOffset + chatListViewPaddingTop - dp(4), floatingDateView.getAlpha());
+         }
+         updateFloatingTopicView();
+ 
