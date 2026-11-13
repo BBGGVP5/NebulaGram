@@ -44,12 +44,62 @@ public final class NebulaFeedFragment extends BaseFragment {
     private static final int PER_CHANNEL = 12, MAX_CHANNELS = 40, MAX_POSTS = 200, SETTINGS = 1;
 
     private static final class Post implements NebulaFeedModel.Post {
-        final MessageObject message;
+        /** Первое сообщение поста: его открываем и по нему сортируем. */
+        MessageObject message;
+        /** Сообщение с подписью; у альбома подпись бывает у любого элемента. */
+        MessageObject captioned;
+        /** Чьё превью показываем: первый элемент с картинкой. */
+        MessageObject cover;
+        int count = 1;
         final long channel;
         Post(MessageObject message, long channel) { this.message = message; this.channel = channel; }
         @Override public long channel() { return channel; }
         @Override public int id() { return message.getId(); }
         @Override public int date() { return message.messageOwner.date; }
+    }
+
+    /**
+     * Альбом приходит отдельными сообщениями с общим {@code grouped_id}. Раньше
+     * каждое становилось своим постом с голой подписью «Альбом»; теперь альбом —
+     * один пост с превью первого снимка и подписью, где бы она ни стояла.
+     */
+    private static List<Post> albums(List<Post> collected) {
+        ArrayList<Post> result = new ArrayList<>();
+        java.util.HashMap<String, Post> groups = new java.util.HashMap<>();
+        for (Post item : collected) {
+            Post post = new Post(item.message, item.channel);
+            long group = item.message.messageOwner.grouped_id;
+            if (group == 0) {
+                post.captioned = item.message;
+                post.cover = hasPreview(item.message) ? item.message : null;
+                result.add(post);
+                continue;
+            }
+            String key = item.channel + ":" + group;
+            Post head = groups.get(key);
+            if (head == null) {
+                head = post;
+                head.count = 0;
+                groups.put(key, head);
+                result.add(head);
+            }
+            head.count++;
+            if (item.message.getId() < head.message.getId()) head.message = item.message;
+            if (!TextUtils.isEmpty(item.message.caption)
+                    && (head.captioned == null || item.message.getId() < head.captioned.getId())) head.captioned = item.message;
+            if (hasPreview(item.message) && (head.cover == null || item.message.getId() < head.cover.getId())) head.cover = item.message;
+        }
+        for (Post post : result) if (post.captioned == null) post.captioned = post.message;
+        return result;
+    }
+
+    private static TLRPC.PhotoSize previewSize(MessageObject message) {
+        if (message == null || message.photoThumbs == null || message.photoThumbs.isEmpty()) return null;
+        return FileLoader.getClosestPhotoSizeWithSize(message.photoThumbs, AndroidUtilities.getPhotoSize());
+    }
+
+    private static boolean hasPreview(MessageObject message) {
+        return message != null && (message.isPhoto() || message.isVideo() || message.isGif()) && previewSize(message) != null;
     }
 
     private NebulaFeedModel model;
@@ -119,6 +169,9 @@ public final class NebulaFeedFragment extends BaseFragment {
             if (category == null || category.hidden) selectedCategory = 0;
         }
         actionBar.setSubtitle(NebulaFeedStore.channelsCount(model.channels.size()));
+        // Подпись создаётся позже заголовка и остаётся с левым выравниванием:
+        // «2 канала» стояло под «назад», а не под центрированной «Лентой».
+        if (actionBar.getSubtitleTextView() != null) actionBar.getSubtitleTextView().setGravity(Gravity.CENTER);
         buildChips();
         reload();
     }
@@ -213,7 +266,7 @@ public final class NebulaFeedFragment extends BaseFragment {
 
     private void publish(List<Post> collected, boolean done) {
         posts.clear();
-        posts.addAll(NebulaFeedModel.newestFirst(collected, MAX_POSTS));
+        posts.addAll(NebulaFeedModel.newestFirst(albums(collected), MAX_POSTS));
         list.getAdapter().notifyDataSetChanged();
         if (!posts.isEmpty()) empty.setVisibility(View.GONE);
         else if (done) showEmpty(text("Постов пока нет.", "No posts yet."));
@@ -231,8 +284,10 @@ public final class NebulaFeedFragment extends BaseFragment {
         presentFragment(new ChatActivity(args));
     }
 
-    private static CharSequence body(MessageObject message) {
+    private static CharSequence body(MessageObject message, boolean previewShown) {
         if (!TextUtils.isEmpty(message.caption)) return message.caption;
+        // Превью уже говорит, что это фото или видео: подпись «Видео» под ним лишняя.
+        if (previewShown) return null;
         TLRPC.MessageMedia media = message.messageOwner.media;
         boolean textOnly = media == null || media instanceof TLRPC.TL_messageMediaEmpty || media instanceof TLRPC.TL_messageMediaWebPage;
         if (!textOnly && !TextUtils.isEmpty(message.messageOwner.message)) return message.messageOwner.message;
@@ -244,6 +299,8 @@ public final class NebulaFeedFragment extends BaseFragment {
         final AvatarDrawable avatarDrawable = new AvatarDrawable();
         final TextView name = new TextView(getContext()), time = new TextView(getContext()), bodyView = new TextView(getContext());
         final BackupImageView photo = new BackupImageView(getContext());
+        final FrameLayout media = new FrameLayout(getContext());
+        final TextView badge = new TextView(getContext());
 
         Cell(Context context) {
             super(context);
@@ -273,9 +330,23 @@ public final class NebulaFeedFragment extends BaseFragment {
             header.addView(titles, new LayoutParams(0, -2, 1f));
             addView(header);
             photo.setRoundRadius(AndroidUtilities.dp(14));
+            media.addView(photo, new FrameLayout.LayoutParams(-1, -1));
+            // Видео и альбом помечены поверх превью, а не отдельной строкой текста.
+            badge.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 12);
+            badge.setTypeface(AndroidUtilities.bold());
+            badge.setTextColor(0xFFFFFFFF);
+            badge.setSingleLine();
+            badge.setPadding(AndroidUtilities.dp(8), AndroidUtilities.dp(3), AndroidUtilities.dp(8), AndroidUtilities.dp(3));
+            GradientDrawable badgeBackground = new GradientDrawable();
+            badgeBackground.setCornerRadius(AndroidUtilities.dp(11));
+            badgeBackground.setColor(0x99000000);
+            badge.setBackground(badgeBackground);
+            FrameLayout.LayoutParams badgeParams = new FrameLayout.LayoutParams(-2, -2, Gravity.BOTTOM | Gravity.RIGHT);
+            badgeParams.setMargins(0, 0, AndroidUtilities.dp(8), AndroidUtilities.dp(8));
+            media.addView(badge, badgeParams);
             LayoutParams photoParams = new LayoutParams(-1, AndroidUtilities.dp(200));
             photoParams.topMargin = AndroidUtilities.dp(10);
-            addView(photo, photoParams);
+            addView(media, photoParams);
             bodyView.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 15);
             bodyView.setTextColor(theme.onSurface());
             bodyView.setLineSpacing(AndroidUtilities.dp(2), 1f);
@@ -295,17 +366,24 @@ public final class NebulaFeedFragment extends BaseFragment {
             String date = LocaleController.stringForMessageListDate(message.messageOwner.date);
             if (message.messageOwner.views > 0) date += "  ·  " + LocaleController.formatShortNumber(message.messageOwner.views, null) + text(" просм.", " views");
             time.setText(date);
-            CharSequence value = body(message);
+            MessageObject cover = post.cover;
+            TLRPC.PhotoSize size = previewSize(cover);
+            boolean preview = cover != null && size != null;
+            CharSequence value = body(post.captioned, preview);
             bodyView.setText(value);
             bodyView.setVisibility(TextUtils.isEmpty(value) ? GONE : VISIBLE);
-            TLRPC.PhotoSize size = message.photoThumbs == null ? null
-                    : FileLoader.getClosestPhotoSizeWithSize(message.photoThumbs, AndroidUtilities.getPhotoSize());
-            if (size != null && message.isPhoto()) {
-                photo.setVisibility(VISIBLE);
+            if (preview) {
+                media.setVisibility(VISIBLE);
                 photo.getImageReceiver().setCrossfadeWithOldImage(false);
-                photo.setImage(ImageLocation.getForObject(size, message.photoThumbsObject), "400_200", (android.graphics.drawable.Drawable) null, message);
+                photo.setImage(ImageLocation.getForObject(size, cover.photoThumbsObject), "400_200", (android.graphics.drawable.Drawable) null, cover);
+                String mark = null;
+                if (post.count > 1) mark = text(post.count + " медиа", post.count + " items");
+                else if (cover.isVideo()) mark = "▶  " + AndroidUtilities.formatShortDuration((int) cover.getDuration());
+                else if (cover.isGif()) mark = "GIF";
+                badge.setText(mark);
+                badge.setVisibility(mark == null ? GONE : VISIBLE);
             } else {
-                photo.setVisibility(GONE);
+                media.setVisibility(GONE);
             }
             setOnClickListener(v -> open(post));
         }

@@ -114,16 +114,20 @@ class HomeMotionCheck {
     // down by storiesOverscroll/2 (90 dp / 2), not just by the added radius.
     float expanded=bottom+(float)Math.ceil(5*density)+(float)Math.ceil(48*density)/2-(float)Math.ceil(8*density)+extra/2;
     if(extra>0)expanded+=(float)Math.ceil(90*density)/2;
-    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded,barCenter,p);
+    // The ring rides up with its row (the cell scrolls 81 dp), held under the bar only while it still overlaps.
+    float y=NebulaHomeTitleGeometry.avatarCenterY(expanded-81*density*p,barCenter,p);
     check(Float.isFinite(y),"Invalid vertical pose");
     float slot=NebulaHomeTitleGeometry.groupLeftFloat(w,left,right,title,prefix,q),titleLeft=slot+prefix*q;
     for(int i=0;i<visible;i++) {
      float startLeft=(i+1)*cellWidth,target=slot+(float)Math.ceil(4*density)+i*step;
      float avatarCx=(cellWidth-finalSize)/2*(1-q)+finalSize/2;
      float x=startLeft+(target-startLeft)*q+avatarCx;
+     float ry=NebulaHomeTitleGeometry.clearCenterY(y,barCenter,radius,x-radius,x+radius,titleLeft,density);
+     check(ry>=y-.001f,"Hold lifts a ring above its path");
+     if(frame==120)check(Math.abs(ry-y)<.001f,"Collapsed stack is held under the bar; rings stop sharing one row");
      // Edit occupies x=8..76 dp, height=44 dp. The title slot starts at 84 dp.
-     if(y-radius<barCenter+22*density)check(x-radius>=Math.ceil(76*density)-.001f,"Ring overlaps Edit");
-     if(y-radius<barCenter+14*density)check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");
+     if(ry-radius<barCenter+22*density)check(x-radius>=76*density-.001f,"Ring overlaps Edit");
+     if(ry-radius<barCenter+14*density)check(x+radius<=titleLeft-3*density+.001f,"Ring intersects title; would need rectangular clipping");
      poses++;
     }
     if(frame==120)check(Math.abs(y-barCenter)<.001f,"Mini-list handoff jumps vertically");
