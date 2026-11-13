@@ -163,7 +163,7 @@ def build(tree, destination, jobs, bundle_id, build_number):
     # Verified in pinned rules_apple/codesigning_support.bzl: short-circuits signing
     # before device provisioning-profile validation. Do not invent apple.codesign flags.
     command.common_build_args += ['--features=disable_legacy_signing', '--features=nebula_unsigned_ipa', '--jobs=' + str(jobs),
-                                  '--local_resources=memory=HOST_RAM*0.65', '--color=no']
+                                  '--local_resources=memory=HOST_RAM*0.65', '--color=no', '--keep_going']
     command.common_args.remove('--verbose_failures')  # Avoid generated configuration command dumps.
     command.set_configuration('release_arm64')
     command.set_disable_provisioning_profiles()
