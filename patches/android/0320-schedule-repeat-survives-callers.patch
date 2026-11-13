@@ -1,0 +1,28 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+index a32cfdfc..d1a980fb 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+@@ -4478,7 +4478,10 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+         HashMap<String, String> params = sendMessageParams.params;
+         boolean notify = sendMessageParams.notify;
+         int scheduleDate = sendMessageParams.scheduleDate;
+-        int scheduleRepeatPeriod = sendMessageParams.scheduleRepeatPeriod;
++        // NebulaGram: a picker whose caller dropped the repeat choice still reaches the request;
++        // an album cannot repeat (sendMultiMedia has no field), so it is sent once and the user is told.
++        int scheduleRepeatPeriod = app.nebulagram.ui.NebulaScheduleRepeatNotice.forSend(peer, sendMessageParams.scheduleDate, sendMessageParams.scheduleRepeatPeriod,
++                params != null && params.containsKey("groupId") && !"0".equalsIgnoreCase(params.get("groupId")));
+         int ttl = sendMessageParams.ttl;
+         Object parentObject = sendMessageParams.parentObject;
+         MessageObject.SendAnimationData sendAnimationData = sendMessageParams.sendAnimationData;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+index 6b3eff79..009f2e30 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+@@ -4734,6 +4734,7 @@ public class AlertsCreator {
+                 calendar.set(Calendar.SECOND, 0);
+                 calendar.set(Calendar.MILLISECOND, 0);
+             }
++            app.nebulagram.ui.NebulaScheduleRepeat.remember(dialogId, (int) (calendar.getTimeInMillis() / 1000), repeatTextView != null ? repeat[0] : 0); // NebulaGram
+             datePickerDelegate.didSelectDate(notify[0], (int) (calendar.getTimeInMillis() / 1000), repeat[0]);
+             builder.getDismissRunnable().run();
+         });

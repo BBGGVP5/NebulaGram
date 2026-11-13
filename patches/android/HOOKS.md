@@ -1354,3 +1354,41 @@ waveform, есть имя файла или не ogg — боты, скрипт�
 обновить акцент. Сам акцент передаётся Telegram прежним путём Material You
 (`NebulaTheme.applyMaterialYou` → `ThemeAccent.accentColor`), только источником выступает
 картинка; выбор цвета — `NebulaPictureAccent`, проверка — `scripts/check-picture-accent.py`.
+
+### 0320 — повтор отложенного сообщения не теряется
+
+`0320-schedule-repeat-survives-callers.patch`. В 13.2.1 окно даты (`AlertsCreator.createScheduleDatePickerDialog`)
+уже предлагает повтор, и сервер принимает его в `schedule_repeat_period` (только Premium — замок в окне
+остаётся штатным). Но стикеры, геопозиция, опросы, контакты, фото из пикера, голосовые и ответы инлайн-ботов
+передают дальше только дату. `AlertsCreator.java`, перед `didSelectDate`: выбор запоминается в
+`NebulaScheduleRepeat.remember` (0, если чип повтора не показан). `SendMessagesHelper.sendMessage(SendMessageParams)`:
+`scheduleRepeatPeriod` берётся из `NebulaScheduleRepeatNotice.forSend` — запомненный выбор, если вызывающий передал 0,
+а сообщение идёт в тот же диалог на ту же секунду в течение 10 минут после выбора. У `messages.sendMultiMedia` поля
+повтора в схеме нет: для элементов альбома (`params.groupId`) повтор обнуляется, чтобы на них не рисовался значок
+повтора, и всплывает сообщение, что альбом уйдёт один раз. Проверка: `check-schedule-repeat.py`.
+
+### 0321 — кнопка «Запланировать публикацию»
+
+`0321-story-schedule-sheet.patch`, `StoryPrivacyBottomSheet.java`: в `Page` под кнопками добавлена
+`nebulaScheduleButton`; она видна на странице `PAGE_TYPE_SHARE`, если `nebulaAllowSchedule(true)`, и не в правке
+и не в эфире. Нажатие открывает окно даты (`NebulaStorySchedule.pick`) и затем вызывает тот же `onButton1Click`,
+что и «Опубликовать». Обычная кнопка сначала вызывает `NebulaStorySchedulePlan.disarm()`.
+
+### 0322 — StoryRecorder откладывает вместо отправки
+
+`0322-story-schedule-recorder.patch`, `StoryRecorder.java`: в цепочке окна публикации
+`.nebulaAllowSchedule(NebulaStorySchedule.schedulable(outputEntry))`; в `uploadInternal` выбранное время
+(`NebulaStorySchedulePlan.take`) отдаёт каждую историю в `NebulaStorySchedule.schedule` вместо `uploadStory`.
+У `stories.sendStory` в схеме нет `schedule_date`, поэтому история хранится черновиком Telegram и публикуется телефоном.
+
+### 0323 — черновики отложенных историй отдельно
+
+`0323-story-schedule-drafts.patch`, `DraftsController.load`: черновик, записанный в очередь, забирает
+`NebulaStorySchedule.adopt` и не показывает в общем списке; после чтения базы — `NebulaStorySchedule.draftsLoaded`.
+
+### 0324 — будильник публикации
+
+`0324-story-schedule-wake.patch`: `AndroidManifest.xml` — `SCHEDULE_EXACT_ALARM` и приёмник
+`NebulaStoryScheduleReceiver` (свой будильник, `BOOT_COMPLETED`, `MY_PACKAGE_REPLACED`);
+`LaunchActivity.onResume` — `NebulaStorySchedule.onWake()` переставляет будильник и публикует пропущенное.
+Проверка: `check-story-schedule.py`.

@@ -1,0 +1,23 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/DraftsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/DraftsController.java
+index b2a61652..729a7a4b 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/DraftsController.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/DraftsController.java
+@@ -119,7 +119,9 @@ public class DraftsController {
+                 ) {
+                     deleteEntries.add(entry);
+                 } else {
+-                    drafts.add(entry);
++                    if (!app.nebulagram.ui.NebulaStorySchedule.adopt(currentAccount, entry)) { // NebulaGram: scheduled stories wait apart
++                        drafts.add(entry);
++                    }
+                     ids.add(entry.draftId);
+                 }
+             }
+@@ -127,6 +129,7 @@ public class DraftsController {
+ 
+             loading = false;
+             loaded = true;
++            app.nebulagram.ui.NebulaStorySchedule.draftsLoaded(currentAccount); // NebulaGram
+ 
+             NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.storiesDraftsUpdated);
+         });

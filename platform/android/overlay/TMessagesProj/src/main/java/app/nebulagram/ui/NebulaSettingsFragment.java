@@ -182,6 +182,9 @@ public class NebulaSettingsFragment extends BaseFragment {
         features.add(new NebulaRow(context).icon(R.drawable.msg_bots).title(NebulaText.text("Мои боты", "My bots"))
                 .subtitle(NebulaText.text("Профиль, переводы и управление", "Profiles, translations and management"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaBotsFragment(currentAccount))));
+        features.add(new NebulaRow(context).icon(R.drawable.msg_recent).title(NebulaText.text("Отложенные истории", "Scheduled stories"))
+                .subtitle(NebulaText.text("Публикует телефон в выбранное время", "Published by this phone at the chosen time"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaScheduledStoriesFragment())));
         sections.addView(features, cardParams());
 
         sections.addView(NebulaCard.header(context, NebulaText.text("Аккаунты и безопасность", "Accounts and security")));
