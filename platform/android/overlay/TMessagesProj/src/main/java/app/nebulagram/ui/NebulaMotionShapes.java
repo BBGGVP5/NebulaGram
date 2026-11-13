@@ -67,6 +67,32 @@ public final class NebulaMotionShapes {
         return mini ? 48 : 96;
     }
 
+    /** Ниже этой доли прогресс считаем неопределённым: файл ждёт сети или очереди. */
+    static final float IDLE = .02f;
+
+    /**
+     * Какая часть контура светится: {@code out[0]} — начало в долях оборота
+     * (поверх вращения Telegram), {@code out[1]} — длина.
+     *
+     * <p>При известном проценте это ровно процент. Пока его нет («Соединение…»,
+     * очередь) светится «дышащий» отрезок 12–34% оборота, который ещё и
+     * обгоняет вращение, — иначе на экране оставалась бы крутящаяся точка.
+     */
+    public static void sweep(float progress, float exit, long time, boolean calm, float[] out) {
+        if (exit > 0f) { out[0] = 0f; out[1] = 1f; return; }
+        float p = clamp(progress);
+        if (p >= IDLE) { out[0] = 0f; out[1] = p; return; }
+        if (calm) { out[0] = 0f; out[1] = .25f; return; }
+        double breath = (Math.sin(time / 1100.0 * Math.PI * 2) + 1) / 2;
+        out[1] = (float) (.12 + .22 * breath);
+        out[0] = (float) ((time % 1400) / 1400.0);
+    }
+
+    /** Яркость дорожки: пока процента нет, фигура должна читаться целиком. */
+    public static float trackAlpha(float progress, float exit) {
+        return exit > 0f || progress >= IDLE ? .3f : .55f;
+    }
+
     /** Лёгкий «вдох» при завершении: 1 → 1.12 → 1 по синусу. */
     public static float pulse(float exit) {
         return 1f + .12f * (float) Math.sin(Math.PI * clamp(exit));

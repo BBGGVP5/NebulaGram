@@ -38,6 +38,25 @@ public static void main(String[] a){
  check(NebulaMotionShapes.checkAlpha(.3f)==1&&NebulaMotionShapes.checkAlpha(1)==0&&NebulaMotionShapes.checkTrim(.45f)==1,"check timing");
  check(NebulaMotionShapes.points(true)<NebulaMotionShapes.points(false),"mini icon must be cheaper");
 
+ // Кнопка 44dp при 3x: фигура обязана быть видимого размера, а светящаяся часть —
+ // не точкой, в любом состоянии: ожидание сети, начало, середина, финал, «меньше движения».
+ float outer=66, sw[]=new float[2];
+ float[][] states={{0,0},{.005f,0},{.019f,0},{.3f,0},{1,0},{.7f,.4f}};
+ for(float[] st:states)for(int calm=0;calm<2;calm++)for(long t=0;t<6000;t+=97){
+  NebulaMotionShapes.sweep(st[0],st[1],t,calm==1,sw);
+  check(sw[1]>0&&sw[1]<=1&&sw[0]>=0&&sw[0]<1,"sweep out of range");
+  float minX=1e9f,maxX=-1e9f,minY=1e9f,maxY=-1e9f,lit=0,px=0,py=0;
+  int shape=NebulaMotionShapes.shapeAt(t);float morph=NebulaMotionShapes.morphAt(t);
+  for(int i=0;i<=96;i++){double ang=Math.PI*2*(sw[0]+sw[1]*i/96.0);
+   float rr=outer*NebulaMotionShapes.radius(shape,morph,ang,.4,0);float x=(float)Math.cos(ang)*rr,y=(float)Math.sin(ang)*rr;
+   if(i>0)lit+=Math.hypot(x-px,y-py);px=x;py=y;}
+  for(int i=0;i<96;i++){double ang=Math.PI*2*i/96.0;float rr=outer*NebulaMotionShapes.radius(shape,morph,ang,.4,0);
+   minX=Math.min(minX,(float)Math.cos(ang)*rr);maxX=Math.max(maxX,(float)Math.cos(ang)*rr);minY=Math.min(minY,(float)Math.sin(ang)*rr);maxY=Math.max(maxY,(float)Math.sin(ang)*rr);}
+  check(maxX-minX>outer*1.4f&&maxY-minY>outer*1.4f,"shape collapsed for a non-zero button");
+  check(lit>outer*.5f,"lit part shrank to a dot: progress="+st[0]+" lit="+lit);
+  if(st[0]<.02f&&st[1]==0)check(NebulaMotionShapes.trackAlpha(st[0],0)>=.5f,"waiting shape must be readable");
+  if(st[0]>=.3f&&st[1]==0)check(near(sw[1],st[0]),"known progress must be exact");
+ }
  float w=1080,o[]=new float[5];
  for(int st=0;st<NebulaMotionShapes.STYLES;st++){
   NebulaMotionShapes.page(st,0,w,o);
@@ -71,6 +90,7 @@ subprocess.run(['java', '-cp', str(classes), 'CheckMediaMotion'], check=True)
 progress = (overlay / 'NebulaShapeProgress.java').read_text(encoding='utf-8')
 switch = (overlay / 'NebulaFolderSwitch.java').read_text(encoding='utf-8')
 assert 'NebulaGlass.reduced()' in progress and 'NebulaGlass.reduced()' in switch, 'reduced motion must be honoured'
+assert '.015f' not in progress, 'a fixed tiny sweep leaves a spinning dot'
 assert 'new Path' not in progress.split('public static boolean draw')[1], 'draw must not allocate per frame'
 assert 'setAnimationMatrix' in switch and 'SDK_INT < 29' in switch, 'folder styles use the animation matrix, guarded'
 

@@ -31,6 +31,7 @@ public final class NebulaShapeProgress {
     private static final Path PATH = new Path();
     private static final Path CHECK = new Path();
     private static final RectF PILL = new RectF();
+    private static final float[] SWEEP = new float[2];
     private static Paint stroke;
     private static Paint pillFill;
     private static Paint pillText;
@@ -86,12 +87,14 @@ public final class NebulaShapeProgress {
 
         // Дорожка: вся фигура, едва заметно.
         trace(cx, cy, outer, shape, morph, settle, phase, phase, 1f, points);
-        paint.setAlpha((int) (alpha * .22f));
+        paint.setAlpha((int) (alpha * NebulaMotionShapes.trackAlpha(progress, exit)));
         canvas.drawPath(PATH, paint);
         paint.setAlpha(alpha);
 
-        float done = exit > 0f ? 1f : Math.max(.015f, Math.min(1f, progress));
-        trace(cx, cy, outer, shape, morph, settle, phase, phase, done, Math.max(4, (int) (points * done)));
+        NebulaMotionShapes.sweep(progress, exit, now, calm, SWEEP);
+        float done = SWEEP[1];
+        double start = phase + Math.PI * 2 * SWEEP[0];
+        trace(cx, cy, outer, shape, morph, settle, phase, start, done, Math.max(4, (int) (points * done)));
         canvas.drawPath(PATH, paint);
 
         if (check && exit > 0f && !mini) drawCheck(canvas, cx, cy, rect.width(), paint, exit);
