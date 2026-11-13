@@ -46,40 +46,30 @@ public final class NebulaHomeTitleGeometry {
         return p * p * (3f - 2f * p);
     }
 
-    /** The horizontal slot settles early; vertical movement has no separate phase seam. */
-    public static float gather(float progress) { return smooth(progress / .6f); }
-    public static float lift(float progress) {
-        float p = Math.max(0f, Math.min(1f, progress));
-        // Keep large rings below the controls until they fit the horizontal slot.
-        return smooth(p * p);
-    }
+    /**
+     * Разъезд стопки в ряд, рост колец и сдвиг заголовка к центру — один общий
+     * параметр. Он приходится на конец оттягивания: раньше под шапкой нет места,
+     * и кольца, уходящие под заголовок, задели бы текст.
+     */
+    public static float gather(float progress) { return smooth(progress / GATHER); }
 
-    public static float avatarCenterY(float expandedCenter, float toolbarCenter, float progress) {
-        return expandedCenter + (toolbarCenter - expandedCenter) * lift(progress);
-    }
+    /** Доля, на которую кольца притянуты к шапке сверх своего ряда (для табов). */
+    public static float lift(float progress) { return smooth((progress - .5f) / .5f); }
+
+    static final float GATHER = .18f;
 
     /**
-     * Кольцо историй едет вверх вместе со своим рядом (а не висит на месте ряда до
-     * прокрутки над уехавшими под него чатами), но не заходит в полосу заголовка,
-     * пока по горизонтали ещё задевает заголовок или «Изм.». Удержание включается
-     * плавно, за 3 dp до касания, поэтому кольцо не прыгает.
+     * Все кольца едут вместе со своим рядом историй — одной строкой, без
+     * удержаний по отдельности (из-за них стопка вставала треугольником), — но не
+     * выше центра шапки: пока ряд ещё спрятан под шапкой, стопка стоит в ней.
+     * Переход к полу сглажен на 6 dp, чтобы не было излома.
      *
+     * @param rowCenter центр кольца в ряду при текущей прокрутке
      * @param dp один dp в пикселях
      */
-    public static float clearCenterY(float y, float toolbarCenter, float radius,
-                                     float ringLeft, float ringRight, float titleLeft, float dp) {
-        // Окно включения 3 dp: у собранной стопки до заголовка и до «Изм.» остаётся
-        // около 5 dp, и удержание в покое не должно стягивать кольца вниз
-        // (с окном 12 dp крайние кольца вставали «треугольником»).
-        float title = ramp((ringRight - (titleLeft - 3 * dp) + 3 * dp) / (3 * dp));
-        float edit = ramp((76 * dp - ringLeft + 3 * dp) / (3 * dp));
-        float result = y;
-        result = Math.max(result, y + (toolbarCenter + 14.5f * dp + radius - y) * title);
-        result = Math.max(result, y + (toolbarCenter + 22.5f * dp + radius - y) * edit);
-        return result;
-    }
-
-    private static float ramp(float value) {
-        return Math.max(0f, Math.min(1f, value));
+    public static float avatarCenterY(float rowCenter, float toolbarCenter, float progress, float dp) {
+        float k = 6 * dp, x = rowCenter - toolbarCenter;
+        float below = x >= k ? x : x <= -k ? 0f : (x + k) * (x + k) / (4 * k);
+        return toolbarCenter + below * (1f - lift(progress));
     }
 }

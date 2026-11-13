@@ -1,0 +1,76 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+index 3e887928..0e8bc0d5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java
+@@ -731,7 +731,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+                 }
+             }
+ 
+-            recyclerListView.setAlpha(1f - Utilities.clamp(collapsedProgress / K, 1f, 0));
++            // Остальной ряд и подписи проявляются в том же окне, где стопка
++            // разъезжается: раньше они видны поверх собранной стопки у заголовка.
++            recyclerListView.setAlpha(1f - (nebulaHome ? homeGather : Utilities.clamp(collapsedProgress / K, 1f, 0)));
+             overscrollSelectedPosition = -1;
+             if (overscrollProgress != 0) {
+                 int minPosition = -1;
+@@ -878,18 +880,12 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+                 if (nebulaHome) {
+                     float toolbarBottom = actionBar.getY() + actionBar.getHeight();
+                     float toolbarCenter = toolbarBottom - ActionBar.getCurrentActionBarHeight() / 2f;
+-                    // Старт — ряд историй там, где он сейчас, вместе с прокруткой. Раньше старт
+-                    // держался на месте ряда до прокрутки, и собранная маленькая стопка
+-                    // висела над уехавшими под неё чатами.
+-                    float expandedCenter = getY() + recyclerListView.getTop() + cell.getTop() + cell.getNebulaAvatarCenter(0f);
+-                    float center = app.nebulagram.ui.NebulaHomeTitleGeometry.avatarCenterY(expandedCenter, toolbarCenter, progress);
+-                    // Тот же кадр, что у storiesOffset: x ячейки отсчитывается от x шапки.
+-                    float ringSize = AndroidUtilities.lerp(dp(48), dp(COLLAPSED_SIZE), cell.progressToCollapsed);
+-                    float ringRadius = ringSize / 2f + dp(4);
+-                    float ringX = getX() + recyclerListView.getX() + cell.getLeft() + translationX
+-                            + (cell.getMeasuredWidth() - ringSize) / 2f * (1f - homeGather) + ringSize / 2f;
+-                    center = app.nebulagram.ui.NebulaHomeTitleGeometry.clearCenterY(center, toolbarCenter, ringRadius,
+-                            ringX - ringRadius, ringX + ringRadius, actionBar.getNebulaHomeTitleLeft(), AndroidUtilities.density);
++                    // Кольцо едет вместе со своим рядом историй (ряд — там, где он сейчас, с
++                    // прокруткой), но не выше центра шапки. Высота одна на всю стопку: кольца
++                    // всегда в одну строку, без удержаний по отдельности, из-за которых
++                    // стопка вставала треугольником.
++                    float rowCenter = getY() + recyclerListView.getTop() + cell.getTop() + cell.getNebulaAvatarCenter(0f);
++                    float center = app.nebulagram.ui.NebulaHomeTitleGeometry.avatarCenterY(rowCenter, toolbarCenter, progress, AndroidUtilities.density);
+                     translationY = center - getY() - recyclerListView.getY() - cell.getTop() - cell.getCy();
+                 }
+ 
+@@ -1436,12 +1432,23 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+         return true;
+     }
+ 
++    /**
++     * Собранную стопку рисует listViewMini у себя. Перерисовки одной этой ячейки
++     * мало: мини-список отдаёт закешированный кадр, и после «Подключение к
++     * NebulaLink…» три аватарки оставались поверх начала текста, хотя шапка уже
++     * решила их спрятать.
++     */
++    private void invalidateNebulaHomeStack() {
++        invalidate();
++        if (listViewMini != null) listViewMini.invalidate();
++    }
++
+     public void setActionBar(ActionBar actionBar) {
+         if (this.actionBar != null && this.actionBar != actionBar) {
+             this.actionBar.setNebulaHomeTitleLayoutChangedListener(null);
+         }
+         this.actionBar = actionBar;
+-        if (actionBar != null) actionBar.setNebulaHomeTitleLayoutChangedListener(this::invalidate);
++        if (actionBar != null) actionBar.setNebulaHomeTitleLayoutChangedListener(this::invalidateNebulaHomeStack);
+         publishNebulaHomeHeader();
+         app.nebulagram.ui.NebulaDialogsTitle.bind(actionBar, telegramLogoView);
+     }
+@@ -2070,7 +2077,9 @@ public class DialogStoriesCell extends FrameLayout implements NotificationCenter
+                 invalidate();
+                 recyclerListView.invalidate();
+             }
+-            textAlphaTransition = mini ? 0 : 1f - Utilities.clamp(collapsedProgress / K, 1f, 0);
++            textAlphaTransition = mini ? 0 : 1f - (actionBar != null && actionBar.isNebulaHomeLayout()
++                    ? app.nebulagram.ui.NebulaHomeTitleGeometry.gather(collapsedProgress)
++                    : Utilities.clamp(collapsedProgress / K, 1f, 0));
+             final float alpha = textAlphaTransition * textAlpha;
+             textViewContainer.setAlpha(alpha);
+             textViewContainer.setVisibility(alpha > 0 ? View.VISIBLE : View.INVISIBLE);
