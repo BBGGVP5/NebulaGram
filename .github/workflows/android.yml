@@ -225,6 +225,7 @@ jobs:
           python3 scripts/check-folder-swipe.py vendor/telegram-android
           python3 scripts/check-folder-page-state.py vendor/telegram-android
           python3 scripts/check-folder-animation.py
+          python3 scripts/check-media-motion.py vendor/telegram-android
           python3 scripts/check-folder-title-timing.py vendor/telegram-android
           python3 scripts/check-appearance-controls.py vendor/telegram-android
           python3 scripts/check-ai-services.py

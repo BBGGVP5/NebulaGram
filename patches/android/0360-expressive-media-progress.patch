@@ -1,0 +1,66 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActionDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActionDrawable.java
+index e6e23df8..ac0ff2b3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActionDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/MediaActionDrawable.java
+@@ -86,6 +86,8 @@ public class MediaActionDrawable extends Drawable {
+     private LinearGradient gradientDrawable;
+     private Matrix gradientMatrix;
+     private boolean hasOverlayImage;
++    /** NebulaGram: значок лежит поверх фото или видео — под ним уместен процент. */
++    public boolean nebulaOnMedia;
+ 
+     public interface MediaActionDrawableDelegate {
+         void invalidate();
+@@ -168,6 +170,8 @@ public class MediaActionDrawable extends Drawable {
+                 transitionAnimationTime = 400.0f;
+             } else if (currentIcon != ICON_NONE && icon == ICON_CHECK) {
+                 transitionAnimationTime = 360.0f;
++            } else if ((currentIcon == ICON_CANCEL || currentIcon == ICON_CANCEL_FILL) && icon == ICON_NONE) {
++                transitionAnimationTime = app.nebulagram.ui.NebulaShapeProgress.finishDuration(220.0f);
+             } else if (currentIcon == ICON_NONE && icon == ICON_CANCEL_FILL || currentIcon == ICON_CANCEL_FILL && icon == ICON_NONE) {
+                 transitionAnimationTime = 160.0f;
+             } else {
+@@ -560,12 +564,20 @@ public class MediaActionDrawable extends Drawable {
+                 int diff = AndroidUtilities.dp(isMini ? 2 : 4);
+                 rect.set(bounds.left + diff, bounds.top + diff, bounds.right - diff, bounds.bottom - diff);
+ 
++                float nebulaExit = animatingTransition && currentIcon != ICON_NONE && nextIcon != ICON_CANCEL && nextIcon != ICON_CANCEL_FILL && nextIcon != ICON_DOWNLOAD ? transitionProgress : 0f;
++                if (app.nebulagram.ui.NebulaShapeProgress.draw(canvas, rect, animatedDownloadProgress, downloadRadOffset, paint, isMini, nebulaExit, nextIcon == ICON_NONE && nebulaOnMedia)) {
++                    // NebulaGram: фигура вместо дуги.
++                } else {
+                 if (currentIcon == ICON_CANCEL_FILL || currentIcon == ICON_NONE && nextIcon == ICON_CANCEL_FILL) {
+                     paint.setAlpha((int) (alpha * 0.15f * overrideAlpha));
+                     canvas.drawArc(rect, 0, 360, false, paint);
+                     paint.setAlpha(alpha);
+                 }
+                 canvas.drawArc(rect, downloadRadOffset, rad, false, paint);
++                }
++                if (nebulaOnMedia && !isMini && nebulaExit == 0f) {
++                    app.nebulagram.ui.NebulaShapeProgress.drawPercent(canvas, bounds, animatedDownloadProgress, alpha / 255f);
++                }
+             }
+             if (progressScale != 1.0f) {
+                 canvas.restore();
+@@ -586,7 +598,9 @@ public class MediaActionDrawable extends Drawable {
+                 float rad = Math.max(4, 360 * animatedDownloadProgress);
+                 int diff = AndroidUtilities.dp(isMini ? 2 : 4);
+                 rect.set(bounds.left + diff, bounds.top + diff, bounds.right - diff, bounds.bottom - diff);
+-                canvas.drawArc(rect, downloadRadOffset, rad, false, paint);
++                if (!app.nebulagram.ui.NebulaShapeProgress.draw(canvas, rect, animatedDownloadProgress, downloadRadOffset, paint, isMini, 0f, false)) {
++                    canvas.drawArc(rect, downloadRadOffset, rad, false, paint);
++                }
+             }
+         }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgress2.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgress2.java
+index 46c346ce..e046de7b 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgress2.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/RadialProgress2.java
+@@ -495,6 +495,7 @@ public class RadialProgress2 {
+         }
+         mediaActionDrawable.setBounds(centerX - iconSize, centerY - iconSize, centerX + iconSize, centerY + iconSize);
+         mediaActionDrawable.setHasOverlayImage(overlayImageView.hasBitmapImage());
++        mediaActionDrawable.nebulaOnMedia = circleColorKey == Theme.key_chat_mediaLoaderPhoto;
+         if ((drawMiniIcon || circleCrossfadeColorKey >= 0)) {
+             if (miniDrawCanvas != null) {
+                 mediaActionDrawable.draw(miniDrawCanvas);
