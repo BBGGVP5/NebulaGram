@@ -96,11 +96,13 @@ public class NebulaSwitch extends View {
     }
 
     public static int animationDuration(int style) {
-        return style == 1 ? 300 : style == 2 ? 240 : style == 3 ? 180 : 230;
+        return style == 1 ? 350 : style == 2 ? 240 : style == 3 ? 180 : 230;
     }
 
     public static android.animation.TimeInterpolator animationInterpolator(int style) {
-        return t -> style == 1 ? 1f - (float) Math.pow(1f - t, 3)
+        // iOS: быстрый старт и мягкая, почти пружинная посадка без перелёта
+        // (критически затухающая кривая, нормированная к точной единице).
+        return t -> style == 1 ? (float) ((1 - (1 + 7 * t) * Math.exp(-7 * t)) / (1 - 8 * Math.exp(-7)))
                 : style == 2 ? (1f - (float) Math.cos(Math.PI * t)) * .5f
                 : style == 3 ? 1f - (1f - t) * (1f - t) : t * t * (3f - 2f * t);
     }
@@ -162,6 +164,31 @@ public class NebulaSwitch extends View {
         float density = AndroidUtilities.dpf2(1);
         canvas.save();
         canvas.scale(density, density);
+        if (style == 1) {
+            // iOS: дорожка во всю высоту, системный серый выключенный и
+            // системный зелёный включённый цвет, крупный белый бегунок с мягкой
+            // двойной тенью. В движении бегунок вытягивается, как под пальцем.
+            paint.setStyle(Paint.Style.FILL);
+            paint.setColor(blend(NebulaTheme.stateLayer(theme.onSurfaceVariant(), .26f), 0xff34c759, progress));
+            track.set(0, 0, 52, 32);
+            canvas.drawRoundRect(track, 16, 16, paint);
+            float r = 14, from = r + 2, to = 52 - r - 2;
+            float position = getLayoutDirection() == LAYOUT_DIRECTION_RTL ? 1 - progress : progress;
+            float cx = from + (to - from) * position;
+            float stretch = (float) Math.sin(Math.PI * progress) * 3f;
+            float left = cx - r - stretch * (1 - position), right = cx + r + stretch * position;
+            paint.setColor(NebulaTheme.stateLayer(0xff000000, .06f));
+            track.set(left - .8f, 16 + 1 - r - .8f, right + .8f, 16 + 1 + r + .8f);
+            canvas.drawRoundRect(track, r + .8f, r + .8f, paint);
+            paint.setColor(NebulaTheme.stateLayer(0xff000000, .10f));
+            track.set(left - .3f, 16 + .6f - r - .3f, right + .3f, 16 + .6f + r + .3f);
+            canvas.drawRoundRect(track, r + .3f, r + .3f, paint);
+            paint.setColor(0xffffffff);
+            track.set(left, 16 - r, right, 16 + r);
+            canvas.drawRoundRect(track, r, r, paint);
+            canvas.restore();
+            return;
+        }
         float h = style == 1 ? 32 : style == 2 ? 28 : 18;
         float w = style == 3 ? 44 : 52;
         float x = (52 - w) / 2, y = (32 - h) / 2;

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-index 3dd72541..f4dbbd9b 100644
+index 42d338d7..a5b48240 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-@@ -2422,6 +2422,7 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -2631,6 +2631,7 @@ public class ActionBarMenuItem extends FrameLayout {
      public static final int VIEW_TYPE_COLORED_GAP = 1;
      public static final int VIEW_TYPE_SWIPEBACKITEM = 2;
      public static final int VIEW_TYPE_TEXT = 3;
@@ -10,7 +10,7 @@ index 3dd72541..f4dbbd9b 100644
  
      private ArrayList<Item> lazyList;
      private HashMap<Integer, Item> lazyMap;
-@@ -2461,6 +2462,9 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -2670,6 +2671,9 @@ public class ActionBarMenuItem extends FrameLayout {
          private static Item asColoredGap() {
              return new Item(VIEW_TYPE_COLORED_GAP);
          }
@@ -20,7 +20,7 @@ index 3dd72541..f4dbbd9b 100644
          private static Item asSwipeBackItem(int icon, Drawable iconDrawable, String text, View viewToSwipeBack) {
              Item item = new Item(VIEW_TYPE_SWIPEBACKITEM);
              item.icon = icon;
-@@ -2518,6 +2522,9 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -2727,6 +2731,9 @@ public class ActionBarMenuItem extends FrameLayout {
                  gap.setTag(R.id.fit_width_tag, 1);
                  parent.popupLayout.addView(gap, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
                  view = gap;
@@ -30,7 +30,7 @@ index 3dd72541..f4dbbd9b 100644
              } else if (viewType == VIEW_TYPE_SWIPEBACKITEM) {
                  ActionBarMenuSubItem cell = new ActionBarMenuSubItem(parent.getContext(), false, false, false, parent.resourcesProvider);
                  cell.setTextAndIcon(text, icon, iconDrawable);
-@@ -2649,6 +2656,9 @@ public class ActionBarMenuItem extends FrameLayout {
+@@ -2864,6 +2871,9 @@ public class ActionBarMenuItem extends FrameLayout {
      public Item lazilyAddColoredGap() {
          return putLazyItem(Item.asColoredGap());
      }
@@ -41,10 +41,10 @@ index 3dd72541..f4dbbd9b 100644
          return putLazyItem(Item.asText(text, textSizeDp));
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index a1fee787..7817fdd6 100644
+index 3c8875c3..99c0ba63 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4606,7 +4606,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -4538,7 +4538,7 @@ public class ChatActivity extends BaseFragment implements
              closeTopicItem.setVisibility(currentChat != null && ChatObject.canManageTopic(currentAccount, currentChat, forumTopic) && forumTopic != null && !forumTopic.closed ? View.VISIBLE : View.GONE);
          }
          if (headerItem != null) {
@@ -54,10 +54,10 @@ index a1fee787..7817fdd6 100644
                      app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-index 1e57d97b..a61c2069 100644
+index 8c8d831b..a3bdfb4e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -432,7 +432,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -450,7 +450,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              args.putBoolean("needFinishFragment", false);
              presentFragment(new CallLogActivity(args));
          });
@@ -66,7 +66,7 @@ index 1e57d97b..a61c2069 100644
          o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
                  presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
                          app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
-@@ -464,7 +464,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -482,7 +482,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
                  NotificationCenter.getInstance(currentAccount).postNotificationName(NotificationCenter.callTabsVisibleToggled);
              });
          }
@@ -75,7 +75,7 @@ index 1e57d97b..a61c2069 100644
          o.add(R.drawable.msg_customize, getString(R.string.NebulaTabsOrganizer), () ->
                  presentFragment(new app.nebulagram.ui.NebulaSectionFragment(
                          app.nebulagram.ui.NebulaSectionFragment.SECTION_TABS)));
-@@ -487,7 +487,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -505,7 +505,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
          final ItemOptions o = ItemOptions.makeOptions(this, anchor);
          o.add(R.drawable.msg_folders, getString(R.string.FilterEditAll), () -> presentFragment(new FiltersSetupActivity()));
@@ -84,7 +84,7 @@ index 1e57d97b..a61c2069 100644
          final int selectedFolderId = dialogsActivity == null ? 0 : dialogsActivity.nebulaSelectedFolderId();
          if (filters == null || filters.isEmpty()) {
              o.add(R.drawable.msg_discussion, getString(R.string.FilterAllChats), () -> openFolder(0));
-@@ -536,7 +536,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -554,7 +554,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              });
              o.addView(folderItem, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT));
          }
@@ -93,7 +93,7 @@ index 1e57d97b..a61c2069 100644
          o.add(R.drawable.msg_archive, getString(R.string.ArchivedChats), () -> {
              Bundle args = new Bundle();
              args.putInt("folderId", 1);
-@@ -670,7 +670,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -688,7 +688,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
          }
  
          if (accountNumbers.size() > 0) {
@@ -102,7 +102,7 @@ index 1e57d97b..a61c2069 100644
              for (int acc : accountNumbers) {
                  final int account = acc;
                  final View btn = accountView(acc, currentAccount == acc);
-@@ -685,7 +685,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -703,7 +703,7 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
              }
          }
  

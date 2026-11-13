@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
-index 9c8bb0e1..58433e4b 100644
+index 48d4c00d..e323378c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
-@@ -276,7 +276,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+@@ -292,7 +292,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
  
              MarginLayoutParams params = (MarginLayoutParams) titleView.getLayoutParams();
              if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
@@ -11,7 +11,7 @@ index 9c8bb0e1..58433e4b 100644
                  ColoredImageSpan span = new ColoredImageSpan(R.drawable.msg_mini_premiumlock);
                  span.setTopOffset(1);
                  span.setSize(AndroidUtilities.dp(13));
-@@ -286,7 +286,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+@@ -302,7 +302,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
                  titleView.setText(str);
              } else {
                  params.rightMargin = 0;
@@ -21,10 +21,10 @@ index 9c8bb0e1..58433e4b 100644
              setSelected(LauncherIconController.isEnabled(icon), false);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
-index 7c03890e..0f96379d 100644
+index 19d0473f..36e01bb9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AppIconBulletinLayout.java
-@@ -38,6 +38,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
+@@ -39,6 +39,7 @@ public class AppIconBulletinLayout extends Bulletin.ButtonLayout {
          imageView.setOuterPadding(AndroidUtilities.dp(8));
          imageView.setBackgroundOuterPadding(AndroidUtilities.dp(24));
          imageView.setForeground(icon.foreground);

@@ -1,0 +1,93 @@
+diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 7a76480..a1d6cc5 100644
+--- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
++++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+@@ -344,6 +344,25 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
+         return 44
+     }
++    // NebulaGram: floating "A" between the text and the emoji button; the formatting
++    // toolbar unfolds from it instead of appearing whenever the field is focused.
++    private lazy var nebulaFormatToggle: NebulaFormattingToggleButton = {
++        let button = NebulaFormattingToggleButton(frame: .zero)
++        button.addTarget(self, action: #selector(self.nebulaFormatTogglePressed), for: .touchUpInside)
++        return button
++    }()
++    private var nebulaFormattingExpanded = false
++    private var nebulaFormatToggleWidth: CGFloat {
++        guard NebulaSettingsStore.shared.formattingToolbar, self.isFocused, !self.sendingTextDisabled,
++            let state = self.presentationInterfaceState, case .text = state.inputMode,
++            state.inputTextPanelState.mediaRecordingState == nil, state.interfaceState.mediaDraftState == nil else { return 0 }
++        return 36
++    }
++    @objc private func nebulaFormatTogglePressed() {
++        self.nebulaFormattingExpanded = !self.nebulaFormattingExpanded
++        self.hapticFeedback.impact(.light)
++        self.requestLayout()
++    }
+     public var isAIEnabled: Bool = false
+     
+     public var inputTextState: ChatTextInputState {
+@@ -1291,7 +1310,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             self.textInputBackgroundNode.view.removeGestureRecognizer(textInputBackgroundTapRecognizer)
+         }
+         
+-        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth
++        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth + self.nebulaFormatToggleWidth
+         var firstButton = true
+         for (_, button) in self.accessoryItemButtons {
+             if firstButton {
+@@ -1430,7 +1449,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         let textFieldInsets = self.textFieldInsets(metrics: metrics, bottomInset: bottomInset)
+         let fieldMaxHeight = self.textFieldMaxHeight(maxHeight, metrics: metrics, bottomInset: bottomInset)
+         
+-        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth
++        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth + self.nebulaFormatToggleWidth
+         var firstButton = true
+         for (item, button) in self.accessoryItemButtons {
+             if firstButton {
+@@ -2639,7 +2658,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         
+         var nebulaTextMode = false
+         if case .text = interfaceState.inputMode { nebulaTextMode = true }
+-        let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode
++        if !self.isFocused || !NebulaSettingsStore.shared.formattingToolbar {
++            self.nebulaFormattingExpanded = false
++        }
++        let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode && self.nebulaFormattingExpanded
+             && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 50 : 0
+ 
+         let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
+@@ -3373,6 +3395,21 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             transition.updateAlpha(layer: button.layer, alpha: audioRecordingItemsAlpha)
+             nextButtonTopRight.x -= self.nebulaToolsWidth
+         }
++        do {
++            let toggleWidth = self.nebulaFormatToggleWidth
++            let toggle = self.nebulaFormatToggle
++            if toggle.superview == nil {
++                self.textInputContainerBackgroundView.contentView.addSubview(toggle)
++            }
++            toggle.isHidden = toggleWidth == 0 || audioRecordingItemsAlpha == 0
++            toggle.setExpanded(self.nebulaFormattingExpanded)
++            if let theme = self.theme {
++                toggle.tintColor = theme.chat.inputPanel.inputControlColor
++            }
++            let toggleFrame = CGRect(x: nextButtonTopRight.x - toggleWidth, y: nextButtonTopRight.y, width: toggleWidth, height: minimalInputHeight)
++            transition.updateFrame(view: toggle, frame: toggleFrame)
++            nextButtonTopRight.x -= toggleWidth
++        }
+ 
+         self.currentTextInputBackgroundWidthOffset = textInputBackgroundWidthOffset
+         
+@@ -3968,7 +4005,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+                 self.nebulaFormattingToolbar = toolbar
+                 self.view.addSubview(toolbar)
+             }
+-            toolbar.setPresented(true)
++            toolbar.setPresented(true, from: self.nebulaFormatToggle.superview.flatMap { toggleHost in
++                self.nebulaFormatToggle.isHidden ? nil : toggleHost.convert(self.nebulaFormatToggle.center, to: self.view)
++            })
+             toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
+                 russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
+                 hasSelection: !self.inputTextState.inputText.string.isEmpty)

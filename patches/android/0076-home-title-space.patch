@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index e9c2f0eb..d688a547 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -605,6 +605,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -737,6 +737,15 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean isCenterTitle;
  
@@ -17,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      private boolean nebulaCenterTitle() {
          if (!app.nebulagram.ui.NebulaAppearance.centerHome() || isSearchFieldVisible || getActionModeFactor() != 0) return false;
          if (parentFragment instanceof org.telegram.ui.DialogsActivity) {
-@@ -1547,11 +1556,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1736,11 +1745,22 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                          boolean centerHome = nebulaCenterTitle();
                          titleTextView[i].setGravity(centerHome ? Gravity.CENTER_HORIZONTAL : (isCenterTitle ? Gravity.CENTER : Gravity.LEFT | Gravity.CENTER_VERTICAL));
                          if (centerHome) {
@@ -42,9 +43,9 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
                      if (centerScale) {
                          CharSequence text = titleTextView[i].getText();
                          titleTextView[i].setPivotX(titleTextView[i].getTextPaint().measureText(text, 0, text.length()) / 2f);
-@@ -1639,7 +1659,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1828,7 +1848,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  }
-                 int titleLeft = textLeft;
+                 int titleLeft = centerTitleAndGlass ? (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2 : textLeft;
                  if (nebulaCenterTitle()) {
 -                    titleLeft = Math.max(textLeft, (getMeasuredWidth() - titleTextView[i].getMeasuredWidth()) / 2);
 +                    titleLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(

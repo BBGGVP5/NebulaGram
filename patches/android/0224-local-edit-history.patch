@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index bad74ed2..ca1b9149 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
-@@ -12601,6 +12601,7 @@ public class MessagesStorage extends BaseController {
+@@ -12782,6 +12782,7 @@ public class MessagesStorage extends BaseController {
                      if (message == null) {
                          continue;
                      }

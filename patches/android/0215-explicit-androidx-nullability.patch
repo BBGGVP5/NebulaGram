@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java b/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
+index e5c909ec..bb2f9cd0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserService.java
 @@ -20,7 +20,7 @@ import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MusicBrowserServ
  @TargetApi(Build.VERSION_CODES.LOLLIPOP)
  public class MusicBrowserService extends MediaBrowserService {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
+index e07da72d..ea07f8c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessage.java
 @@ -6,7 +6,7 @@ import org.telegram.ui.Components.Reactions.ReactionsLayoutInBubble;
@@ -23,6 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMe
  import me.vkryl.core.BitwiseUtils;
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
+index 7bd03c94..4cfdcca3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/web/WebInstantView.java
 @@ -59,7 +59,7 @@ import java.util.HashSet;

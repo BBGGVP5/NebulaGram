@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
+index 698bf4d5..fb667605 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/DialogCell.java
-@@ -4820,7 +4820,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
+@@ -4866,7 +4866,7 @@ public class DialogCell extends BaseCell implements StoriesListPlaceProvider.Ava
              canvas.restore();
          }
  

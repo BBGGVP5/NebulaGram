@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 3a211c74..1c6d5788 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -98,6 +98,7 @@ import org.telegram.messenger.video.Mp4Movie;

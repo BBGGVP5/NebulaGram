@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+index 141257a6..9c2deb84 100644
 --- a/TMessagesProj/build.gradle
 +++ b/TMessagesProj/build.gradle
-@@ -75,6 +75,7 @@ dependencies {
+@@ -73,6 +73,7 @@ dependencies {
      implementation 'com.googlecode.mp4parser:isoparser:1.0.6'
      implementation 'com.stripe:stripe-android:2.0.2'
      implementation 'com.google.mlkit:language-id:17.0.6'

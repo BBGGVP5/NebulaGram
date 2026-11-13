@@ -1,21 +1,21 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-index f4dbbd9b..9a96cf79 100644
+index a5b48240..9ecdc187 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarMenuItem.java
-@@ -314,7 +314,7 @@ public class ActionBarMenuItem extends FrameLayout {
-                 AndroidUtilities.runOnUIThread(showMenuRunnable, 200);
+@@ -332,7 +332,7 @@ public class ActionBarMenuItem extends FrameLayout {
+             if (showMenuRunnable != null && !isInside(event, ViewConfiguration.get(getContext()).getScaledTouchSlop())) {
+                 cancelShowMenuByLongPress();
              }
-         } else if (event.getActionMasked() == MotionEvent.ACTION_MOVE) {
--            if (showSubmenuByMove && hasSubMenu() && (popupWindow == null || !popupWindow.isShowing())) {
-+            if ((showSubmenuByMove || app.nebulagram.ui.NebulaMenuDrag.openByDrag()) && hasSubMenu() && (popupWindow == null || !popupWindow.isShowing())) {
+-            if (showSubmenuByMove && !overlayMenu && hasSubMenu() && !popupShown) {
++            if ((showSubmenuByMove || app.nebulagram.ui.NebulaMenuDrag.openByDrag()) && !overlayMenu && hasSubMenu() && !popupShown) {
                  if (event.getY() > getHeight()) {
                      if (getParent() != null) {
                          getParent().requestDisallowInterceptTouchEvent(true);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-index 207e5131..2dfdacdf 100644
+index 93cf14fd..a0f90b8f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBarPopupWindow.java
-@@ -892,6 +892,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -894,6 +894,7 @@ public class ActionBarPopupWindow extends PopupWindow {
          try {
              super.showAsDropDown(anchor, xoff, yoff);
              registerListener(anchor);
@@ -23,7 +23,7 @@ index 207e5131..2dfdacdf 100644
          } catch (Exception e) {
              FileLog.e(e);
          }
-@@ -903,6 +904,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -905,6 +906,7 @@ public class ActionBarPopupWindow extends PopupWindow {
          try {
              super.showAsDropDown(anchor, xoff, yoff, gravity);
              registerListener(anchor);
@@ -31,7 +31,7 @@ index 207e5131..2dfdacdf 100644
          } finally {
              if (!isShowing()) nebulaViewport.restore();
          }
-@@ -1091,6 +1093,7 @@ public class ActionBarPopupWindow extends PopupWindow {
+@@ -1093,6 +1095,7 @@ public class ActionBarPopupWindow extends PopupWindow {
          try {
              super.showAtLocation(parent, gravity, x, y);
              unregisterListener();
@@ -40,10 +40,10 @@ index 207e5131..2dfdacdf 100644
              if (!isShowing()) nebulaViewport.restore();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-index 88245d1b..0ced90f4 100644
+index fc48839c..d9f93517 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -6778,6 +6778,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -6830,6 +6830,13 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
          NotificationCenter.getGlobalInstance().postNotificationName(NotificationCenter.activityPermissionsGranted, requestCode, permissions, grantResults);
      }
  

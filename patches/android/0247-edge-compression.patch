@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index ed7496af..5c0e5a81 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -2178,6 +2178,10 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
@@ -12,7 +13,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          }
  
          @Override
-@@ -4630,6 +4634,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4540,6 +4544,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      if (contentView != null) {
                          contentView.updateBlurContent();
                      }

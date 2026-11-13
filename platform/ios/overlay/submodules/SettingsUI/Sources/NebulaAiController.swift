@@ -90,12 +90,13 @@ final class NebulaAiController: UITableViewController {
     }
     @objc private func close() { dismiss(animated: true) }
 
-    override func numberOfSections(in tableView: UITableView) -> Int { 5 }
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 && settings.provider == .appleIntelligence ? 0 : [3, 4, 3, 1, 2][section] }
+    override func numberOfSections(in tableView: UITableView) -> Int { 6 }
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { section == 2 && settings.provider == .appleIntelligence ? 0 : [3, 4, 3, 1, 2, 2][section] }
     override func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        [nil, text("Основные", "Settings"), text("Генерация", "Generation"), text("Состояние", "State"), text("Чат", "Chat")][section]
+        [nil, text("Основные", "Settings"), text("Генерация", "Generation"), text("Состояние", "State"), text("Чат", "Chat"), text("Вставка ответа", "Inserting the answer")][section]
     }
     override func tableView(_ tableView: UITableView, titleForFooterInSection section: Int) -> String? {
+        if section == 5 { return text("Как результат ИИ-редактора попадает в поле ввода: один ответ или после исходного текста; цитатой — отдельным блоком.", "How an AI editor result goes into the message field: the answer alone or after the original text; as a quote, in its own block.") }
         guard section == 2 else { return nil }
         return settings.provider == .appleIntelligence
             ? text("Параметрами системной модели управляет iOS. История хранится на устройстве.", "iOS manages the on-device model parameters. History stays on this device.")
@@ -131,6 +132,8 @@ final class NebulaAiController: UITableViewController {
             cell.textLabel?.text = text("Температура", "Temperature"); cell.detailTextLabel?.text = String(format: "%.1f", settings.temperature); cell.accessoryType = .disclosureIndicator
         case (4, 0): cell.textLabel?.text = text("Открыть ИИ-чат", "Open AI chat"); cell.accessoryType = .disclosureIndicator
         case (4, 1): cell.textLabel?.text = text("История запросов", "Request history"); cell.accessoryType = .disclosureIndicator
+        case (5, 0): toggle(text("Только ответ", "Answer only"), NebulaAiOutput.responseOnly(), 5)
+        case (5, 1): toggle(text("Ответ цитатой", "Answer as a quote"), NebulaAiOutput.quoteAnswer(), 6)
         default:
             cell.textLabel?.text = settings.isConfigured() ? text("Сервис выбран", "Service selected") : text("Настройте сервис", "Set up a service")
             if settings.provider == .appleIntelligence { cell.detailTextLabel?.text = NebulaAiService.localModelStatus(russian: ru) }
@@ -144,6 +147,8 @@ final class NebulaAiController: UITableViewController {
         case 1: settings.homeShortcut = sender.isOn
         case 2: settings.historyEnabled = sender.isOn
         case 3: settings.streaming = sender.isOn
+        case 5: NebulaAiOutput.setResponseOnly(sender.isOn)
+        case 6: NebulaAiOutput.setQuoteAnswer(sender.isOn)
         default: settings.reasoning = sender.isOn
         }
         view.setNeedsLayout()

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
+index 30619289..455a87c0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/FloatingToolbar.java
-@@ -1498,6 +1498,13 @@ public final class FloatingToolbar {
+@@ -1515,6 +1515,13 @@ public final class FloatingToolbar {
                  .create(contentContainer, true)
                  .setColorProvider(BlurredBackgroundProviderImpl.photoViewerMenu(resourcesProvider))
                  .setRadius(dp(12)));

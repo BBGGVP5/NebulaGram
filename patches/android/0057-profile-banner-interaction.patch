@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
+index edbb2e7a..d3e209b7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
-@@ -254,8 +254,21 @@ public class AboutLinkCell extends FrameLayout {
+@@ -268,8 +268,21 @@ public class AboutLinkCell extends FrameLayout implements Theme.Colorable {
      }
  
      private Paint backgroundPaint = new Paint();
@@ -24,9 +25,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.jav
  
          View parent = (View) getParent();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 2d6167bf..393c8cb0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4202,10 +4202,6 @@ public class ChatActivity extends BaseFragment implements
+@@ -4133,10 +4133,6 @@ public class ChatActivity extends BaseFragment implements
          avatarContainer = new ChatAvatarContainer(context, this, currentEncryptedChat != null, themeDelegate) {
              @Override
              protected boolean onAvatarClick() {

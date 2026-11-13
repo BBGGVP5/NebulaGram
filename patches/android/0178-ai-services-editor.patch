@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
+index 80c18f0c..a4c88150 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/TranslateController.java
 @@ -137,6 +137,7 @@ public class TranslateController extends BaseController {
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          return (
              messageObject != null &&
              messageObject.messageOwner != null &&
-@@ -593,6 +594,16 @@ public class TranslateController extends BaseController {
+@@ -594,6 +595,16 @@ public class TranslateController extends BaseController {
          }
  
          final long dialogId = messageObject.getDialogId();
@@ -26,7 +27,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          if (app.nebulagram.ui.NebulaAutoTranslate.enabled(currentAccount, dialogId)) {
              if (onScreen) app.nebulagram.ui.NebulaAutoTranslate.request(currentAccount, messageObject);
              return;
-@@ -997,6 +1008,12 @@ public class TranslateController extends BaseController {
+@@ -998,6 +1009,12 @@ public class TranslateController extends BaseController {
          if (loadingSummarizations.contains(id)) return;
  
          loadingSummarizations.add(id);
@@ -40,9 +41,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/TranslateControl
          final TLRPC.TL_messages_summarizeText req = new TLRPC.TL_messages_summarizeText();
          req.peer = MessagesController.getInstance(currentAccount).getInputPeer(message.getDialogId());
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
+index 9b94fff0..b2726299 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAlert.java
-@@ -404,6 +404,7 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -406,6 +406,7 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
  
      @Override
      public void dismiss() {
@@ -50,7 +52,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAler
          NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.loadedAiComposeTones);
          if (tonesController != null) {
              tonesController.open = false;
-@@ -1233,11 +1234,14 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -1235,11 +1236,14 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
      }
  
      private int requestId = -1;
@@ -65,7 +67,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AIEditorAler
          if (isRich()) {
              requestRich();
              return;
-@@ -1480,7 +1484,59 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
+@@ -1482,7 +1486,59 @@ public class AIEditorAlert extends BottomSheetWithRecyclerListView implements No
          adapter.update(true);
      }
  

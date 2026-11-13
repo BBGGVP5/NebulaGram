@@ -134,13 +134,15 @@ check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(2,0)),"Di
 check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),new EmojiTitle(1,1)),"Emoji position must invalidate title");
 check(!NebulaDialogsTitle.sameTitle(new EmojiTitle(1,0),"**"),"Removing custom emoji must invalidate title");
 
-for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
- app.nebulagram.ui.NebulaTheme.enabled=material;
+for(boolean adaptive:new boolean[]{false,true})for(boolean material:new boolean[]{false,true})for(boolean normal:new boolean[]{false,true})for(boolean saved:new boolean[]{false,true}) {
+ app.nebulagram.ui.NebulaTheme.enabled=material; NebulaAppearance.enabled=adaptive;
  org.telegram.ui.ActionBar.ActionBar bar=new org.telegram.ui.ActionBar.ActionBar();
  NebulaChatStyle.header(bar,normal,saved);
- check(bar.savedClassic==(normal&&saved),"Saved Messages layout must not depend on palette");
- check(bar.floating==(normal&&!saved),"Saved Messages never uses floating header");
+ check(bar.savedClassic==(normal&&saved&&!adaptive),"Saved Messages keeps the classic layout only without the adaptive header");
+ check(bar.floating==(normal&&(!saved||adaptive)),"The adaptive header covers Saved Messages too");
+ check(bar.hidden==(normal&&adaptive),"The avatar opens the menu in every adaptive chat");
 }
+NebulaAppearance.enabled=true;
 app.nebulagram.ui.NebulaTheme.enabled=true;
 int cases=0;for(boolean bot:new boolean[]{false,true})for(float density:new float[]{1,2.25f,3})for(int width:new int[]{320,360,448,800})for(int height:new int[]{44,92,140}){
 AndroidUtilities.density=density; NebulaAppearance.enabled=true; int w=dp(width),d=dp(44),margin=dp(7),h=dp(height);
@@ -173,6 +175,7 @@ attach.setAlpha(0);attach.setScaleX(.5f);attach.setTranslationX(dp(20));
 check(attach.getLeft()==0&&attach.getAlpha()==1&&attach.getScaleX()==1&&attach.getTranslationX()==0,"attachment lost during typing");
 check(params.leftMargin==dp(bot?97:50)+dp(bot?20:14),"input left padding missing");
 check(params.rightMargin>=dp(56),"text overlaps emoji after typing");
+{View toggle=add(parent,new View(),parent.getWidth()-dp(38),parent.getHeight()-d,parent.getWidth()-dp(2),parent.getHeight());((FrameLayout.LayoutParams)toggle.getLayoutParams()).gravity=Gravity.RIGHT;NebulaComposerStyle.registerFormatToggle(toggle);style.restoreInsets();params.rightMargin=dp(2)+dp(34);((FrameLayout.LayoutParams)toggle.getLayoutParams()).rightMargin=dp(2);style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);int toggleRight=((FrameLayout.LayoutParams)toggle.getLayoutParams()).rightMargin;check(toggleRight>=dp(6)+emoji.getMeasuredWidth()-dp(2),"format toggle covers the emoji button");check(params.rightMargin>=toggleRight+dp(34),"text runs under the format toggle");toggle.setVisibility(View.GONE);style.restoreInsets();params.rightMargin=dp(50);style.prepare(host,editor,host.getWidth(),true);style.layout(emoji,attach,null,ai,expand);}
 BlurredBackgroundDrawable bg=new BlurredBackgroundDrawable();bg.padding=margin;bg.setBounds(0,dp(500)-margin,w,dp(500)+h+margin);Rect original=new Rect(bg.getBounds());
 bg.nodes.clear();bg.surfaces.clear();bg.alphas.clear();
 check(style.draw(new Canvas(),bg,root),"fell back to joined background");

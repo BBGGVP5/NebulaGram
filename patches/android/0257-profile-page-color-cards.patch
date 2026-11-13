@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
-index 25d742df..b33c6ac1 100644
+index 3d1cadf7..42cdf7c9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileHoursCell.java
-@@ -181,6 +181,8 @@ public class ProfileHoursCell extends LinearLayout {
+@@ -182,6 +182,8 @@ public class ProfileHoursCell extends LinearLayout {
  
      private boolean firstAfterAttach = true;
      private boolean needDivider;
@@ -11,7 +11,7 @@ index 25d742df..b33c6ac1 100644
      private boolean expanded;
      public void set(TL_account.TL_businessWorkHours value, boolean expanded, boolean showInMyTimezone, boolean divider) {
          this.expanded = expanded;
-@@ -342,7 +344,7 @@ public class ProfileHoursCell extends LinearLayout {
+@@ -343,7 +345,7 @@ public class ProfileHoursCell extends LinearLayout {
      protected void onDraw(Canvas canvas) {
          super.onDraw(canvas);
  
@@ -21,10 +21,10 @@ index 25d742df..b33c6ac1 100644
              if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
              canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
-index 12f38d2d..7d469b9a 100644
+index 340adf0e..7110efa7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/ProfileLocationCell.java
-@@ -85,6 +85,8 @@ public class ProfileLocationCell extends LinearLayout {
+@@ -104,6 +104,8 @@ public class ProfileLocationCell extends LinearLayout implements Theme.Colorable
      }
  
      private boolean needDivider;
@@ -33,7 +33,7 @@ index 12f38d2d..7d469b9a 100644
      public void set(TLRPC.TL_businessLocation value, boolean divider) {
          if (value != null) {
              textView1.setText(value.address);
-@@ -112,7 +114,7 @@ public class ProfileLocationCell extends LinearLayout {
+@@ -131,7 +133,7 @@ public class ProfileLocationCell extends LinearLayout implements Theme.Colorable
  
          super.onDraw(canvas);
  
@@ -43,10 +43,10 @@ index 12f38d2d..7d469b9a 100644
              if (dividerPaint == null) dividerPaint = Theme.dividerPaint;
              canvas.drawRect(dp(LocaleController.isRTL ? 0 : 21.33f), getMeasuredHeight() - 1, getWidth() - dp(LocaleController.isRTL ? 21.33f : 0), getMeasuredHeight(), dividerPaint);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
-index dd07e657..25f9e38d 100644
+index d3e209b7..ec9cef6c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AboutLinkCell.java
-@@ -280,12 +280,14 @@ public class AboutLinkCell extends FrameLayout {
+@@ -294,12 +294,14 @@ public class AboutLinkCell extends FrameLayout implements Theme.Colorable {
          if (viewAlpha > 0) {
              canvas.save();
              canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), (int) (viewAlpha * 255), Canvas.ALL_SAVE_FLAG);
@@ -64,10 +64,10 @@ index dd07e657..25f9e38d 100644
              canvas.save();
              canvas.saveLayerAlpha(0, 0, getWidth(), getHeight(), (int) (viewAlpha * 255), Canvas.ALL_SAVE_FLAG);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
-index cd7466e0..a376593f 100644
+index 2fe8fb30..e303d353 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/TextDetailCell.java
-@@ -45,6 +45,8 @@ public class TextDetailCell extends FrameLayout {
+@@ -46,6 +46,8 @@ public class TextDetailCell extends FrameLayout implements Theme.Colorable {
      private final TextView showMoreTextView = null;
      private final ImageView imageView;
      private boolean needDivider;
@@ -76,7 +76,7 @@ index cd7466e0..a376593f 100644
      private boolean contentDescriptionValueFirst;
      private boolean multiline;
  
-@@ -268,7 +270,7 @@ public class TextDetailCell extends FrameLayout {
+@@ -269,7 +271,7 @@ public class TextDetailCell extends FrameLayout implements Theme.Colorable {
  
      @Override
      protected void onDraw(Canvas canvas) {
@@ -86,18 +86,18 @@ index cd7466e0..a376593f 100644
              if (paint == null) paint = Theme.dividerPaint;
              canvas.drawLine(
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 8cb93bd1..6d7a54fb 100644
+index de48e4e2..83bd8187 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -4286,6 +4286,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-         app.nebulagram.ui.NebulaProfileStyle.sections(listView, resourcesProvider); // NebulaGram
-         listView.applyPaddingToSections = false;
-         listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
+@@ -4230,6 +4230,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         // the rows above the list's top go under the header's blur, with their cards
+         listView.setSectionsOverscanTop(AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight());
+         ThemeBind.backgroundColor(listView, Theme.key_windowBackgroundGray, resourcesProvider);
 +        app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
          listView.setVerticalScrollBarEnabled(false);
          final IBlur3Capture listViewCapture = new ViewGroupPartRenderer(listView, (ViewGroup) fragmentView, (canvas, child, drawingTime) -> {
              if (child == sharedMediaLayout) {
-@@ -5307,6 +5308,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5258,6 +5259,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2 = new FrameLayout(context) {
  
              final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();
@@ -105,15 +105,15 @@ index 8cb93bd1..6d7a54fb 100644
              private boolean nebulaForegroundDrawn;
              CanvasButton canvasButton;
  
-@@ -12143,6 +12145,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12318,6 +12320,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          if (topView != null) {
              topView.setBackgroundColorId(peerColor, true);
          }
 +        app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
-         if (onlineTextView[1] != null) {
+         if (onlineTextView != null) {
              int statusColor;
-             if (onlineTextView[1].getTag() instanceof Integer) {
-@@ -13708,13 +13711,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             if (onlineTextView.getTag() instanceof Integer) {
+@@ -13819,13 +13822,14 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                  : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
                                  ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
                                  : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
@@ -133,8 +133,8 @@ index 8cb93bd1..6d7a54fb 100644
                      } else if (position == noteRow) {
                          final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
                          if (userInfo == null) return;
-@@ -13855,6 +13859,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-                         drawable.setColorFilter(new PorterDuffColorFilter(dontApplyPeerColor(getThemedColor(Theme.key_actionBarDefaultIcon), false), PorterDuff.Mode.MULTIPLY));
+@@ -13968,6 +13972,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                         qrRowIconDrawable = drawable;
                          detailCell.setImage(drawable, LocaleController.getString(R.string.GetQRCode));
                          detailCell.setImageClickListener(ProfileActivity.this::onTextDetailCellImageClicked);
 +                    } else if (position == nebulaIdRow && userId != 0) { // NebulaGram: дата регистрации
@@ -145,11 +145,11 @@ index 8cb93bd1..6d7a54fb 100644
                      } else {
                          detailCell.setImage(null);
                          detailCell.setImageClickListener(null);
-@@ -15491,6 +15500,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
-                     }
-                 }
-                 listView.setBackgroundColor(getThemedColor(Theme.key_windowBackgroundGray));
-+                app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
-             }
-             if (!isPulledDown) {
-                 if (onlineTextView[1] != null) {
+@@ -17307,6 +17316,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     }
+ 
+     private void themeDelegateThemeColors() {
++                    if (listView != null) app.nebulagram.ui.NebulaProfileStyle.page(listView, peerColor, resourcesProvider); // NebulaGram
+                     if (!isPulledDown) {
+                         if (onlineTextView != null) {
+                             final Object onlineTextViewTag = onlineTextView.getTag();

@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+index 67d7ea28..5f2ed02f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 @@ -40,6 +40,14 @@ public class BlurredBackgroundProviderImpl {
@@ -33,9 +34,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 74f4b34a..1b6363c0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3231,7 +3231,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3150,7 +3150,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          if (initialDialogsType == DIALOGS_TYPE_DEFAULT && !onlySelect && !inPreviewMode
                  && folderId == 0 && communityId == 0 && TextUtils.isEmpty(searchString)
                  && app.nebulagram.ui.NebulaAppearance.homeGlassHeader()) {

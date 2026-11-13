@@ -1,0 +1,62 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryPrivacyBottomSheet.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryPrivacyBottomSheet.java
+index 6fe8c400..03f352c8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryPrivacyBottomSheet.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/recorder/StoryPrivacyBottomSheet.java
+@@ -196,6 +196,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
+         private final View underKeyboardView;
+         private final ButtonWithCounterView button;
+         private final ButtonWithCounterView button2;
++        private final ButtonWithCounterView nebulaScheduleButton; // NebulaGram
+ 
+         private SearchUsersCell searchField;
+         private GraySectionCell sectionCell;
+@@ -627,10 +628,20 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
+             ThemeBind.backgroundColor(buttonContainer, Theme.key_dialogBackground, resourcesProvider);
+ 
+             button = new ButtonWithCounterView(context, resourcesProvider);
+-            button.setOnClickListener(this::onButton1Click);
++            button.setOnClickListener(v -> {
++                app.nebulagram.ui.NebulaStorySchedulePlan.disarm(); // NebulaGram: plain "Post" publishes now
++                onButton1Click(v);
++            });
+             button.setRound();
+             buttonContainer.addView(button, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL));
+ 
++            nebulaScheduleButton = new ButtonWithCounterView(context, false, resourcesProvider); // NebulaGram
++            nebulaScheduleButton.setText(app.nebulagram.ui.NebulaStorySchedule.buttonText(), false);
++            nebulaScheduleButton.setRound();
++            nebulaScheduleButton.setVisibility(View.GONE);
++            nebulaScheduleButton.setOnClickListener(v -> app.nebulagram.ui.NebulaStorySchedule.pick(getContext(), resourcesProvider, () -> onButton1Click(button)));
++            buttonContainer.addView(nebulaScheduleButton, LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 48, Gravity.BOTTOM | Gravity.FILL_HORIZONTAL, 0, 8, 0, 0));
++
+             button2 = new ButtonWithCounterView(context, false, resourcesProvider);
+             button2.setOnClickListener(this::onButton2Click);
+             button2.setRound();
+@@ -1623,6 +1634,7 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
+         }
+ 
+         public void updateButton(boolean animated) {
++            nebulaScheduleButton.setVisibility(pageType == PAGE_TYPE_SHARE && nebulaAllowSchedule && !isEdit && !isLive && !liveSettings ? View.VISIBLE : View.GONE); // NebulaGram
+             if (pageType == PAGE_TYPE_SHARE) {
+                 button.setShowZero(false);
+                 button.setEnabled(true);
+@@ -2594,6 +2606,19 @@ public class StoryPrivacyBottomSheet extends BottomSheet implements Notification
+         this.allowSmallChats = allowSmallChats;
+         return this;
+     }
++    private boolean nebulaAllowSchedule; // NebulaGram
++    public StoryPrivacyBottomSheet nebulaAllowSchedule(boolean allow) {
++        nebulaAllowSchedule = allow;
++        if (viewPager != null) {
++            for (View page : viewPager.getViewPages()) {
++                if (page instanceof Page) {
++                    ((Page) page).updateButton(false);
++                }
++            }
++        }
++        return this;
++    }
++
+     public StoryPrivacyBottomSheet isEdit(boolean isEdit) {
+         this.isEdit = isEdit;
+         if (viewPager != null) {

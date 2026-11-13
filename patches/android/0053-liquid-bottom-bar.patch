@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
+index 63bf610c..f0822667 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/color/impl/BlurredBackgroundProviderImpl.java
 @@ -21,13 +21,18 @@ public class BlurredBackgroundProviderImpl {
@@ -23,6 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawab
              .setShadowLayer(dpf2(2.667f), 0, dpf2(0.85f))
              .setStrokeWidth(dpf2(0.4f), dpf2(0.4f))
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
+index d6f98f41..7ad792e5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsLayout.java
 @@ -37,6 +37,13 @@ import me.vkryl.android.util.ClickHelper;

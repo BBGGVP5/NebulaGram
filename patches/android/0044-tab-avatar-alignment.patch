@@ -1,8 +1,9 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
+index ec6eb9fe..82debcc3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassTabView.java
-@@ -434,7 +434,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
-         tab.updateColors();
+@@ -451,7 +451,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+         tab.applyColors();
          // NebulaGram: фабрика переустанавливает разметку значка после
          // конструктора, поэтому подписи прячем здесь — последними.
 -        app.nebulagram.ui.NebulaBottomBar.applyTabLabel(tab.imageView, tab.textView);
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/glass/GlassT
          return tab;
      }
  
-@@ -636,7 +636,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
+@@ -655,7 +655,7 @@ public class GlassTabView extends FrameLayout implements MainTabsLayout.Tab, Fac
  
      /** NebulaGram: применить настройку подписей к этой вкладке. */
      public void nebulaApplyLabel() {

@@ -1,25 +1,26 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index 529adfef..1f389658 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
-@@ -44,6 +44,7 @@ import java.lang.ref.WeakReference;
- import java.util.Arrays;
- 
- public abstract class BlurredBackgroundDrawable extends Drawable {
+@@ -72,6 +72,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+     private final GlassSource frostedSource;
+     private final GlassSource staticSource;
+     private GlassSource source;
 +    private long nebulaGlassRevision = -1;
-     public BlurredBackgroundDrawable() {
-         boundProps.strokeWidthTop = dpf2(1);
-         boundProps.strokeWidthBottom = dpf2(2 / 3f);
-@@ -226,6 +227,7 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
-     @CallSuper
-     public void updateColors() {
-         if (colorProvider == null) return;
+ 
+     public BlurredBackgroundDrawable(@NonNull GlassSource source) {
+         this(source, source, source);
+@@ -325,6 +326,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+         if (colorProvider instanceof BlurredBackgroundColorProviderThemed) {
+             ((BlurredBackgroundColorProviderThemed) colorProvider).updateColors();
+         }
 +        nebulaGlassRevision = app.nebulagram.ui.NebulaGlass.revision();
  
          backgroundColor = colorProvider.getBackgroundColor();
          float depth = app.nebulagram.ui.NebulaGlass.depth();
-@@ -581,7 +583,7 @@ public abstract class BlurredBackgroundDrawable extends Drawable {
- 
-     protected void drawSource(Canvas canvas, BlurredBackgroundSource source) {
+@@ -821,7 +823,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+         checkThemeColors();
+         checkGlassSettings();
          // Glass settings can change while a menu is open; update its cached shadow before rendering.
 -        if (colorProvider != null) updateColors();
 +        if (colorProvider != null && nebulaGlassRevision != app.nebulagram.ui.NebulaGlass.revision()) updateColors();

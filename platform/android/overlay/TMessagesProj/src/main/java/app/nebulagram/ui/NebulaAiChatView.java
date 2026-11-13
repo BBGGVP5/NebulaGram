@@ -145,6 +145,7 @@ public final class NebulaAiChatView extends LinearLayout {
         int provider = p.getInt("provider", 0);
         String model = p.getString("model_" + provider, "").trim();
         if (provider == NebulaAiClient.NANO) {
+            NebulaNanoAi.prewarm();
             status.setText("Gemini Nano · " + (p.getBoolean("nano_preview", false) ? "Preview" : "Stable")
                     + " · " + (p.getBoolean("nano_fast", false) ? text("Быстрая", "Fast") : text("Полная", "Full")));
         } else {

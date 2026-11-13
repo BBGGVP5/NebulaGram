@@ -2,8 +2,8 @@
 <resources>
     <string name="NebulaIosComposer">Панель сообщения в стиле iOS</string>
     <string name="NebulaIosComposerInfo">Отдельные кнопки вложений и микрофона. Выключите для стандартной панели Telegram.</string>
-    <string name="NebulaFloatingHeader">Плавающая шапка чата</string>
-    <string name="NebulaFloatingHeaderInfo">Круглые кнопки назад и меню, название чата поверх обоев.</string>
+    <string name="NebulaFloatingHeader">Адаптивная шапка</string>
+    <string name="NebulaFloatingHeaderInfo">Во всех чатах, включая «Избранное»: «назад» со счётчиком, название по центру и аватар, который открывает меню чата.</string>
     <string name="NebulaProfileStyle">Новый дизайн профиля (бета)</string>
     <string name="NebulaProfileStyleInfo">Цвет профиля заполняет весь экран, а карточки, текст и значки подстраиваются под него.</string>
     <string name="NebulaProfilePhotoBanner">Баннер из фотографии чата</string>

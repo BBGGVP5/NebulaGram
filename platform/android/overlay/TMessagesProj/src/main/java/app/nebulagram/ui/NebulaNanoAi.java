@@ -7,12 +7,16 @@ import android.os.Build;
 import com.google.mlkit.genai.common.DownloadCallback;
 import com.google.mlkit.genai.common.FeatureStatus;
 import com.google.mlkit.genai.common.GenAiException;
+import com.google.mlkit.genai.common.StreamingCallback;
 import com.google.mlkit.genai.prompt.Generation;
 import com.google.mlkit.genai.prompt.GenerationConfig;
+import com.google.mlkit.genai.prompt.GenerateContentRequest;
 import com.google.mlkit.genai.prompt.GenerateContentResponse;
 import com.google.mlkit.genai.prompt.ModelConfig;
 import com.google.mlkit.genai.prompt.ModelPreference;
 import com.google.mlkit.genai.prompt.ModelReleaseStage;
+import com.google.mlkit.genai.prompt.SystemInstruction;
+import com.google.mlkit.genai.prompt.TextPart;
 import com.google.mlkit.genai.prompt.java.GenerativeModelFutures;
 
 import org.telegram.messenger.ApplicationLoader;
@@ -25,6 +29,8 @@ public final class NebulaNanoAi {
     // Accessed only while the inference gate is held. Each prompt remains stateless.
     private static Session warmSession;
     private static boolean warmPreview, warmFast, warmReady;
+    // Capabilities of the warm model, read once together with its status.
+    private static boolean warmSystemPrompt, warmThinking, warmedUp;
     private static long warmLease;
     private static final java.util.concurrent.ScheduledExecutorService idleWorker =
             java.util.concurrent.Executors.newSingleThreadScheduledExecutor(r -> {
@@ -47,7 +53,7 @@ public final class NebulaNanoAi {
     }
 
     private static void closeWarmSession() {
-        Session closing = warmSession; warmSession = null; warmReady = false;
+        Session closing = warmSession; warmSession = null; warmReady = false; warmedUp = false;
         if (closing != null) {
             try { closing.close(); } catch (RuntimeException ignored) { /* Best-effort SDK cleanup. */ }
         }
@@ -102,6 +108,26 @@ public final class NebulaNanoAi {
         public int checkStatus() throws Exception { return await(client.checkStatus(), 45, TimeUnit.SECONDS); }
         public void download(DownloadCallback callback) throws Exception {
             await(client.download(callback), 30, TimeUnit.MINUTES);
+        }
+        /** Whether this AICore build takes a separate system instruction. Older builds do not. */
+        public boolean systemPromptAvailable() {
+            try { return Boolean.TRUE.equals(await(client.isSystemPromptAvailable(), 10, TimeUnit.SECONDS)); }
+            catch (Exception ignored) { return false; }
+        }
+        public boolean thinkingAvailable() {
+            try { return Boolean.TRUE.equals(await(client.isThinkingModeAvailable(), 10, TimeUnit.SECONDS)); }
+            catch (Exception ignored) { return false; }
+        }
+        /** Loads the model into memory so the first answer does not pay for it. */
+        public void warmup() throws Exception { await(client.warmup(), 60, TimeUnit.SECONDS); }
+        public java.util.concurrent.Future<GenerateContentResponse> generate(String system, String input, boolean thinking,
+                StreamingCallback callback) {
+            GenerateContentRequest.Builder builder = system.isEmpty()
+                    ? new GenerateContentRequest.Builder(new TextPart(input))
+                    : new GenerateContentRequest.Builder(new SystemInstruction(system), new TextPart(input));
+            if (thinking) builder.setEnableThinking(true);
+            GenerateContentRequest request = builder.build();
+            return callback == null ? client.generateContent(request) : client.generateContent(request, callback);
         }
         @Override public void close() { client.getGenerativeModel().close(); }
     }
@@ -192,6 +218,17 @@ public final class NebulaNanoAi {
     }
 
     public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive) throws Exception {
+        return generate(instructions, input, cancelled, interactive, false, null);
+    }
+
+    /**
+     * One on-device answer. Instructions go to the model as a system
+     * instruction when AICore supports it; {@code progress} receives the
+     * growing answer while it streams; {@code thinking} is honoured only by
+     * models that offer a thinking mode.
+     */
+    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive,
+            boolean thinking, NebulaAiClient.Progress progress) throws Exception {
         if (!supportedByOs()) throw new IllegalStateException("Gemini Nano is unavailable on this Android version");
         if (input == null || input.trim().isEmpty()) throw new IllegalArgumentException("Enter text");
         if (input.length() > 10000 || instructions != null && instructions.length() > 4000)
@@ -208,22 +245,69 @@ public final class NebulaNanoAi {
                     throw new IllegalStateException("GEMINI_NANO_DOWNLOADING");
                 if (status != FeatureStatus.AVAILABLE)
                     throw new IllegalStateException("GEMINI_NANO_UNAVAILABLE");
+                warmSystemPrompt = session.systemPromptAvailable();
+                warmThinking = session.thinkingAvailable();
                 warmReady = true;
             }
-            StringBuilder prompt = new StringBuilder();
-            if (instructions != null && !instructions.trim().isEmpty()) {
-                prompt.append("Instructions: ").append(instructions.trim()).append('\n');
+            String system = instructions == null ? "" : instructions.trim();
+            String request = input.trim();
+            if (!warmSystemPrompt && !system.isEmpty()) {
+                request = "Instructions: " + system + "\nUser request: " + request;
+                system = "";
             }
-            prompt.append("User request: ").append(input.trim());
-            GenerateContentResponse response = await(session.client.generateContent(prompt.toString()), 3, TimeUnit.MINUTES, cancelled);
-            if (response.getCandidates().isEmpty() || response.getCandidates().get(0).getText() == null) {
-                throw new IllegalStateException("Gemini Nano returned no text");
+            final StringBuilder streamed = new StringBuilder();
+            StreamingCallback callback = progress == null ? null : chunk -> {
+                if (chunk == null || chunk.isEmpty() || cancelled.getAsBoolean()) return;
+                String answer;
+                synchronized (streamed) {
+                    if (streamed.length() + chunk.length() > 64_000) return;
+                    streamed.append(chunk);
+                    answer = streamed.toString();
+                }
+                progress.update(answer);
+            };
+            GenerateContentResponse response = await(session.generate(system, request, thinking && warmThinking, callback),
+                    3, TimeUnit.MINUTES, cancelled);
+            String result = response.getCandidates().isEmpty() || response.getCandidates().get(0).getText() == null
+                    ? "" : response.getCandidates().get(0).getText().trim();
+            if (result.isEmpty()) {
+                synchronized (streamed) { result = streamed.toString().trim(); }
             }
-            String result = response.getCandidates().get(0).getText().trim();
-            reusable = !cancelled.getAsBoolean() && !result.isEmpty();
+            if (result.isEmpty()) throw new IllegalStateException("Gemini Nano returned no text");
+            reusable = !cancelled.getAsBoolean();
             return result;
         } finally {
             releaseSession(reusable);
         }
+    }
+
+    /**
+     * Loads the selected model ahead of the first question (the AI chat calls
+     * this when it opens). Skipped while another request runs, when the model
+     * is already warm, or when it is not downloaded; never downloads anything.
+     */
+    public static void prewarm() {
+        if (!supportedByOs()) return;
+        idleWorker.execute(() -> {
+            if (!NebulaNanoInferenceGate.tryAcquire()) return;
+            boolean reusable = false;
+            try {
+                if (warmedUp && warmSession != null) { reusable = true; return; }
+                Session session = acquireSession();
+                if (!warmReady) {
+                    if (await(session.client.checkStatus(), 45, TimeUnit.SECONDS) != FeatureStatus.AVAILABLE) return;
+                    warmSystemPrompt = session.systemPromptAvailable();
+                    warmThinking = session.thinkingAvailable();
+                    warmReady = true;
+                }
+                session.warmup();
+                warmedUp = true;
+                reusable = true;
+            } catch (Exception ignored) {
+                // Warming is an optimisation; the real request reports any problem.
+            } finally {
+                releaseSession(reusable);
+            }
+        });
     }
 }

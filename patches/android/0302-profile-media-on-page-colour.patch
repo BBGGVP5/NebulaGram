@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index 78b58318..36fccb43 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -575,7 +575,8 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
+                 wallpaper.setBounds(-side, top, getWidth() + side, bottom);
+                 wallpaper.draw(canvas);
+                 canvas.restore();
+-            } else if (drawPageBackground) {
++            } else if (drawPageBackground && app.nebulagram.ui.NebulaProfileStyle.pageColor(this) == 0) {
++                // NebulaGram: на цветной странице профиля медиа лежат на её цвете, без чёрной заливки.
+                 backgroundPaint.setColor(Theme.getColor(Theme.key_windowBackgroundGray, resourcesProvider));
+                 canvas.drawRect(-side, top, getWidth() + side, bottom, backgroundPaint);
+             }

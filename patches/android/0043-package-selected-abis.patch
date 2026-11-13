@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj_AppStandalone/build.gradle b/TMessagesProj_AppStandalone/build.gradle
+index 74aaa3e7..348b49d6 100644
 --- a/TMessagesProj_AppStandalone/build.gradle
 +++ b/TMessagesProj_AppStandalone/build.gradle
 @@ -107,7 +107,9 @@ android {

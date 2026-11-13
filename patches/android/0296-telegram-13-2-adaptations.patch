@@ -1,0 +1,302 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+index 94ddb12e..e3675557 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+@@ -769,7 +769,7 @@ public class LocationController extends BaseController implements NotificationCe
+     // startService fails silently in background (after a process restart or a service timeout), so the sharing
+     // would stay in UI without updates and expiration checks; restart the service once the app is visible
+     public static void onAppResumed() {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : org.telegram.messenger.AccountDirectory.ids()) { // NebulaGram: dynamic accounts
+             if (!UserConfig.getInstance(a).isClientActivated()) {
+                 continue;
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
+index 61ca6869..6211cbfe 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationSharingService.java
+@@ -187,7 +187,7 @@ public class LocationSharingService extends Service implements NotificationCente
+         boolean hasSharings = false;
+         boolean forever = false;
+         long timeLeft = 0;
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : org.telegram.messenger.AccountDirectory.ids()) { // NebulaGram: dynamic accounts
+             final ArrayList<LocationController.SharingLocationInfo> infos = LocationController.getInstance(a).sharingLocationsUI;
+             for (int i = 0; i < infos.size(); i++) {
+                 final LocationController.SharingLocationInfo info = infos.get(i);
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+index a2b1d912..06c59ff3 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+@@ -588,7 +588,7 @@ public class UserConfig extends BaseController {
+ 
+     public static ArrayList<Long> getLoggedInAccountIds() {
+         ArrayList<Long> ids = new ArrayList<>();
+-        for (int account = 0; account < UserConfig.MAX_ACCOUNT_COUNT; account++) {
++        for (int account : org.telegram.messenger.AccountDirectory.ids()) { // NebulaGram: dynamic accounts
+             UserConfig config = UserConfig.getInstance(account);
+             if (config.isClientActivated()) {
+                 ids.add(config.getClientUserId());
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 2ec9b720..df6c042d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -2984,6 +2984,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     left = leftDefault;
+                     right = rightDefault;
+                 }
++
+                 if (nebulaHomeGlass && actionModeFactor < 0.01f && searchFactor < 0.01f && !isSearchFieldVisible
+                         && titleTextView[0] != null && titleTextView[0].getVisibility() == View.VISIBLE) {
+                     // Use the laid-out title, not a guessed width: folder names and
+@@ -2995,21 +2996,29 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                     right = Math.min(menuLeft - dp(4), titleRight + dp(12));
+                     if (right <= left) { left = leftDefault; right = rightDefault; }
+                 }
+-
++                // Keep the counter clear of independently drawn selection actions.
++                if (actionModeFactor > 0f && actionMode != null
++                        && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
++                    left = lerp(left, dp(52), actionModeFactor);
++                    right = Math.max(left, lerp(right,
++                            app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
++                }
+                 glassDrawable.setBounds(left, t, right, b);
+                 if (nebulaFloatingChatHeader && app.nebulagram.ui.NebulaAppearance.centeredHeader()) {
+                     glassDrawable.setRadius(Math.min(glassDrawable.getPaddedBounds().height(), glassDrawable.getPaddedBounds().width()) / 2f);
+                 }
+-                if (!doNotDrawCenterGlass && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) {
+-                    glassDrawable.draw(canvas);
++                if (nebulaClassicSavedHeader || nebulaSavedMessagesHeader) {
++                    glassDrawable.setAlpha(Math.round(255 * Math.max(searchFactor, actionModeFactor)));
++                } else if (isNebulaSharedHeaderGlass()) {
++                    // The parent draws the shared header; search owns its field.
++                    glassDrawable.setAlpha(0);
++                } else {
++                    glassDrawable.setAlpha(255);
+                 }
+-            }
+-            // Keep the counter clear of independently drawn selection actions.
+-            if (actionModeFactor > 0f && actionMode != null
+-                    && (nebulaFloatingChatHeader || nebulaClassicSavedHeader || nebulaSavedMessagesHeader)) {
+-                left = lerp(left, dp(52), actionModeFactor);
+-                right = Math.max(left, lerp(right,
+-                        app.nebulagram.ui.NebulaSelectionGlass.counterRight(actionMode, rightDefault), actionModeFactor));
++                if (!nebulaProfileGlass
++                        && (!(nebulaClassicSavedHeader || nebulaSavedMessagesHeader) || glassDrawable.getAlpha() > 0)
++                        && (!isNebulaSharedHeaderGlass() || glassDrawable.getAlpha() > 0)
++                        && !((nebulaClassicSavedHeader || nebulaFloatingChatHeader && !app.nebulagram.ui.NebulaAppearance.chatHeader()) && actionModeFactor == 0f && searchFactor == 0f)) glassDrawable.draw(canvas);
+             }
+         }
+         if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null && !nebulaHomeLayout && nebulaHomeLeadingView != null
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 1dfd6894..814c5e81 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -3749,6 +3749,7 @@ public class ChatActivity extends BaseFragment implements
+                 // the chat's menu is also opened from the sidebar: what it does is in the chat
+                 if (id != chat_menu_options && id != chat_menu_topics_panel && id != -1 && topicsPanel != null && topicsPanel.isOpen()) {
+                     topicsPanel.close();
++                }
+                 if (id == 0x4e5341) {
+                     nebulaSelectAllLoadedMessages();
+                     return;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+index 532788b7..3c4dfa02 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/PopupSwipeBackLayout.java
+@@ -140,6 +140,8 @@ public class PopupSwipeBackLayout extends FrameLayout {
+             foregroundOnGlass = onGlass;
+             invalidate();
+         }
++    }
++
+     // The popup host already paints glass; a second opaque page hides it.
+     // Explicit foreground colours still belong to the native caller.
+     private boolean usesNebulaGlass() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+index e75ff066..bd8c5721 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/LiquidGlassEffect.java
+@@ -182,6 +182,13 @@ public class LiquidGlassEffect {
+         final int effectIndex = onGrid
+             ? Math.floorMod((int) -nodeOffsetY, downsample) * downsample + Math.floorMod((int) -nodeOffsetX, downsample)
+             : effectPool.length - 1;
++        if (!enabled) {
++            // NebulaGram: refraction is bypassed; keep the latest uniforms and
++            // publish one effect when it is enabled again, never per frame.
++            shader.setFloatUniform("center", centerX, centerY);
++            effectDirty = true;
++            return;
++        }
+         RenderEffect phaseEffect = effectPool[effectIndex];
+         if (phaseEffect == null || effectPoolCenterX[effectIndex] != centerX || effectPoolCenterY[effectIndex] != centerY) {
+             shader.setFloatUniform("center", centerX, centerY);
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+index 7afd921f..5cb47a67 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java
+@@ -270,6 +270,7 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+             defaultShadowRadius = shadowLayerRadius;
+             defaultShadowDx = shadowLayerDx;
+             defaultShadowDy = shadowLayerDy;
++        }
+         if (colorProvider instanceof app.nebulagram.ui.NebulaMenuStyle.Material) {
+             setThickness(org.telegram.messenger.AndroidUtilities.dp(5));
+             setIntensity(app.nebulagram.ui.NebulaGlass.refraction());
+@@ -704,7 +705,6 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+ 
+ 
+     /* Shadow and stroke params */
+-        if (strokeWidth <= 0f) return;
+ 
+     private boolean inAppKeyboardOptimization;
+ 
+@@ -752,7 +752,9 @@ public class BlurredBackgroundDrawable extends GlassDrawable implements Theme.Co
+     }
+ 
+     private boolean isLiquidGlassEffectEnabled() {
+-        return liquidGlassEffectAllowed && getGlassSettings().isLiquidGlassEnabled && Build.VERSION.SDK_INT >= 33;
++        // NebulaGram: reduced glass (power saving, heat, low memory) keeps the blur, drops refraction.
++        return liquidGlassEffectAllowed && getGlassSettings().isLiquidGlassEnabled && Build.VERSION.SDK_INT >= 33
++                && !app.nebulagram.ui.NebulaGlass.reduced();
+     }
+ 
+     private GlassSource pickSource() {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DebugSettingsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DebugSettingsActivity.java
+index e4108289..a6946875 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DebugSettingsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DebugSettingsActivity.java
+@@ -440,7 +440,7 @@ public class DebugSettingsActivity extends UniversalFragment {
+                 break;
+             case ID_CLEAR_WIDGET_HEIGHTS:
+                 // Chats opened after this lay their widgets out as on first sight.
+-                for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++                for (int a : org.telegram.messenger.AccountDirectory.ids()) { // NebulaGram: dynamic accounts
+                     if (UserConfig.getInstance(a).isClientActivated()) MessagesStorage.getInstance(a).clearWidgetHeights();
+                 }
+                 BulletinFactory.of(this).createSimpleBulletin(R.raw.done, "Widget heights cleared").show();
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index c5951254..9ab77d57 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -14195,25 +14195,26 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+                 hasBottomBlur = true;
+             }
+ 
++            // Reuse the second capture region for folders, even with the main bar hidden.
++            // Use translated view bounds so slide/search transitions sample the same pixels
++            // that the drawable's ViewPositionWatcher reads. Capture only chat lists.
++            if (app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null
++                    && filterTabsView.getVisibility() == View.VISIBLE && filterTabsView.getAlpha() > 0f
++                    && filterTabsView.getWidth() > 0 && filterTabsView.getHeight() > 0) {
++                float folderTop = Math.max(0, filterTabsView.getY() - additionalList);
++                float folderBottom = Math.min(fragmentView.getMeasuredHeight(),
++                        filterTabsView.getY() + filterTabsView.getHeight() + additionalList);
++                if (hasBottomBlur) {
++                    iBlur3PositionMainTabs.union(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
++                } else {
++                    iBlur3PositionMainTabs.set(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
++                }
++                hasBottomBlur = true;
++            }
++
+             scrollableViewNoiseSuppressor.setupRenderNodes(iBlur3Positions, hasBottomBlur ? 2 : 1);
+         }
+ 
+-        // Reuse the second capture region for folders, even with the main bar hidden.
+-        // Use translated view bounds so slide/search transitions sample the same pixels
+-        // that the drawable's ViewPositionWatcher reads. Capture only chat lists.
+-        if (app.nebulagram.ui.NebulaFolderTabs.bottom() && filterTabsView != null
+-                && filterTabsView.getVisibility() == View.VISIBLE && filterTabsView.getAlpha() > 0f
+-                && filterTabsView.getWidth() > 0 && filterTabsView.getHeight() > 0) {
+-            float folderTop = Math.max(0, filterTabsView.getY() - additionalList);
+-            float folderBottom = Math.min(fragmentView.getMeasuredHeight(),
+-                    filterTabsView.getY() + filterTabsView.getHeight() + additionalList);
+-            if (hasBottomBlur) {
+-                iBlur3PositionMainTabs.union(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
+-            } else {
+-                iBlur3PositionMainTabs.set(0, folderTop, fragmentView.getMeasuredWidth(), folderBottom);
+-            }
+-            hasBottomBlur = true;
+-        }
+         scrollableViewNoiseSuppressor.invalidateResultRenderNodes(iBlur3Capture, fragmentView.getMeasuredWidth(), fragmentView.getMeasuredHeight());
+     }
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 24e8c9d6..5803db5c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -2845,6 +2845,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     TLRPC.User user = getMessagesController().getUser(userId);
+                     if (AndroidUtilities.addToClipboard(getMessagesController().linkPrefix + "/" + UserObject.getPublicUsername(user))) {
+                         BulletinFactory.of(ProfileActivity.this).createCopyLinkBulletin().show();
++                    }
+                 } else if (id == nebula_copy_id) {
+                     // Формат выбирается в настройках: у человека оба совпадают,
+                     // а канал и группа выглядят по-разному в клиенте и в Bot API.
+@@ -5284,7 +5285,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     final float nebulaHeaderBottom = (ActionBar.getCurrentActionBarHeight()
+                             + (actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0)
+                             + extraHeight + searchTransitionOffset) * (1f - mediaHeaderAnimationProgress);
+-                    nebulaHero.draw(canvas, getWidth(), avatarContainer, nameTextView[1], onlineTextView[1], actionsView,
++                    nebulaHero.draw(canvas, getWidth(), avatarContainer, nameTextView, onlineTextView, actionsView,
+                             avatarsViewPager != null ? avatarsViewPager.getCurrentItemView() : null, nebulaHeaderBottom,
+                             calculateHeaderExtraDiff(), currentExpandAnimatorValue, mediaHeaderAnimationProgress, 1f, resourcesProvider);
+                 } else {
+@@ -11939,8 +11940,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     nameTextView.setRightDrawable(null);
+                     nameTextViewRightDrawableContentDescription = null;
+                 }
+-                nameTextView[a].setRightDrawable2(app.nebulagram.ui.NebulaBadges.profileSuffix(
+-                        nameTextView[a].getRightDrawable2(), user.id));
++                nameTextView.setRightDrawable2(app.nebulagram.ui.NebulaBadges.profileSuffix(
++                        nameTextView.getRightDrawable2(), user.id));
+                 if (leftIcon == null && currentEncryptedChat == null && user.bot_verification_icon != 0) {
+                     nameTextView.setLeftDrawableOutside(true);
+                     leftIcon = getBotVerificationDrawable(user.bot_verification_icon, false);
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetMedia.java b/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetMedia.java
+index f7cbadde..13260f5b 100644
+--- a/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetMedia.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetMedia.java
+@@ -934,7 +934,8 @@ public final class WidgetMedia {
+     }
+ 
+     /** Accounts whose server has no query types yet (production until the scheme is rolled out): the old form at once. */
+-    private static final boolean[] legacyQuery = new boolean[UserConfig.MAX_ACCOUNT_COUNT];
++    // NebulaGram: account ids are not bounded, so the flag lives in a set.
++    private static final java.util.Set<Integer> legacyQuery = java.util.Collections.synchronizedSet(new java.util.HashSet<>());
+ 
+     /**
+      * messages.getBotWidgetQueryAnswer with `type`; a server that does not know the method yet gets a plain data query
+@@ -943,7 +944,7 @@ public final class WidgetMedia {
+      */
+     private static void sendQuery(Entry entry, TLRPC.WidgetQueryType type, byte[] data, int[] requestId, Utilities.Callback2<TLRPC.TL_messages_botWidgetQueryAnswer, TLRPC.TL_error> done) {
+         final boolean plain = type instanceof TLRPC.TL_widgetQueryTypeData && !((TLRPC.TL_widgetQueryTypeData) type).with_wallet;
+-        final boolean legacy = legacyQuery[entry.account];
++        final boolean legacy = legacyQuery.contains(entry.account);
+         if (legacy && !plain) {
+             TLRPC.TL_error error = new TLRPC.TL_error();
+             error.code = 400;
+@@ -958,7 +959,7 @@ public final class WidgetMedia {
+         req.data = data;
+         requestId[0] = ConnectionsManager.getInstance(entry.account).sendRequestTyped(req, AndroidUtilities::runOnUIThread, (res, err) -> {
+             if (!legacy && err != null && err.text != null && (err.text.startsWith("INPUT_METHOD_INVALID") || err.text.startsWith("INPUT_CONSTRUCTOR_INVALID"))) {
+-                legacyQuery[entry.account] = true;
++                legacyQuery.add(entry.account);
+                 sendQuery(entry, type, data, requestId, done);
+                 return;
+             }
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetSandboxSession.java b/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetSandboxSession.java
+index c4a27aa4..f4530572 100644
+--- a/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetSandboxSession.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/twidget/WidgetSandboxSession.java
+@@ -321,7 +321,7 @@ public final class WidgetSandboxSession {
+      * widgets off. No native session is created then, so no widget code runs in the client. Any thread.
+      */
+     public static boolean disabledByConfig() {
+-        for (int a = 0; a < UserConfig.MAX_ACCOUNT_COUNT; a++) {
++        for (int a : org.telegram.messenger.AccountDirectory.ids()) { // NebulaGram: dynamic accounts
+             if (UserConfig.getInstance(a).isClientActivated() && AppGlobalConfig.getInstance(a).widgetsDisabled.get()) {
+                 return true;
+             }

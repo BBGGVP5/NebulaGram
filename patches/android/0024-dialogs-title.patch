@@ -1,13 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 19933bb0..f2214a3d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -3513,12 +3513,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3436,14 +3436,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              } else {
                  statusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(null, dp(26));
                  statusDrawable.center = true;
 -                logoDrawable = context.getResources().getDrawable(R.drawable.telegram_logo_2).mutate();
 -                logoDrawable.setBounds(0, dp(2), logoDrawable.getIntrinsicWidth(), dp(2) + logoDrawable.getIntrinsicHeight());
--                logoDrawable.setColorFilter(getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
+-                // a new drawable (also when the view is recreated after a theme switch made elsewhere): remember its tint, the
+-                // theme hook only recolors when the color differs from the last one applied
+-                logoDrawable.setColorFilter(lastLogoDrawableColor = getThemedColor(Theme.key_telegram_color_dialogsLogo), PorterDuff.Mode.MULTIPLY);
 -                SpannableStringBuilder ssb = new SpannableStringBuilder(getString(R.string.AppName));
 -                ssb.setSpan(new ImageSpan(logoDrawable), 0, ssb.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 -                actionBar.setTitle(ssb, statusDrawable);
@@ -16,7 +19,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                  updateStatus(UserConfig.getInstance(currentAccount).getCurrentUser(), false);
              }
              if (folderId == 0) {
-@@ -3627,6 +3623,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -3552,6 +3546,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                      if (!tab.isDefault && (tab.id < 0 || tab.id >= dialogFilters.size())) {
                          return;
                      }
@@ -25,7 +28,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
                      viewPages[1].selectedType = tab.id;
                      viewPages[1].setVisibility(View.VISIBLE);
                      viewPages[1].setTranslationX(viewPages[0].getMeasuredWidth());
-@@ -7021,6 +7019,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -6945,6 +6941,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      public void onResume() {
          super.onResume();
          checkUi_menuItems();

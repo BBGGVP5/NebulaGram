@@ -1,16 +1,16 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index 07277857..d3960acc 100644
+index 6962b1b3..052d0260 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -5724,6 +5724,7 @@ public class ChatActivityEnterView extends FrameLayout implements
-             if (delegate != null) {
+@@ -5782,6 +5782,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                  delegate.onTextSelectionChanged(selStart, selEnd);
              }
+             updateFormatButton(true);
 +            if (nebulaFormattingToolbar != null) nebulaFormattingToolbar.onSelection(selStart, selEnd); // NebulaGram
          }
  
          @Override
-@@ -6056,6 +6057,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -6114,6 +6115,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              nebulaFormattingToolbar = new app.nebulagram.ui.NebulaFormattingToolbar(getContext(), messageEditText, this::requestLayout);
              addView(nebulaFormattingToolbar, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT,
                      0, Gravity.TOP, 8, 0, 8, 0));
@@ -22,7 +22,7 @@ index 07277857..d3960acc 100644
              nebulaDraftTranslation = new app.nebulagram.ui.NebulaDraftTranslation(parentFragment, messageEditText, this, this::setFieldText);
              aiButton.setOnLongClickListener(v -> { openNebulaTools(); return true; });
          }
-@@ -9167,6 +9173,19 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -9281,6 +9287,19 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (doneButton != null && doneButton.getVisibility() == VISIBLE) {
              layoutParams.rightMargin = Math.max(layoutParams.rightMargin, Math.max(0, doneButton.width() - dp(DEFAULT_HEIGHT)));
          }
@@ -42,25 +42,3 @@ index 07277857..d3960acc 100644
  
          if (oldRightMargin != layoutParams.rightMargin) {
              messageEditText.setLayoutParams(layoutParams);
-@@ -15071,6 +15090,21 @@ public class ChatActivityEnterView extends FrameLayout implements
-         // FrameLayout applies the accessory padding before translating the reply preview.
-         checkUi_TopViewVisibility();
-         nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
-+        if (nebulaFormattingToolbar != null) {
-+            // «Aa» стоит левее значка эмодзи, когда тот внутри поля справа,
-+            // а не поверх него.
-+            View nebulaToggle = nebulaFormattingToolbar.toggle(getContext(), R.drawable.msg_text_outlined, getThemedColor(Theme.key_glass_defaultIcon));
-+            nebulaToggle.setTranslationX(0);
-+            if (nebulaToggle.getVisibility() == VISIBLE && emojiButton != null && emojiButton.getVisibility() == VISIBLE) {
-+                int[] toggleAt = new int[2], emojiAt = new int[2];
-+                nebulaToggle.getLocationInWindow(toggleAt);
-+                emojiButton.getLocationInWindow(emojiAt);
-+                int toggleRight = toggleAt[0] + nebulaToggle.getWidth();
-+                if (emojiAt[0] < toggleRight && emojiAt[0] + emojiButton.getWidth() > toggleAt[0]) {
-+                    nebulaToggle.setTranslationX(emojiAt[0] - toggleRight);
-+                }
-+            }
-+        }
-         if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
-             int toolbarBottom = nebulaFormattingHeight - dp(app.nebulagram.ui.NebulaFormattingToolbar.GAP_DP);
-             nebulaFormattingToolbar.layout(dp(8), toolbarBottom - dp(app.nebulagram.ui.NebulaFormattingToolbar.HEIGHT_DP),

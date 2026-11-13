@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index f2662392..a9437d3e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -284,6 +284,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -291,6 +291,9 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      public void setNebulaHomeTabsGlass(boolean enabled) {
          nebulaHomeTabsGlass = enabled;
@@ -11,7 +12,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          invalidate();
      }
  
-@@ -340,7 +343,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -349,7 +352,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
              menu.setGlassMode(true);
          }
          if (actionMode != null) {
@@ -20,7 +21,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
              actionMode.setGlassMode(true);
          }
          if (backButtonImageView != null) {
-@@ -890,7 +893,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -1055,7 +1058,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
                  }
              }
          };
@@ -30,11 +31,12 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
          actionMode.isActionMode = true;
          actionMode.setClickable(true);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 746f9b25..67669130 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -6823,7 +6823,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
-             actionModeCloseView.setColorFilter(new PorterDuffColorFilter(getThemedColor(Theme.key_actionBarActionModeDefaultIcon), PorterDuff.Mode.MULTIPLY));
-             actionModeCloseView.setBackground(Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)));
+@@ -6738,7 +6738,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+             ThemeBind.colorFilter(actionModeCloseView, Theme.key_actionBarActionModeDefaultIcon, getResourceProvider(), PorterDuff.Mode.MULTIPLY);
+             ThemeBind.selectorBackground(actionModeCloseView, Theme.createSelectorDrawable(getThemedColor(Theme.key_actionBarActionModeDefaultSelector)), null, ThemeBind.of(Theme.key_actionBarActionModeDefaultSelector), getResourceProvider());
              actionModeCloseView.setOnClickListener(v -> hideActionMode(true));
 -            actionMode.addView(actionModeCloseView, LayoutHelper.createLinear(54, 54, Gravity.CENTER_VERTICAL));
 +            // Match the close icon center to the leading Edit control on the home header.

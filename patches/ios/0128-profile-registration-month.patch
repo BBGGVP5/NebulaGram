@@ -1,0 +1,16 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index 4b09bc0..7da5591 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+@@ -230,6 +230,11 @@ func infoItems(
+         }
+         
+         if let cachedData = data.cachedData as? CachedUserData {
++            // NebulaGram: the registration month Telegram itself reported in peer settings.
++            if NebulaMessagePreferences.shared.enabled("profile_registration"), let month = NebulaRegistrationMonth.display(cachedData.peerStatusSettings?.registrationDate, russian: presentationData.strings.baseLanguageCode.hasPrefix("ru")) {
++                let russian = presentationData.strings.baseLanguageCode.hasPrefix("ru")
++                items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: "nebula-registration", label: russian ? "Зарегистрирован" : "Registered", text: month, action: nil, requestLayout: { interaction.requestLayout($0) }))
++            }
+             if NebulaSettingsStore.shared.profileBirthday, let birthday = cachedData.birthday {
+                 let isBirthdayToday = hasBirthdayToday(birthday: birthday)
+                 

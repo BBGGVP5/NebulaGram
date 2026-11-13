@@ -1,0 +1,51 @@
+diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+index 0c9efa2..f04981d 100644
+--- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
++++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+@@ -1385,6 +1385,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+     public private(set) var item: ChatListItem?
+     
+     private let backgroundNode: ASDisplayNode
++    // NebulaGram "Chats as cards": a tint under the row, drawn over whatever background is there.
++    private let nebulaCardNode = ASDisplayNode()
+     private let highlightedBackgroundNode: ASDisplayNode
+     
+     let contextContainer: ContextControllerSourceNode
+@@ -1765,6 +1767,10 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+         self.isAccessibilityElement = true
+         
+         self.addSubnode(self.backgroundNode)
++        self.nebulaCardNode.isUserInteractionEnabled = false
++        self.nebulaCardNode.isHidden = true
++        self.nebulaCardNode.cornerRadius = 16.0
++        self.addSubnode(self.nebulaCardNode)
+         self.addSubnode(self.separatorNode)
+         self.nebulaBehaviorObservation = NotificationCenter.default.addObserver(forName: NebulaBehaviorPreferences.changed, object: nil, queue: .main) { [weak self] _ in
+             guard let self, let layoutParams = self.layoutParams else { return }
+@@ -1773,7 +1779,7 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+         }
+         self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
+             guard let self else { return }
+-            self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
++            self.separatorNode.isHidden = self.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers || NebulaShapePreferences.chatCards()
+             let hidePremiumStatus = NebulaSettingsStore.shared.hidePremiumStatus
+             if self.nebulaHidePremiumStatus != hidePremiumStatus {
+                 self.nebulaHidePremiumStatus = hidePremiumStatus
+@@ -5437,9 +5443,16 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                         }
+                     }
+                     strongSelf.nebulaSeparatorBaseHidden = strongSelf.separatorNode.isHidden
+-                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
++                    var nebulaCards = NebulaShapePreferences.chatCards()
++                    if case .groupReference = item.content {
++                        nebulaCards = false
++                    }
++                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers || nebulaCards
+                     
+                     transition.updateFrame(node: strongSelf.backgroundNode, frame: CGRect(origin: CGPoint(x: 0.0, y: 0.0), size: CGSize(width: layout.contentSize.width, height: itemHeight)))
++                    strongSelf.nebulaCardNode.isHidden = !nebulaCards
++                    strongSelf.nebulaCardNode.backgroundColor = item.presentationData.theme.list.itemPrimaryTextColor.withAlphaComponent(0.05)
++                    transition.updateFrame(node: strongSelf.nebulaCardNode, frame: CGRect(x: params.leftInset + 8.0, y: 3.0, width: max(0.0, layout.contentSize.width - params.leftInset - params.rightInset - 16.0), height: max(0.0, itemHeight - 6.0)))
+                     let backgroundColor: UIColor
+                     let highlightedBackgroundColor: UIColor
+                     if item.selected {

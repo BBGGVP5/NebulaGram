@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMessagesProj/config/release/AndroidManifest_standalone.xml
+index d8854fa4..0c6d8f08 100644
 --- a/TMessagesProj/config/release/AndroidManifest_standalone.xml
 +++ b/TMessagesProj/config/release/AndroidManifest_standalone.xml
 @@ -33,7 +33,7 @@
@@ -11,11 +12,12 @@ diff --git a/TMessagesProj/config/release/AndroidManifest_standalone.xml b/TMess
      <application
          android:icon="@mipmap/nebula_launcher_blue"
 diff --git a/TMessagesProj/src/main/AndroidManifest.xml b/TMessagesProj/src/main/AndroidManifest.xml
+index 8d6e3352..fa083fdc 100644
 --- a/TMessagesProj/src/main/AndroidManifest.xml
 +++ b/TMessagesProj/src/main/AndroidManifest.xml
-@@ -84,7 +84,7 @@
- 
-     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
+@@ -82,7 +82,7 @@
+     <uses-permission android:name="com.android.vending.BILLING"/>
+     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="replace" />
  
 -    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject,com.google.mlkit.genai.prompt,com.google.mlkit.genai.common,com.google.android.gms.common"/>
 +    <uses-sdk tools:overrideLibrary="com.google.mlkit.vision.segmentation.subject,com.google.mlkit.genai.prompt,com.google.mlkit.genai.speechrecognition,com.google.mlkit.genai.common,com.google.android.gms.common"/>

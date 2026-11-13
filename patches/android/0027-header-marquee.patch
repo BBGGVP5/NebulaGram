@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 94eee872..f0e3191b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -779,6 +779,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -783,6 +783,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          }
          nebulaAvatarHiddenForSavedMessages = hideAvatar;
          titleTextView.setGravity(enabled ? Gravity.CENTER : Gravity.LEFT);

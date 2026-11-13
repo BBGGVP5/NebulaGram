@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index b8c83792..3d263059 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -207,6 +207,60 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -214,6 +214,60 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
          this.chatAvatarContainer = chatAvatarContainer;
      }
  
@@ -62,8 +63,8 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
      public void setupGlass(BlurredBackgroundDrawableViewFactory factory, BlurredBackgroundColorProvider colorProvider) {
          setupGlass(factory, colorProvider, false);
      }
-@@ -2228,6 +2282,30 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-         }
+@@ -2433,6 +2487,30 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         super.draw(canvas);
      }
  
 +    private boolean nebulaFloatingChatHeader;
@@ -92,35 +93,36 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.jav
 +
      @Override
      protected void dispatchDraw(Canvas canvas) {
-         final int p = dp(6);
-@@ -2250,7 +2328,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
-             final int rightDefault = getWidth() - rightOffset;
-             final int widthDefault = rightDefault - leftDefault;
-             final int left, right;
--            if (chatAvatarContainer != null) {
-+            final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
-+                    && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
-+            if (centeredNebulaAvatar != null) {
-+                // The title, subtitle and image have independent places: a
-+                // compact real glass capsule stays centred, while the avatar
-+                // remains a reachable round control at the trailing edge.
-+                final int width = Math.min(widthDefault,
-+                        Math.max(dp(138), centeredNebulaAvatar.getNebulaCenteredHeaderWidth()));
-+                left = (getWidth() - width) / 2;
-+                right = left + width;
-+                centeredNebulaAvatar.setTranslationX(0);
-+                centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
-+            } else if (chatAvatarContainer != null) {
-                 final int width = lerp(Math.min(widthDefault, (int) animatorAvatarContainerWidth.getFactor() + p * 2), widthDefault, Math.max(searchFactor, actionModeFactor));
-                 left = (rightDefault + leftDefault - width) / 2;
-                 right = left + width;
+         if (drawSectionsBackground) {
+@@ -2494,7 +2572,19 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+                 final int rightDefault = getWidth() - rightOffset;
+                 final int widthDefault = rightDefault - leftDefault;
+                 final int left, right;
+-                if (chatAvatarContainer != null) {
++                final ChatAvatarContainer centeredNebulaAvatar = nebulaFloatingChatHeader
++                        && actionModeFactor == 0f && searchFactor == 0f ? nebulaChatAvatarContainer : null;
++                if (centeredNebulaAvatar != null) {
++                    // The title, subtitle and image have independent places: a
++                    // compact real glass capsule stays centred, while the avatar
++                    // remains a reachable round control at the trailing edge.
++                    final int width = Math.min(widthDefault,
++                            Math.max(dp(138), centeredNebulaAvatar.getNebulaCenteredHeaderWidth()));
++                    left = (getWidth() - width) / 2;
++                    right = left + width;
++                    centeredNebulaAvatar.setTranslationX(0);
++                    centeredNebulaAvatar.setPivotX(centeredNebulaAvatar.getMeasuredWidth() / 2f);
++                } else if (chatAvatarContainer != null) {
+                     final int width = lerp(Math.min(widthDefault, (int) animatorAvatarContainerWidth.getFactor() + p * 2), widthDefault, Math.max(searchFactor, actionModeFactor));
+                     left = (rightDefault + leftDefault - width) / 2;
+                     right = left + width;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index a54b1341..28bb95ab 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -4624,6 +4624,12 @@ public class ChatActivity extends BaseFragment implements
-             glassBackgroundDrawableFactory,
+@@ -4556,6 +4556,12 @@ public class ChatActivity extends BaseFragment implements
              BlurredBackgroundProviderImpl.topPanelChatActivity(themeDelegate),
              ChatObject.isForum(currentChat));
+         setupHeaderMenuOverlay(parentView);
 +        if (chatMode == 0 && !isComments && !ChatObject.isForum(currentChat)) {
 +            actionBar.setNebulaChatAvatarContainer(avatarContainer);
 +        }
@@ -130,7 +132,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          if (chatMode == MODE_PINNED) {
              actionBar.setChatAvatarContainer(avatarContainer);
-@@ -8125,6 +8131,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -8114,6 +8120,7 @@ public class ChatActivity extends BaseFragment implements
          checkSendButtonBlockedByTyping(false);
  
          chatInputBubbleContainer.addView(chatActivityEnterView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.WRAP_CONTENT, Gravity.LEFT | Gravity.BOTTOM, 7, 0, 7, 0));
@@ -138,7 +140,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
          int chatListIndex = contentView.indexOfChild(chatListView);
          chatListIndex = chatListIndex < 0 ? contentView.getChildCount() : (chatListIndex + 1);
-@@ -30057,6 +30064,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -30659,6 +30666,10 @@ public class ChatActivity extends BaseFragment implements
      @Override
      public void onResume() {
          super.onResume();
@@ -150,9 +152,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
          activityResumeTime = System.currentTimeMillis();
          if (openImport && getSendMessagesHelper().getImportingHistory(dialog_id) != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 266e5709..cef00c45 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -668,6 +668,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -669,6 +669,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Nullable
      private RecordCircle recordCircle;
      public ControlsView controlsView;
@@ -160,7 +163,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
      private CloseProgressDrawable2 progressDrawable;
      private Paint dotPaint;
      private int searchingType;
-@@ -14524,6 +14525,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14746,6 +14747,7 @@ public class ChatActivityEnterView extends FrameLayout implements
  
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -168,7 +171,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          int wasHeight = textFieldContainer.getMeasuredHeight();
          if (botCommandsMenuButton != null && botCommandsMenuButton.getTag() != null) {
              botCommandsMenuButton.measure(widthMeasureSpec, heightMeasureSpec);
-@@ -14563,6 +14565,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14785,6 +14787,11 @@ public class ChatActivityEnterView extends FrameLayout implements
              }
          }
          updateBotCommandsMenuContainerTopPadding();
@@ -180,7 +183,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          super.onMeasure(widthMeasureSpec, heightMeasureSpec);
  
          if (botWebViewButton != null) {
-@@ -14603,6 +14610,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14825,6 +14832,7 @@ public class ChatActivityEnterView extends FrameLayout implements
      @Override
      protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
          super.onLayout(changed, left, top, right, bottom);
@@ -189,9 +192,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
              LinearLayoutManager layoutManager = (LinearLayoutManager) botCommandsMenuContainer.listView.getLayoutManager();
              if (layoutManager != null) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index c4bb8eca..255a2182 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -664,7 +664,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -668,7 +668,9 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      @Override
      protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
          final int width = MeasureSpec.getSize(widthMeasureSpec);
@@ -202,7 +206,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          avatarImageView.measure(MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(dp(avatarSizeInDp) - 2, MeasureSpec.EXACTLY));
          titleTextView.measure(MeasureSpec.makeMeasureSpec(availableWidth, MeasureSpec.AT_MOST), MeasureSpec.makeMeasureSpec(dp(24 + 8), MeasureSpec.AT_MOST));
          if (subtitleTextView != null) {
-@@ -754,6 +756,26 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -758,6 +760,26 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
      }
  
      private boolean glassMode;
@@ -229,7 +233,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
      public void setGlassMode() {
          if (titleTextView != null) {
              titleTextView.setTextSizePx(dp(17.5f));
-@@ -770,6 +792,45 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -774,6 +796,45 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
          final int viewTop = (actionBarHeight - avatarImageView.getMeasuredHeight() - 2) / 2 + (occupyStatusBar ? AndroidUtilities.statusBarHeight : 0);
          final int subtitleTop = viewTop + dp(glassMode ? 23.66f : 24);
  
@@ -276,9 +280,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarCo
          int l = leftPadding + (avatarImageView.getVisibility() == VISIBLE ? dp(glassMode ? 49.66f : 55) : dp(glassMode ? 13 : 1)) + rightAvatarPadding;
          SimpleTextView titleTextLargerCopyView = this.titleTextLargerCopyView.get();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
+index 05b593a8..7a9cf752 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInputViewsContainer.java
-@@ -73,6 +73,7 @@ public class ChatInputViewsContainer extends FrameLayout {
+@@ -74,6 +74,7 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora
  
  
  
@@ -286,7 +291,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/chat/ChatInp
      public boolean drawInputBackground = true;
      public BlurredBackgroundDrawable blurredBackgroundDrawable;
      private BlurredBackgroundDrawable underKeyboardBackgroundDrawable;
-@@ -269,7 +270,7 @@ public class ChatInputViewsContainer extends FrameLayout {
+@@ -276,7 +277,7 @@ public class ChatInputViewsContainer extends FrameLayout implements Theme.Colora
          tmpRect.offset(0, blurTop + (int) bubbleInputTranlationY);
  
          blurredBackgroundDrawable.setBounds(tmpRect);

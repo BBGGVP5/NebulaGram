@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 3ff88ad0..c8e73e48 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
-@@ -652,7 +652,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+@@ -784,7 +784,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
  
      private boolean nebulaCenterTitle() {
          if ((!nebulaHomeTabsGlass && !app.nebulagram.ui.NebulaAppearance.centerHome())

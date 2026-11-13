@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index 6d7a54fb..e70de7f2 100644
+index 83bd8187..24e8c9d6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -5308,7 +5308,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5259,7 +5259,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2 = new FrameLayout(context) {
  
              final app.nebulagram.ui.NebulaProfileArt.Hero nebulaHero = new app.nebulagram.ui.NebulaProfileArt.Hero();

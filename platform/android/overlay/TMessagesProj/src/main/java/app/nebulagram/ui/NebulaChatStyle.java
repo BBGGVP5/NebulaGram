@@ -39,11 +39,18 @@ public final class NebulaChatStyle {
                 - AndroidUtilities.dp(12) / 2 + (capsuleWidth - textWidth) / 2;
     }
 
+    /**
+     * The adaptive header covers every conversation with a title container,
+     * Saved Messages included: back with the unread counter, a centred title
+     * capsule and the round avatar that opens the chat menu. Without it Saved
+     * Messages keeps its classic layout.
+     */
     public static void header(ActionBar bar, boolean normalChat, boolean savedMessages) {
         if (bar != null) {
-            bar.setNebulaClassicSavedHeader(normalChat && savedMessages);
-            boolean enabled = normalChat && !savedMessages;
-            bar.setNebulaFloatingChatHeader(enabled, enabled && NebulaAppearance.chatHeader() && !savedMessages, enabled && savedMessages);
+            boolean adaptive = normalChat && NebulaAppearance.chatHeader();
+            bar.setNebulaClassicSavedHeader(normalChat && savedMessages && !adaptive);
+            boolean enabled = normalChat && (!savedMessages || adaptive);
+            bar.setNebulaFloatingChatHeader(enabled, adaptive, false);
         }
     }
 

@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
-index 60b0044f..0391d426 100644
+index 087e514a..c723feb2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
-@@ -3035,7 +3035,9 @@ public class AndroidUtilities {
+@@ -3144,7 +3144,9 @@ public class AndroidUtilities {
      }
  
      public static int getTabletLeftFragmentSize(final int fullWidth, final int insetLeft, final int insetRight) {
@@ -14,10 +14,10 @@ index 60b0044f..0391d426 100644
  
      public static int getPhotoSize() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-index 0ced90f4..0489cf62 100644
+index d9f93517..4e0a8cff 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LaunchActivity.java
-@@ -1005,6 +1005,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
+@@ -1016,6 +1016,27 @@ public class LaunchActivity extends BasePermissionsActivity implements INavigati
                          layersActionBarLayout.parentDraw(this, canvas);
                      }
                      super.dispatchDraw(canvas);

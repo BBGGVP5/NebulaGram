@@ -312,45 +312,25 @@ public final class NebulaProfileStyle {
     }
 
     /**
-     * Фон цветной страницы. Цвет держится под карточками и плавно уходит в
-     * обычный фон к началу вкладок медиа: сами вкладки и сетка лежат на
-     * обычном фоне, и раньше цвет обрывался на их верхнем краю резкой чертой.
+     * Фон цветной страницы: цвет шапки во всю длину, к низу длинного списка
+     * чуть спокойнее. Вкладки и сетка медиа лежат прямо на нём — их сплошную
+     * заливку на цветной странице убирает 0302, так что чёрной черты нет.
      */
     public static final class PageBackground extends Drawable {
-        private final int top, base;
+        private final int top, bottom;
         private final Paint paint = new Paint();
-        private final View owner;
         private LinearGradient gradient;
-        private int previousTop = Integer.MIN_VALUE, previousEnd = -1;
+        private int previousTop = Integer.MIN_VALUE, previousHeight = -1;
         public PageBackground(int color, int base, View owner) {
             top = color;
-            this.base = base;
-            this.owner = owner;
-        }
-        /** Верх вкладок медиа внутри списка или -1, если их не видно. */
-        private int mediaTop() {
-            if (!(owner instanceof ViewGroup)) return -1;
-            ViewGroup group = (ViewGroup) owner;
-            for (int i = 0; i < group.getChildCount(); i++) {
-                View child = group.getChildAt(i);
-                if (child instanceof org.telegram.ui.Components.SharedMediaLayout) return child.getTop() + Math.round(child.getTranslationY());
-            }
-            return -1;
+            bottom = ColorUtils.blendARGB(color, base, Theme.isCurrentThemeDark() ? .3f : .45f);
         }
         @Override public void draw(Canvas canvas) {
             Rect bounds = getBounds();
-            int media = mediaTop();
-            int fade = AndroidUtilities.dp(220);
-            // Без вкладок на экране цвет ровно гаснет к низу длинного списка.
-            int end = media > bounds.top ? media : bounds.top + Math.max(AndroidUtilities.dp(900), bounds.height());
-            end = (end / 4) * 4;
-            if (gradient == null || previousTop != bounds.top || previousEnd != end) {
-                previousTop = bounds.top; previousEnd = end;
-                float span = Math.max(1, end - bounds.top);
-                float hold = Math.max(0f, Math.min(1f, (span - fade) / span));
-                int last = media > bounds.top ? base : ColorUtils.blendARGB(top, base, Theme.isCurrentThemeDark() ? .3f : .45f);
-                gradient = new LinearGradient(0, bounds.top, 0, end, new int[] {top, top, last},
-                        new float[] {0f, hold, 1f}, Shader.TileMode.CLAMP);
+            if (gradient == null || previousTop != bounds.top || previousHeight != bounds.height()) {
+                previousTop = bounds.top; previousHeight = bounds.height();
+                gradient = new LinearGradient(0, bounds.top, 0, bounds.top + Math.max(AndroidUtilities.dp(900), bounds.height()),
+                        top, bottom, Shader.TileMode.CLAMP);
             }
             paint.setShader(gradient);
             canvas.drawRect(bounds, paint);

@@ -9,7 +9,8 @@ tree=Path(sys.argv[1])
 ui=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui'
 stories=(tree/'TMessagesProj/src/main/java/org/telegram/ui/Stories/DialogStoriesCell.java').read_text(encoding='utf-8')
 bar=(tree/'TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java').read_text(encoding='utf-8')
-glass=(tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/BlurredBackgroundDrawable.java').read_text(encoding='utf-8')
+glass=(tree/'TMessagesProj/src/main/java/org/telegram/ui/Components/blur3/drawable/GlassRim.java').read_text(encoding='utf-8')
+assert 'topWidth > 0.05f' in glass and 'bottomWidth > 0.05f' in glass, 'zero-width outline would draw a hairline'
 
 def method(source,signature):
     start=source.index(signature);end=source.index('{',start)+1;depth=1
@@ -22,12 +23,7 @@ native='\n'.join(method(stories,s) for s in [
 ])
 start=bar.index('        if (nebulaHomeTabsGlass && glassDrawableHomeLeading != null')
 leading=bar[start:bar.index('        final boolean nebulaPlainHeaderButtons',start)]
-stroke='\n'.join(method(glass,s) for s in [
-    'public static void drawStroke(\n',
-    'public static void drawStroke(Canvas canvas, float left, float top, float right, float bottom,',
-    'public void setStrokeWidth(float strokeWidthTop, float strokeWidthBottom)',
-    'private void drawStrokeInternalIfNeeded(Canvas canvas)'
-])
+# Telegram 13.2: outlines are GlassRim's; zero widths draw nothing (GlassRim.hasStroke).
 layer_line=next(line.strip() for line in method(stories,'protected void dispatchDraw(Canvas canvas)').splitlines()
                 if 'final boolean needSaveLayer =' in line)
 java='''import java.util.*;import app.nebulagram.ui.NebulaHomeTitleGeometry;
@@ -64,10 +60,6 @@ class HomeMotionCheck {
  static class Theme {static int multAlpha(int color,float alpha){return color;}}
  static class Props {float strokeWidthTop=1,strokeWidthBottom=1;int builds;
   Object strokePathTop=new Object(),strokePathBottom=new Object();void build(){builds++;}}
- static class Glass {Props boundProps=new Props();int invalidations,alpha=255,strokeColorTop=0xffffffff,strokeColorBottom=0xffffffff;
-  Paint paintStrokeFill=new Paint();void onBoundPropsChanged(){invalidations++;}
-''' + stroke + '''
- }
  static void check(boolean ok,String why){if(!ok)throw new AssertionError(why);}
  static boolean nativeLayer(boolean nebulaHome,float progress,float clipRightPadding){
 ''' + layer_line + '''
@@ -104,17 +96,6 @@ class HomeMotionCheck {
    edit.draw();check(edit.glassDrawableHomeLeading.draws==0,"Home Edit retains a separate material background");
   }
   edit.nebulaHomeLeadingView.visibility=8;int before=edit.glassDrawableHomeLeading.draws;edit.draw();check(before==edit.glassDrawableHomeLeading.draws,"Hidden Edit still draws");
-  Glass g=new Glass();g.setStrokeWidth(0,0);check(g.boundProps.builds==1 && g.invalidations==1,"Cached outline geometry survives width change");
-  g.setStrokeWidth(0,0);check(g.invalidations==1,"Unchanged width invalidates every frame");
-  Canvas c=new Canvas();g.drawStrokeInternalIfNeeded(c);check(c.strokes==0,"Software fallback draws disabled outline");
-  float[] radii={12,12,12,12,12,12,12,12};Paint paint=new Paint();
-  for(boolean top:new boolean[]{false,true})for(float width:new float[]{0,-1}){
-   Glass.drawStroke(c,0,0,60,44,radii,width,top,paint);Glass.drawStroke(c,0,0,60,44,12,width,top,paint);
-  }
-  check(c.strokes==0 && c.operations==0,"Hardware renderer draws zero-width hairline");
-  Glass.drawStroke(c,0,0,60,44,radii,1,true,paint);Glass.drawStroke(c,0,0,60,44,12,1,false,paint);
-  check(c.strokes==2,"Ordinary glass borders changed");g.setStrokeWidth(1,1);g.drawStrokeInternalIfNeeded(c);
-  check(c.strokes==4 && g.invalidations==2,"Re-enabling ordinary outline fails");
   int poses=0;
   for(float density:new float[]{1,1.5f,2,2.625f,3.5f})for(int screen:new int[]{320,360,393,448,600,900})
   for(int actions=2;actions<=5;actions++)for(int count=0;count<=3;count++)for(int text:new int[]{60,96,160,260}) {

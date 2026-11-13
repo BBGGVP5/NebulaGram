@@ -1,8 +1,9 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 5e7537dc..db6e9a3b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -1273,6 +1273,9 @@ public class ChatActivity extends BaseFragment implements
-     public final static int OPTION_SEND_MONEY = 117;
+@@ -1306,6 +1306,9 @@ public class ChatActivity extends BaseFragment implements
+     public final static int OPTION_STOP_LIVE_LOCATION = 118;
  
      private final static int[] allowedNotificationsDuringChatListAnimations = new int[]{
 +            // A real quick acknowledgement only refreshes an existing message row.
@@ -12,9 +13,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              NotificationCenter.threadMessagesRead,
              NotificationCenter.monoForumMessagesRead,
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index a63d1684..b286d277 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14983,7 +14983,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15204,7 +15204,7 @@ public class ChatActivityEnterView extends FrameLayout implements
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {
              // An overlay must not increase the native field's minimum measured height.
              nebulaFormattingToolbar.measure(MeasureSpec.makeMeasureSpec(Math.max(0, getMeasuredWidth() - dp(16)), MeasureSpec.EXACTLY),
@@ -23,7 +25,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivity
          }
  
          if (botWebViewButton != null) {
-@@ -15030,8 +15030,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -15251,8 +15251,9 @@ public class ChatActivityEnterView extends FrameLayout implements
          super.onLayout(changed, left, top, right, bottom);
          nebulaComposerStyle.layout(emojiButton, attachButton, senderSelectView, aiButton, richButton);
          if (nebulaFormattingToolbar != null && nebulaFormattingHeight > 0) {

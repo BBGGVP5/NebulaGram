@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
+index 291afe9e..48d4c00d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorCell.java
-@@ -276,7 +276,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+@@ -292,7 +292,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
  
              MarginLayoutParams params = (MarginLayoutParams) titleView.getLayoutParams();
              if (icon.premium && !UserConfig.hasPremiumOnAccounts()) {
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorC
                  ColoredImageSpan span = new ColoredImageSpan(R.drawable.msg_mini_premiumlock);
                  span.setTopOffset(1);
                  span.setSize(AndroidUtilities.dp(13));
-@@ -286,7 +286,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
+@@ -302,7 +302,7 @@ public class AppIconsSelectorCell extends RecyclerListView implements Notificati
                  titleView.setText(str);
              } else {
                  params.rightMargin = 0;
@@ -20,9 +21,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/AppIconsSelectorC
              setSelected(LauncherIconController.isEnabled(icon), false);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 031cc749..4f8f2912 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -4765,7 +4765,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4678,7 +4678,11 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          floatingButtonStories = new FragmentFloatingButton(context, resourceProvider, true);
          floatingButtonStories.setContentDescription(getString(R.string.StoryPrivacyButtonPost));
          floatingButtonStories.setImageResource(R.drawable.outline_fab_story_24);
@@ -35,7 +37,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          contentView.addView(floatingButtonStories, FragmentFloatingButton.createSubButtonLayoutParams());
  
          floatingButton3 = new FragmentFloatingButton(context, resourceProvider);
-@@ -7102,6 +7106,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -7024,6 +7028,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
      @Override
      public void onResume() {
          super.onResume();
@@ -43,7 +45,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
          checkUi_searchFieldVisibility();
          if (fragmentView != null) {
              setScrollY(Math.max(scrollYOffset, -getMaxScrollYOffset()));
-@@ -8954,6 +8959,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -8888,6 +8893,13 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          return false;
      }
  
@@ -57,7 +59,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/
      private void updateFloatingButtonVisibility(boolean animated) {
          final boolean isVisible = !(onlySelect && initialDialogsType != 10 || folderId != 0 || communityId != 0 || inPreviewMode || (searching && !onlySelect) || floatingButtonHidden);
  
-@@ -8961,7 +8973,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -8895,7 +8907,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
              floatingButton3.setButtonVisible(isVisible && (onlySelect || !app.nebulagram.ui.NebulaAppearance.hideHomeCompose()), animated);
          }
          if (floatingButtonStories != null) {

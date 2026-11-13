@@ -298,6 +298,7 @@ func buildConfig(server model.Server, cfg settings.Settings, socksPort, httpPort
 			opts.HTTPPort = httpPort
 			opts.LogLevel = cfg.LogLevel
 			opts.GeoAssets = GeoAssetsPresent()
+			opts.Routing = cfg.Routing
 			return xraycfg.Normalize([]byte(server.Config), opts)
 		case model.EngineSingBox:
 			opts := singboxcfg.Defaults(socksPort)
@@ -314,6 +315,8 @@ func buildConfig(server model.Server, cfg settings.Settings, socksPort, httpPort
 		opts.HTTPPort = httpPort
 		opts.LogLevel = cfg.LogLevel
 		opts.DNS = cfg.DNS
+		opts.GeoAssets = GeoAssetsPresent()
+		opts.Routing = cfg.Routing
 		return xraycfg.Build(server, opts)
 	case model.EngineSingBox:
 		opts := singboxcfg.Defaults(socksPort)

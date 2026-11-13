@@ -6,17 +6,17 @@ import org.telegram.messenger.AndroidUtilities;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 
 /** Records only the scrolling body, never the header or whole window. Android 31+. */
 @android.annotation.TargetApi(31)
 final class NebulaSettingsBackdrop {
-    private final BlurredBackgroundSourceRenderNode source;
+    private final GlassSourceRenderNode source;
     private final BlurredBackgroundDrawable drawable;
     NebulaSettingsBackdrop(int surface){
-        BlurredBackgroundSourceColor fallback=new BlurredBackgroundSourceColor();fallback.setColor(surface);
-        source=new BlurredBackgroundSourceRenderNode(fallback);
+        GlassSourceColor fallback=new GlassSourceColor();fallback.setColor(surface);
+        source=new GlassSourceRenderNode(fallback);
         BlurredBackgroundDrawableViewFactory factory=new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(false);
         drawable=factory.create().setColorProvider(new NebulaMenuStyle.Material(null)

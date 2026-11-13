@@ -1,9 +1,10 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
+index 4d0a8f5d..9b2b53e4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ApplicationLoader.java
-@@ -290,6 +290,8 @@ public class ApplicationLoader extends Application {
- 
-         super.onCreate();
+@@ -301,6 +301,8 @@ public class ApplicationLoader extends Application {
+             return;
+         }
  
 +        app.nebulagram.nebulalink.NebulaLink.init(this); // NebulaGram
 +

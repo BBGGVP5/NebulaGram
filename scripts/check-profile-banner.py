@@ -23,7 +23,7 @@ assert 'avatarsViewPager.getCurrentItemView()' in header and 'nebulaHero.clear(a
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(actionsView,')
 assert native.index('avatarContainer2.addView(overlaysView)') < native.index('avatarContainer2.addView(musicView,')
 actions = (tree / 'TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java').read_text(encoding='utf-8')
-assert 'if (!hasCustomActionSurface(canvas)) drawRenderNode(canvas)' in actions
+assert 'if (glassFactory != null && !hasCustomActionSurface(canvas))' in actions
 assert 'drawActionEmoji' not in actions, 'profile actions must retain native icon rendering'
 assert actions.index('if (hasCustomActionSurface(canvas)) {') < actions.index('int newAlpha = (int) (action.getAlpha() * alphaFraction1 * wasAlpha)')
 

@@ -9,8 +9,8 @@ import org.telegram.messenger.LiteMode;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Components.blur3.BlurredBackgroundDrawableViewFactory;
 import org.telegram.ui.Components.blur3.drawable.BlurredBackgroundDrawable;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceColor;
-import org.telegram.ui.Components.blur3.source.BlurredBackgroundSourceRenderNode;
+import org.telegram.utils.glass.source.GlassSourceColor;
+import org.telegram.utils.glass.source.GlassSourceRenderNode;
 
 /** Captures the originating window, including its wallpaper, for a separate popup window. */
 public final class NebulaMenuBackdrop {
@@ -55,9 +55,9 @@ public final class NebulaMenuBackdrop {
 
     @android.annotation.TargetApi(31)
     private static void attachHardware(View popup, View root, Theme.ResourcesProvider provider, boolean padded, boolean sheet) {
-        BlurredBackgroundSourceColor fallback = new BlurredBackgroundSourceColor();
+        GlassSourceColor fallback = new GlassSourceColor();
         fallback.setColor(NebulaMenuStyle.surface(provider));
-        BlurredBackgroundSourceRenderNode source = new BlurredBackgroundSourceRenderNode(fallback);
+        GlassSourceRenderNode source = new GlassSourceRenderNode(fallback);
         source.setBlur(AndroidUtilities.dpf2(NebulaGlass.blur()));
         BlurredBackgroundDrawableViewFactory factory = new BlurredBackgroundDrawableViewFactory(source);
         factory.setLiquidGlassEffectAllowed(NebulaMenuStyle.animated());

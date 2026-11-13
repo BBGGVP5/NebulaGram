@@ -50,7 +50,7 @@ subprocess.run(['javac','-d',str(work),str(target)],check=True)
 subprocess.run(['java','-cp',str(work),'CheckMenuPreview'],check=True)
 glass = (ui/'NebulaGlassPreview.java').read_text(encoding='utf-8')
 assert 'NebulaWallpaperPreview.drawWallpaper(' in glass
-assert 'new BlurredBackgroundSourceRenderNode(fallback)' in glass
+assert 'new GlassSourceRenderNode(fallback)' in glass
 assert 'owner.drawScene(capture)' in glass and 'finally { source.endRecording(); }' in glass
 assert 'Utilities.stackBlurBitmap(fallback, radius)' in glass
 assert 'renderedRevision != revision' in glass and 'wallpaper != currentWallpaper' in glass

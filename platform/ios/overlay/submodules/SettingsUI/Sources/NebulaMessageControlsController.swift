@@ -10,7 +10,7 @@ final class NebulaMessageControlsController: UITableViewController {
     private let ru: Bool
     private let profile: Bool
     private let prefs = NebulaMessagePreferences.shared
-    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc"] : ["chat_preferences", "edited_pencil", "forward_date", "direct_share", "voice_autoplay", "seek_interval", "pause_background_video", "disable_message_effects", "premium_effects", "reaction_effects", "instant_view", "delete_for_all", "selection_without_author"] }
+    private var keys: [String] { profile ? ["hide_profile_phone", "profile_photo_dc", "profile_registration"] : ["chat_preferences", "message_blur", "message_blur_tint", "edited_pencil", "forward_date", "direct_share", "voice_autoplay", "seek_interval", "pause_background_video", "disable_message_effects", "premium_effects", "reaction_effects", "instant_view", "delete_dust", "delete_for_all", "selection_without_author"] }
     private lazy var hero = NebulaSettingsHero(symbol: profile ? "👤" : "💬", title: title ?? "", summary: ru ? (profile ? "Локальное отображение данных профиля" : "Отметки сообщений и воспроизведение") : (profile ? "Local profile presentation" : "Message labels and playback"), context: context, theme: theme)
     init(context: AccountContext, profile: Bool) {
         self.context = context; self.profile = profile
@@ -39,13 +39,24 @@ final class NebulaMessageControlsController: UITableViewController {
             cell.detailTextLabel?.text = ru ? "Свайпы, вычисления, стикеры и счётчики" : "Swipe actions, arithmetic, stickers and badges"
             cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
         }
-        let titles = ru ? ["selection_without_author": "Кнопка «Без авторства»", "edited_pencil": "Карандаш вместо «изменено»", "forward_date": "Дата исходного сообщения", "direct_share": "Кнопка быстрой пересылки", "voice_autoplay": "Следующее голосовое автоматически", "hide_profile_phone": "Скрывать номер в профиле", "profile_photo_dc": "DC фотографии профиля", "seek_interval": "Шаг перемотки видео", "pause_background_video": "Пауза видео в фоне", "disable_message_effects": "Отключить эффекты сообщений", "premium_effects": "Эффекты Premium-стикеров", "reaction_effects": "Анимация реакций", "instant_view": "Открывать Instant View", "delete_for_all": "Удалять для всех по умолчанию"] : ["selection_without_author": "Without author button", "edited_pencil": "Pencil for edited messages", "forward_date": "Original forwarded date", "direct_share": "Quick forward button", "voice_autoplay": "Autoplay the next voice message", "hide_profile_phone": "Hide profile phone number", "profile_photo_dc": "Profile photo DC", "seek_interval": "Video seek interval", "pause_background_video": "Pause background video", "disable_message_effects": "Disable message effects", "premium_effects": "Premium sticker effects", "reaction_effects": "Reaction animations", "instant_view": "Open Instant View", "delete_for_all": "Select delete for everyone by default"]
+        let titles = ru ? ["selection_without_author": "Кнопка «Без авторства»", "message_blur": "Размытые сообщения", "profile_registration": "Месяц регистрации", "delete_dust": "Удаление рассыпается в пыль", "message_blur_tint": "Плотность цвета пузыря", "edited_pencil": "Карандаш вместо «изменено»", "forward_date": "Дата исходного сообщения", "direct_share": "Кнопка быстрой пересылки", "voice_autoplay": "Следующее голосовое автоматически", "hide_profile_phone": "Скрывать цифры номера в профиле", "profile_photo_dc": "DC фотографии профиля", "seek_interval": "Шаг перемотки видео", "pause_background_video": "Пауза видео в фоне", "disable_message_effects": "Отключить эффекты сообщений", "premium_effects": "Эффекты Premium-стикеров", "reaction_effects": "Анимация реакций", "instant_view": "Открывать Instant View", "delete_for_all": "Удалять для всех по умолчанию"] : ["selection_without_author": "Without author button", "message_blur": "Blurred messages", "profile_registration": "Registration month", "delete_dust": "Deleted messages turn to dust", "message_blur_tint": "Bubble tint density", "edited_pencil": "Pencil for edited messages", "forward_date": "Original forwarded date", "direct_share": "Quick forward button", "voice_autoplay": "Autoplay the next voice message", "hide_profile_phone": "Hide phone digits in profiles", "profile_photo_dc": "Profile photo DC", "seek_interval": "Video seek interval", "pause_background_video": "Pause background video", "disable_message_effects": "Disable message effects", "premium_effects": "Premium sticker effects", "reaction_effects": "Reaction animations", "instant_view": "Open Instant View", "delete_for_all": "Select delete for everyone by default"]
         let cell = UITableViewCell(style: .subtitle, reuseIdentifier: nil); cell.textLabel?.text = titles[key]
         if key == "selection_without_author" { cell.detailTextLabel?.text = ru ? "Добавить кнопку в нижнюю панель выделения. По умолчанию — стандартные кнопки Telegram." : "Add a button to the bottom selection panel. Standard Telegram controls remain the default." }
         if key == "profile_photo_dc" { cell.detailTextLabel?.text = ru ? "Центр данных, где хранится фото пользователя" : "Data center storing the user's profile photo" }
+        if key == "profile_registration" { cell.detailTextLabel?.text = ru ? "Если Telegram сообщил его для этого человека. Ничего не запрашивается дополнительно." : "When Telegram has reported it for this person. Nothing extra is requested." }
         if key == "instant_view" { cell.detailTextLabel?.text = ru ? "Если выключено, ссылки открываются в браузере" : "Open links in the browser when disabled" }
         if key == "delete_for_all" { cell.detailTextLabel?.text = ru ? "Выбирать переключатель удаления своих сообщений у собеседника, когда Telegram его предлагает. Подтверждение остаётся." : "Preselect the switch to remove your messages for the recipient when Telegram offers it. Confirmation is still required." }
         if key == "forward_date" { cell.detailTextLabel?.text = ru ? "Показывать полную исходную дату пересланных сообщений" : "Show the full original date of forwarded messages" }
+        if key == "message_blur" {
+            cell.detailTextLabel?.text = ru ? "Пузыри показывают размытые обои под полупрозрачным цветом сообщения. На однотонных обоях пузыри остаются сплошными." : "Bubbles show the blurred wallpaper under a translucent tint of their colour. On plain colour wallpapers they stay solid."
+            let toggle = NebulaSwitchControl(); toggle.isOn = prefs.messageBlur; toggle.accessibilityIdentifier = key; toggle.accessibilityLabel = cell.textLabel?.text
+            toggle.addTarget(self, action: #selector(change(_:)), for: .valueChanged); cell.accessoryView = toggle; cell.selectionStyle = .none
+            NebulaSettingsStyle.finish(cell, theme: theme); return cell
+        }
+        if key == "message_blur_tint" {
+            cell.detailTextLabel?.text = blurTintName(prefs.messageBlurTint)
+            cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
+        }
         if key == "seek_interval" {
             cell.detailTextLabel?.text = String(prefs.seekInterval) + (ru ? " секунд" : " seconds")
             cell.accessoryType = .disclosureIndicator; NebulaSettingsStyle.finish(cell, theme: theme); return cell
@@ -58,12 +69,32 @@ final class NebulaMessageControlsController: UITableViewController {
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
         if keys[indexPath.row] == "chat_preferences" { navigationController?.pushViewController(NebulaChatPreferencesController(context: context), animated: true); return }
+        if keys[indexPath.row] == "message_blur_tint" {
+            let values = NebulaMessagePreferences.messageBlurTints
+            NebulaChoiceController.show(from: self, title: ru ? "Плотность цвета" : "Tint density", choices: values.map { blurTintName($0) }, selected: values.firstIndex(of: prefs.messageBlurTint), russian: ru, theme: theme) { [weak self] index in
+                self?.prefs.setMessageBlurTint(values[index]); self?.tableView.reloadData()
+            }
+            return
+        }
         guard keys[indexPath.row] == "seek_interval" else { return }
         let values = [5, 10, 15, 20, 25, 30]
         NebulaChoiceController.show(from: self, title: ru ? "Шаг перемотки" : "Seek interval", choices: values.map { String($0) + (ru ? " секунд" : " seconds") }, selected: values.firstIndex(of: prefs.seekInterval), russian: ru, theme: theme) { [weak self] index in
             self?.prefs.setSeekInterval(values[index]); self?.tableView.reloadData()
         }
     }
-    @objc private func change(_ sender: NebulaSwitchControl) { if let key = sender.accessibilityIdentifier { prefs.set(key, sender.isOn) } }
+    private func blurTintName(_ percent: Int) -> String {
+        let name: String
+        switch percent {
+        case 35: name = ru ? "Лёгкая" : "Light"
+        case 75: name = ru ? "Плотная" : "Dense"
+        default: name = ru ? "Средняя" : "Medium"
+        }
+        return name + " · " + String(percent) + " %"
+    }
+    @objc private func change(_ sender: NebulaSwitchControl) {
+        guard let key = sender.accessibilityIdentifier else { return }
+        if key == "message_blur" { prefs.setMessageBlur(sender.isOn); return }
+        prefs.set(key, sender.isOn)
+    }
     @objc private func close() { dismiss(animated: true) }
 }

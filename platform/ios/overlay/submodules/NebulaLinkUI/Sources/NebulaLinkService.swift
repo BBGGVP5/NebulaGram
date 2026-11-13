@@ -23,6 +23,8 @@ public final class NebulaLinkService: NSObject {
     private var routeActions: [(@escaping () -> Void) -> Void] = []
     public static let probeProgress = Notification.Name("NebulaLinkProbeProgress")
     public static let statusChanged = Notification.Name("NebulaLinkStatusChanged")
+    /// Auto-select state from the core: picked server, its latency, progress.
+    public static let autoChanged = Notification.Name("NebulaLinkAutoChanged")
     // Updated/read on main only. 'connected' means local proxy enabled, not APNs delivery.
     public private(set) var state = "disconnected"
 
@@ -128,7 +130,9 @@ public final class NebulaLinkService: NSObject {
                 try self.initializeCore()
                 // Initialization is serialized above. A synchronous probe must never occupy
                 // the control queue used by stop, selection, status or probe.cancel.
-                if method == "probe.servers" || method == "probe.url" {
+                // Auto measures the whole list and can take a minute: it gets the
+                // probe queue too, so stop and status stay responsive meanwhile.
+                if method == "probe.servers" || method == "probe.url" || method == "auto.set" || method == "auto.check" {
                     self.probeQueue.async {
                         do {
                             let result = try Self.raw(method, payload)
@@ -249,8 +253,16 @@ private final class NebulaProbeProgressSink: NSObject, NebulalinkEventSinkProtoc
     func onEvent(_ json: String?) {
         guard let bytes = json?.data(using: .utf8),
               let event = (try? JSONSerialization.jsonObject(with: bytes)) as? [String: Any],
-              event["event"] as? String == "probe.progress",
+              let name = event["event"] as? String,
               let progress = event["data"] as? [String: Any] else { return }
+        if name == "auto.status" {
+            DispatchQueue.main.async {
+                NotificationCenter.default.post(name: NebulaLinkService.autoChanged,
+                                                object: NebulaLinkService.shared, userInfo: progress)
+            }
+            return
+        }
+        guard name == "probe.progress" else { return }
         // No payload logging: other core events may contain subscription credentials.
         DispatchQueue.main.async {
             NotificationCenter.default.post(name: NebulaLinkService.probeProgress,

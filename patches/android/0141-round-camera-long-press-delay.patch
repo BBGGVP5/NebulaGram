@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 0a4e47d8..27f78313 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -3079,7 +3079,9 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -3137,7 +3137,9 @@ public class ChatActivityEnterView extends FrameLayout implements
                      if (hasRecordVideo) {
                          calledRecordRunnable = false;
                          recordAudioVideoRunnableStarted = true;

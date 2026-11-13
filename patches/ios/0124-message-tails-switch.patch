@@ -1,0 +1,50 @@
+diff --git a/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift b/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
+index 6da2641..dcccb44 100644
+--- a/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
++++ b/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
+@@ -97,7 +97,7 @@ public func messageBubbleArguments(maxCornerRadius: CGFloat, minCornerRadius: CG
+         topRightRadius = maxCornerRadius
+         bottomLeftRadius = maxCornerRadius
+         bottomRightRadius = maxCornerRadius
+-        drawTail = true
++        drawTail = nebulaMessageTails()
+     case .both:
+         topLeftRadius = maxCornerRadius
+         topRightRadius = minCornerRadius
+@@ -109,7 +109,7 @@ public func messageBubbleArguments(maxCornerRadius: CGFloat, minCornerRadius: CG
+         topRightRadius = minCornerRadius
+         bottomLeftRadius = maxCornerRadius
+         bottomRightRadius = maxCornerRadius
+-        drawTail = true
++        drawTail = nebulaMessageTails()
+     case .side:
+         topLeftRadius = maxCornerRadius
+         topRightRadius = maxCornerRadius
+@@ -156,7 +156,7 @@ public func messageBubbleImage(maxCornerRadius: CGFloat, minCornerRadius: CGFloa
+         topRightRadius = maxCornerRadius
+         bottomLeftRadius = maxCornerRadius
+         bottomRightRadius = maxCornerRadius
+-        drawTail = true
++        drawTail = nebulaMessageTails()
+     case .both:
+         topLeftRadius = maxCornerRadius
+         topRightRadius = minCornerRadius
+@@ -168,7 +168,7 @@ public func messageBubbleImage(maxCornerRadius: CGFloat, minCornerRadius: CGFloa
+         topRightRadius = minCornerRadius
+         bottomLeftRadius = maxCornerRadius
+         bottomRightRadius = maxCornerRadius
+-        drawTail = true
++        drawTail = nebulaMessageTails()
+     case .side:
+         topLeftRadius = maxCornerRadius
+         topRightRadius = maxCornerRadius
+@@ -529,3 +529,9 @@ public func messageBubbleActionButtonImage(color: UIColor, strokeColor: UIColor,
+         }
+     })!.stretchableImage(withLeftCapWidth: Int(size.width / 2.0), topCapHeight: Int(size.height / 2.0))
+ }
++
++// NebulaGram "Shape" page: bubbles can drop their tails; every bubble then keeps the plain corners.
++// Written by NebulaShapePreferences; cached bubble images pick it up after a restart.
++private func nebulaMessageTails() -> Bool {
++    return UserDefaults.standard.object(forKey: "nebula.shape.message_tails") as? Bool ?? true
++}

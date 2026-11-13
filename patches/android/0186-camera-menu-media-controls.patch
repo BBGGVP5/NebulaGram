@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
+index 0dcd2c63..f70ed71e 100644
 --- a/TMessagesProj/build.gradle
 +++ b/TMessagesProj/build.gradle
 @@ -42,6 +42,8 @@ configurations.all {
@@ -11,9 +12,10 @@ diff --git a/TMessagesProj/build.gradle b/TMessagesProj/build.gradle
      implementation 'androidx.core:core:1.16.0'
      implementation 'androidx.palette:palette:1.0.0'
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index dc9c7b53..ee473ea9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
-@@ -2576,7 +2576,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -2647,7 +2647,7 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
                  hasAudioFocus = 0;
                  int index = -1;
                  if (voiceMessagesPlaylist != null) {
@@ -22,7 +24,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                          voiceMessagesPlaylist.remove(index);
                          voiceMessagesPlaylistMap.remove(lastFile.getId());
                          if (voiceMessagesPlaylist.isEmpty()) {
-@@ -4478,8 +4478,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+@@ -4558,8 +4558,8 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
  
      public void requestRecordAudioFocus(boolean request) {
          if (request) {
@@ -34,9 +36,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.
                      hasRecordAudioFocus = true;
                  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
+index f61eb88e..8b0e71a4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.java
-@@ -1809,6 +1809,8 @@ public class SharedConfig {
+@@ -1831,6 +1831,8 @@ public class SharedConfig {
      }
  
      public static boolean isUsingCamera2(int currentAccount) {
@@ -46,9 +49,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SharedConfig.jav
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.java b/TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.java
+index 3f2f990f..a24affe5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.java
-@@ -305,7 +305,7 @@ public class Browser {
+@@ -378,7 +378,7 @@ public class Browser {
              _allowCustom = false;
          }
          final boolean allowCustom = _allowCustom;
@@ -58,6 +62,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/browser/Browser.
                  String host = AndroidUtilities.getHostAuthority(uri);
                  if (UserConfig.getInstance(UserConfig.selectedAccount).getCurrentUser() != null && (isTelegraphUrl(host, true) || "telegram.org".equalsIgnoreCase(host) && (uri.toString().toLowerCase().contains("telegram.org/faq") || uri.toString().toLowerCase().contains("telegram.org/privacy") || uri.toString().toLowerCase().contains("telegram.org/blog")))) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
+index 26bf509d..de3f972c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Session.java
 @@ -111,7 +111,7 @@ public class Camera2Session {
@@ -133,7 +138,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
              sensorSize = cameraCharacteristics.get(CameraCharacteristics.SENSOR_INFO_ACTIVE_ARRAY_SIZE);
              final Float value = cameraCharacteristics.get(CameraCharacteristics.SCALER_AVAILABLE_MAX_DIGITAL_ZOOM);
              maxZoom = (value == null || value < 1f) ? 1f : value;
-@@ -547,6 +594,10 @@ public class Camera2Session {
+@@ -576,6 +623,10 @@ public class Camera2Session {
              }
  
              applyZoomToRequest();
@@ -144,7 +149,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
  
              captureRequestBuilder.addTarget(surface);
              captureSession.setRepeatingRequest(captureRequestBuilder.build(), null, handler);
-@@ -559,8 +610,10 @@ public class Camera2Session {
+@@ -588,8 +639,10 @@ public class Camera2Session {
          if (cameraDevice == null || captureSession == null) return false;
          try {
              CaptureRequest.Builder captureRequestBuilder = cameraDevice.createCaptureRequest(CameraDevice.TEMPLATE_STILL_CAPTURE);
@@ -156,7 +161,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
              imageReader.setOnImageAvailableListener(new ImageReader.OnImageAvailableListener() {
                  @Override
                  public void onImageAvailable(ImageReader reader) {
-@@ -588,7 +641,7 @@ public class Camera2Session {
+@@ -617,7 +670,7 @@ public class Camera2Session {
  
                      AndroidUtilities.runOnUIThread(() -> {
                          if (whenDone != null) {
@@ -166,6 +171,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/Camera2Se
                      });
                  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
+index f6237b4f..d2a5ada9 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSession.java
 @@ -222,6 +222,12 @@ public class CameraSession {
@@ -198,6 +204,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSes
                      } catch (Exception e) {
                          //
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSessionWrapper.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSessionWrapper.java
+index 0a990f25..62b0fdbe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSessionWrapper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSessionWrapper.java
 @@ -82,7 +82,7 @@ public class CameraSessionWrapper {
@@ -249,6 +256,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraSes
              camera1Session.focusToRect(focusRect, meteringRect);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
+index 07e769e5..a9fc1787 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraView.java
 @@ -122,7 +122,7 @@ public class CameraView extends FrameLayout implements TextureView.SurfaceTextur
@@ -295,9 +303,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/camera/CameraVie
  
                  format.setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 9c5e3c25..26a6bd5c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
-@@ -12719,6 +12719,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -11227,6 +11227,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  UserConfig.getInstance(currentAccount).isPremium()
                  ||
                  TranscribeButton.isFreeTranscribeInChat(currentMessageObject)
@@ -305,19 +314,19 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
                  ||
                  MessagesController.getInstance(currentAccount).transcribeAudioTrialWeeklyNumber > 0 &&
                  currentMessageObject.getDuration() <= MessagesController.getInstance(currentAccount).transcribeAudioTrialDurationMax && (
-@@ -18558,7 +18559,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -15627,7 +15628,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
                  }
-                 timeString = LocaleController.formatPmEditedDate(editDate);
-             } else {
--                timeString = (getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
-+                timeString = ((app.nebulagram.ui.NebulaMessagePreferences.enabled("edited_pencil", false) ? "✎" : getString(R.string.EditedMessage)) + " " + LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000));
+                 return LocaleController.formatPmEditedDate(editDate);
              }
-         } else if (currentMessageObject.isSaved && currentMessageObject.messageOwner.fwd_from != null && (currentMessageObject.messageOwner.fwd_from.date != 0 || currentMessageObject.messageOwner.fwd_from.saved_date != 0)) {
-             int date = currentMessageObject.messageOwner.fwd_from.saved_date;
-@@ -18569,6 +18570,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
-         } else {
-             timeString = LocaleController.getInstance().getFormatterDay().format((long) (messageObject.messageOwner.date) * 1000);
+-            return getString(R.string.EditedMessage) + " " + LocaleController.getInstance().getFormatterDay().format((long) (message.messageOwner.date) * 1000);
++            return (app.nebulagram.ui.NebulaMessagePreferences.enabled("edited_pencil", false) ? "✎" : getString(R.string.EditedMessage)) + " " + LocaleController.getInstance().getFormatterDay().format((long) (message.messageOwner.date) * 1000);
+         } else if (current.isSaved && current.messageOwner.fwd_from != null && (current.messageOwner.fwd_from.date != 0 || current.messageOwner.fwd_from.saved_date != 0)
+                 // A widget keeps its time alone in Saved Messages: the pill over its corner stays short.
+                 && !(MessageObject.getMedia(current.messageOwner) instanceof TLRPC.TL_messageMediaWidget)) {
+@@ -15707,6 +15708,10 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+             }
          }
+         timeString = timeString(currentMessageObject, messageObject, edited, currentMessagesGroup != null ? currentMessagesGroup.getMaxEditDate() : messageObject.messageOwner.edit_date);
 +        if (app.nebulagram.ui.NebulaMessagePreferences.enabled("forward_date", false) && !messageObject.isSaved
 +                && messageObject.messageOwner.fwd_from != null && messageObject.messageOwner.fwd_from.date > 0) {
 +            timeString = LocaleController.formatSmallDateChat(messageObject.messageOwner.fwd_from.date) + " · " + timeString;
@@ -325,7 +334,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          if (currentMessageObject.messageOwner.video_processing_pending) {
              timeString = formatString(R.string.ScheduledTimeApprox, timeString);
          }
-@@ -18746,6 +18751,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+@@ -15884,6 +15889,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
      }
  
      protected boolean checkNeedDrawShareButton(MessageObject messageObject) {
@@ -334,6 +343,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.j
          if (currentMessageObject.deleted && !currentMessageObject.deletedByThanos) return false;
          if (currentMessageObject.isSponsored()) return false;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index c2b800e9..ab6fe2c2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 @@ -6983,8 +6983,16 @@ public class ChatActivity extends BaseFragment implements
@@ -353,7 +363,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                  final ChatActivity chatToUpdate = parentChatActivity != null ? parentChatActivity : ChatActivity.this;
  
                  chatListView.invalidate();
-@@ -7785,8 +7793,16 @@ public class ChatActivity extends BaseFragment implements
+@@ -7783,8 +7791,16 @@ public class ChatActivity extends BaseFragment implements
              }
          });
          messagesSearchListView.setOnScrollListener(new RecyclerView.OnScrollListener() {
@@ -367,10 +377,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
 +                        AndroidUtilities.hideKeyboard(getParentActivity().getCurrentFocus()); nebulaKeyboardScroll = 0;
 +                    }
 +                } else nebulaKeyboardScroll = 0;
-                 final ChatActivity chatToUpdate = parentChatActivity != null ? parentChatActivity : ChatActivity.this;
-                 if (dy != 0) {
-                     invalidateMergedVisibleBlurredPositionsAndSources(BLUR_INVALIDATE_FLAG_SCROLL);
-@@ -16573,7 +16589,7 @@ public class ChatActivity extends BaseFragment implements
+                 if (recyclerView.getScrollState() == RecyclerView.SCROLL_STATE_DRAGGING) {
+                     AndroidUtilities.hideKeyboard(contentView);
+                 }
+@@ -17064,7 +17080,7 @@ public class ChatActivity extends BaseFragment implements
                  }
                  getDownloadController().checkUnviewedDownloads(messageCell.getId(), dialog_id);
                  boolean allowPlayEffect = messageObject.getEffect() != null || ((messageObject.messageOwner.media != null && !messageObject.messageOwner.media.nopremium) || (messageObject.isAnimatedEmojiStickerSingle() && dialog_id > 0));
@@ -379,7 +389,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      emojiAnimationsOverlay.onTapItem(messageCell, ChatActivity.this, false);
                  } else if (messageObject.isAnimatedAnimatedEmoji()) {
                      emojiAnimationsOverlay.preloadAnimation(messageCell);
-@@ -32204,7 +32220,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -32873,7 +32889,7 @@ public class ChatActivity extends BaseFragment implements
                  }
                  boolean showRateTranscription = selectedObject != null && selectedObject.isVoice() && selectedObject.messageOwner != null && getUserConfig().isPremium() && !TextUtils.isEmpty(selectedObject.messageOwner.voiceTranscription) && selectedObject.messageOwner != null && !selectedObject.messageOwner.voiceTranscriptionRated && selectedObject.messageOwner.voiceTranscriptionId != 0 && selectedObject.messageOwner.voiceTranscriptionOpen;
  
@@ -388,15 +398,15 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
                      ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), !showPrivateMessageSeen && !showPrivateMessageEdit && !showPrivateMessageFwdOriginal, false, themeDelegate);
                      cell.setMinimumWidth(AndroidUtilities.dp(200));
                      cell.setTextAndIcon(getString(R.string.SaveForNotifications), R.drawable.msg_tone_add);
-@@ -32495,6 +32511,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33164,6 +33180,7 @@ public class ChatActivity extends BaseFragment implements
                          popupLayout.addView(new ActionBarPopupWindow.GapView(contentView.getContext(), themeDelegate), LayoutHelper.createLinear(LayoutHelper.MATCH_PARENT, 8));
                      }
                  }
 +                app.nebulagram.ui.NebulaMessageMenuSettings.filter(items, icons, options);
                  scrimPopupWindowItems = new ActionBarMenuSubItem[items.size()];
+                 scrimPopupRedItem = null;
                  for (int a = 0, N = items.size(); a < N; a++) {
-                     final Integer option = options.get(a);
-@@ -32505,6 +32522,9 @@ public class ChatActivity extends BaseFragment implements
+@@ -33175,6 +33192,9 @@ public class ChatActivity extends BaseFragment implements
                      ActionBarMenuSubItem cell = new ActionBarMenuSubItem(getParentActivity(), a == 0, a == N - 1, themeDelegate);
                      cell.setMinimumWidth(AndroidUtilities.dp(200));
                      cell.setTextAndIcon(items.get(a), icons.get(a));
@@ -406,7 +416,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
  
  
                      if (option == OPTION_WELCOME_REVERT) {
-@@ -33170,7 +33190,7 @@ public class ChatActivity extends BaseFragment implements
+@@ -33855,7 +33875,7 @@ public class ChatActivity extends BaseFragment implements
              app.nebulagram.ui.NebulaMenuStyle.styleRows(popupLayout, resourceProvider);
              final int finalPopupX = scrimPopupX = popupX;
              final int finalPopupY = scrimPopupY = popupY;
@@ -415,7 +425,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              ReactionsContainerLayout finalReactionsLayout = reactionsLayout;
              Runnable showMenu = () -> {
                  if (scrimPopupWindow == null || fragmentView == null || scrimPopupWindow.isShowing() || !AndroidUtilities.isActivityRunning(getParentActivity())) {
-@@ -46640,8 +46660,10 @@ public class ChatActivity extends BaseFragment implements
+@@ -47002,8 +47022,10 @@ public class ChatActivity extends BaseFragment implements
          boolean noforwards = isPeerNoForwards() || message.messageOwner.noforwards || getDialogId() == UserObject.VERIFY;
          if (!noforwards && !isEphemeral && message.type != MessageObject.TYPE_PAID_MEDIA
                  && (!TextUtils.isEmpty(message.messageOwner.message) || message.isVoice() || message.isRoundVideo() || message.isVideo())) {
@@ -429,9 +439,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMe
              icons.add(R.drawable.msg_saved); options.add(7913);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
+index 328478de..75823c38 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreator.java
-@@ -8044,13 +8044,14 @@ public class AlertsCreator {
+@@ -8030,13 +8030,14 @@ public class AlertsCreator {
                  return;
              } else if (!hasNotOut && myMessagesCount > 0 && hasNonDiceMessages) {
                  hasDeleteForAllCheck = true;
@@ -448,7 +459,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreato
                  }
                  cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                  frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
-@@ -8101,15 +8102,16 @@ public class AlertsCreator {
+@@ -8087,15 +8088,16 @@ public class AlertsCreator {
              }
              if (myMessagesCount > 0 && hasNonDiceMessages && (user == null || !UserObject.isDeleted(user))) {
                  hasDeleteForAllCheck = true;
@@ -468,9 +479,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AlertsCreato
                  cell.setPadding(LocaleController.isRTL ? dp(16) : dp(8), 0, LocaleController.isRTL ? dp(8) : dp(16), 0);
                  frameLayout.addView(cell, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, 48, Gravity.TOP | Gravity.LEFT, 0, 0, 0, 0));
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
+index f8bcbbfb..cf17b12d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAlertPhotoLayout.java
-@@ -1210,6 +1210,10 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
+@@ -1215,6 +1215,10 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
                      cy3 = cy2 = getMeasuredHeight() / 2 - dp(13);
                  }
  
@@ -481,7 +493,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
                  int y = getMeasuredHeight() - tooltipTextView.getMeasuredHeight() - dp(12);
                  if (getMeasuredWidth() == dp(126)) {
                      tooltipTextView.layout(cx - tooltipTextView.getMeasuredWidth() / 2, getMeasuredHeight(), cx + tooltipTextView.getMeasuredWidth() / 2, getMeasuredHeight() + tooltipTextView.getMeasuredHeight());
-@@ -1545,7 +1549,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
+@@ -1550,7 +1554,7 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
      }
  
      private void openCameraByClick() {
@@ -490,7 +502,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
              openCamera(true);
          } else {
              if (parentAlert.delegate != null) {
-@@ -4885,6 +4889,16 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
+@@ -4911,6 +4915,16 @@ public class ChatAttachAlertPhotoLayout extends ChatAttachAlert.AttachAlertLayou
  
          public CameraViewInternal(Context context, boolean frontface, boolean lazy) {
              super(context, frontface, lazy);
@@ -508,6 +520,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAttachAl
  
          public boolean drawInDecoration;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
+index 91cf3ddc..6466bc1a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView.java
 @@ -336,6 +336,10 @@ public class InstantCameraView extends InstantCameraViewBase implements Notifica
@@ -726,9 +739,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
  
      private float nebulaCurrentZoom() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+index 9fb09d84..e5783ffd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
-@@ -229,6 +229,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+@@ -232,6 +232,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
                  Gravity.FILL
          ));
  
@@ -736,7 +750,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
          buttonsLayout = new LinearLayout(context);
          buttonsLayout.setOrientation(LinearLayout.HORIZONTAL);
          buttonsLayout.setPadding(dp(6), dp(6), dp(6), dp(6));
-@@ -381,7 +382,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+@@ -392,7 +393,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
          activeOutputResolution = SharedSettings.roundVideoOutputResolution.get();
          session = new RoundVideoSession.Builder(getContext(), textureView)
                  .setOutputDirectory(new File(ApplicationLoader.getFilesDirFixed(), "cache"))
@@ -745,7 +759,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
                  .setOutputResolution(activeOutputResolution)
                  .setVideoBitrate(SharedSettings.roundVideoVideoBitrate.get())
                  .setCameraResolution(SharedSettings.roundVideoCameraResolution.get())
-@@ -708,6 +709,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+@@ -772,6 +773,7 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
              capabilities = cameraCapabilities;
              if (cameraCapabilities.getActiveFacing() != null) {
                  SharedSettings.roundVideoLastCamera.set(cameraCapabilities.getActiveFacing());
@@ -754,6 +768,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCamer
              updateButtons();
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
+index e7a19331..1df7650c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/ReactionsEffectOverlay.java
 @@ -754,7 +754,7 @@ public class ReactionsEffectOverlay {
@@ -766,6 +781,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Reactions/Re
              return;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranscribeButton.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranscribeButton.java
+index 0849d5d5..e0bee6c5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranscribeButton.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/TranscribeButton.java
 @@ -205,6 +205,7 @@ public class TranscribeButton {
@@ -785,6 +801,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/TranscribeBu
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.java b/TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.java
+index 47c0db1a..ce0cca94 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.java
 @@ -424,6 +424,7 @@ public class EmojiAnimationsOverlay implements NotificationCenter.NotificationCe
@@ -796,9 +813,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/EmojiAnimationsOverlay.
              return false;
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
+index b48952d5..bfe3a0cb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java
-@@ -18855,6 +18855,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -18828,6 +18828,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
      public void onConfigurationChanged(Configuration newConfig) {}
  
      public void onPause() {
@@ -806,7 +824,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
          if (currentAnimation != null) {
              closePhoto(false, false);
              return;
-@@ -21017,7 +21018,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -20995,7 +20996,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
          boolean forward = x >= width / 3 * 2;
          long current = getCurrentVideoPosition();
          long total = getVideoDuration();
@@ -815,7 +833,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
      }
  
      long totalRewinding;
-@@ -21033,16 +21034,16 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -21011,16 +21012,16 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              if (canDoubleTapSeekVideo(e)) {
                  long old = current;
                  if (x >= width / 3 * 2) {
@@ -835,7 +853,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
                              apply = false;
                          }
                          current = 0;
-@@ -21050,7 +21051,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -21028,7 +21029,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
                      if (apply) {
                          videoForwardDrawable.setOneShootAnimation(true);
                          videoForwardDrawable.setLeftSide(x < width / 3);
@@ -844,7 +862,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
                          seekVideoOrWebTo(current);
                          containerView.invalidate();
                          videoPlayerSeekbar.setProgress(current / (float) total, true);
-@@ -23684,6 +23685,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
+@@ -23925,6 +23926,7 @@ public class PhotoViewer implements NotificationCenter.NotificationCenterDelegat
              int keyCode = event.getKeyCode();
              if (!muteVideo && sendPhotoType != SELECT_TYPE_AVATAR && isCurrentVideo && videoPlayer != null && event.getRepeatCount() == 0 && event.getAction() == KeyEvent.ACTION_DOWN && (event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_UP || event.getKeyCode() == KeyEvent.KEYCODE_VOLUME_DOWN)) {
                  videoPlayer.setVolume(1.0f);
@@ -853,9 +871,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/PhotoViewer.java b/TMes
              return super.dispatchKeyEvent(event);
          }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 1f33ad7c..852c8d9a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-@@ -10753,7 +10753,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11068,7 +11068,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      setAvatarSectionRow = rowCount++;
                  }
                  numberSectionRow = rowCount++;
@@ -864,7 +883,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                  nebulaIdRow = rowCount++;
                  setUsernameRow = rowCount++;
                  bioRow = rowCount++;
-@@ -10840,7 +10840,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11155,7 +11155,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      }
                  }
                  infoStartRow = rowCount;
@@ -873,7 +892,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      phoneRow = rowCount++;
                  }
                  if (userInfo != null && !TextUtils.isEmpty(userInfo.about)) {
-@@ -13680,6 +13680,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -13791,6 +13791,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                                  : idChat != null && ChatObject.isChannel(idChat) && !idChat.megagroup
                                  ? app.nebulagram.ui.NebulaText.text("ID канала", "Channel ID")
                                  : app.nebulagram.ui.NebulaText.text("ID группы", "Group ID");
@@ -887,17 +906,18 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/
                      } else if (position == noteRow) {
                          final TLRPC.UserFull userInfo = getMessagesController().getUserFull(userId);
 diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
+index e79d8c9f..4c3af748 100644
 --- a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
-@@ -148,6 +148,7 @@ final class RoundVideoCameraController {
+@@ -157,6 +157,7 @@ final class RoundVideoCameraController {
      private Handler cameraHandler;
      private String cameraId;
      private CameraCharacteristics characteristics;
 +    private app.nebulagram.ui.NebulaCameraCapabilities.Options nebulaOptions;
-     private Size previewSize;
      private volatile Size recordingSize;
      private volatile int sourceCropSize;
-@@ -317,6 +318,13 @@ final class RoundVideoCameraController {
+     private Surface previewSurface;
+@@ -344,6 +345,13 @@ final class RoundVideoCameraController {
          return true;
      }
  
@@ -911,7 +931,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
      boolean setZoom(float progress) {
          zoomProgress = clamp(progress, 0f, 1f);
          Handler handler = cameraHandler;
-@@ -1679,6 +1687,11 @@ final class RoundVideoCameraController {
+@@ -1660,6 +1668,11 @@ final class RoundVideoCameraController {
              }
              builder.set(CaptureRequest.FLASH_MODE, CaptureRequest.FLASH_MODE_OFF);
          }
@@ -923,7 +943,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
          requestGeneration++;
          builder.setTag(requestGeneration);
          if (torchVerificationPending) torchVerificationGeneration = requestGeneration;
-@@ -1871,7 +1884,13 @@ final class RoundVideoCameraController {
+@@ -1852,7 +1865,13 @@ final class RoundVideoCameraController {
      }
  
      private void applyZoom(@NonNull CaptureRequest.Builder builder) {
@@ -938,7 +958,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
          if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
              Range<Float> range = characteristics == null
                      ? null
-@@ -2014,6 +2033,7 @@ final class RoundVideoCameraController {
+@@ -1995,6 +2014,7 @@ final class RoundVideoCameraController {
          cameraId = selectedId;
          selectedFacing = facing;
          characteristics = selectedCharacteristics;
@@ -946,15 +966,16 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
          activeFrameRate = frameRatePlan.frameRate;
          activeFpsRange = frameRatePlan.fpsRange;
          frameRateFallbackAttempted = false;
-@@ -2087,6 +2107,7 @@ final class RoundVideoCameraController {
+@@ -2062,6 +2082,7 @@ final class RoundVideoCameraController {
          cameraId = selection.id;
          selectedFacing = selection.facing;
          characteristics = selection.characteristics;
 +        nebulaOptions = new app.nebulagram.ui.NebulaCameraCapabilities.Options(characteristics, selection.recordingSize);
-         previewSize = selection.previewSize;
          recordingSize = selection.recordingSize;
          sourceCropSize = selection.sourceCropSize;
+         activeCameraResolution = selection.cameraResolution;
 diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCodecRecorder.java b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCodecRecorder.java
+index f5d72731..fd57aaa3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCodecRecorder.java
 +++ b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCodecRecorder.java
 @@ -26,10 +26,9 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
@@ -970,7 +991,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
      private static final long CODEC_TIMEOUT_US = 10_000;
      private static final int TIMING_CAPACITY = 256;
      private static final int TIMING_LOG_INTERVAL = 30;
-@@ -272,7 +271,11 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
+@@ -327,7 +326,11 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
          int minBufferSize = AudioRecord.getMinBufferSize(AUDIO_SAMPLE_RATE, AudioFormat.CHANNEL_IN_MONO, AudioFormat.ENCODING_PCM_16BIT);
          if (minBufferSize <= 0) throw new IllegalStateException("Unsupported audio recording configuration");
          int audioBufferSize = Math.max(minBufferSize * 4, 16_384);
@@ -983,7 +1004,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
          format.setInteger(MediaFormat.KEY_AAC_PROFILE, MediaCodecInfo.CodecProfileLevel.AACObjectLC);
          format.setInteger(MediaFormat.KEY_BIT_RATE, AUDIO_BIT_RATE);
          format.setInteger(MediaFormat.KEY_MAX_INPUT_SIZE, audioBufferSize);
-@@ -282,8 +285,6 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
+@@ -337,8 +340,6 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
                  + ", minBufferSize=" + minBufferSize
                  + ", audioBufferSize=" + audioBufferSize);
          audioCodec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE);
@@ -992,7 +1013,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
          if (audioRecord.getState() != AudioRecord.STATE_INITIALIZED) throw new IllegalStateException("Unable to initialize AudioRecord");
      }
  
-@@ -344,7 +345,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
+@@ -401,7 +402,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
                  buffer.clear();
                  int bytesRead = audioRecord.read(
                          buffer,
@@ -1001,7 +1022,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
                  );
                  if (bytesRead <= 0) {
                      if (bytesRead < 0) {
-@@ -361,7 +362,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
+@@ -418,7 +419,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
                      audioCodec.queueInputBuffer(index, 0, 0, ptsUs, 0);
                      continue;
                  }
@@ -1010,7 +1031,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
                  if (audioBasePtsUs == Long.MIN_VALUE) {
                      audioBasePtsUs = resolveAudioBasePtsUs(framesRead);
                      diagnostics.log("first audio input: basePtsUs=" + audioBasePtsUs
-@@ -371,7 +372,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
+@@ -428,7 +429,7 @@ final class RoundVideoCodecRecorder implements RoundVideoGlProcessor.FrameTiming
                              ? "AudioTimestamp" : "read completion"));
                  }
                  long ptsUs = audioBasePtsUs + framesToDurationUs(submittedFrames);
@@ -1020,9 +1041,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/Round
                  notifyAudioReady();
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSession.java b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSession.java
+index cfe727ae..111af715 100644
 --- a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSession.java
 +++ b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoSession.java
-@@ -741,6 +741,10 @@ public final class RoundVideoSession {
+@@ -745,6 +745,10 @@ public final class RoundVideoSession {
  
      /** Applies normalized camera zoom in the inclusive range from zero to one. */
      @MainThread

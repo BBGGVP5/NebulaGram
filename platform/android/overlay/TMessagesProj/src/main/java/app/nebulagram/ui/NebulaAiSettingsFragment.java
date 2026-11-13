@@ -46,6 +46,10 @@ public final class NebulaAiSettingsFragment extends BaseFragment {
         replacements.add(toggle("replace_editor", text("Редактор Nebula AI", "Nebula AI editor"), text("Заменяет кнопку ИИ Telegram · при выключении возвращается Telegram", "Replaces Telegram AI · turn off to use Telegram"), false));
         replacements.add(toggle("replace_summaries", text("Краткие сводки", "Summaries"), text("Сокращать длинные сообщения через Nebula AI", "Summarize long messages with Nebula AI"), false));
         NebulaFormUi.group(content, text("ИИ Telegram", "Telegram AI"), replacements);
+        NebulaCard chats = new NebulaCard(c);
+        chats.add(toggle(NebulaMissed.KEY, text("Кратко о пропущенном", "Catch me up"),
+                text("От 30 непрочитанных · текст без медиа уходит в ", "From 30 unread · text, no media, is sent to ") + NebulaMissed.providerLabel(), false));
+        NebulaFormUi.group(content, text("Чаты", "Chats"), chats);
         NebulaCard generation = new NebulaCard(c);
         generation.add(toggle("stream_response", text("Потоковая передача ответа", "Stream response"), text("Показывать ответ облачного сервиса по мере получения", "Show cloud responses as they arrive"), true));
         generation.add(toggle("response_only", text("Вставлять только ответ", "Insert only the answer"), text("Отключите, чтобы сохранить исходный текст рядом", "Disable to keep the original text alongside it"), true));

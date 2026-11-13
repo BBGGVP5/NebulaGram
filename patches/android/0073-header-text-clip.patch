@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 38021d75..3be27b92 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
-@@ -429,12 +429,20 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+@@ -430,12 +430,20 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
  
      @Override
      protected boolean drawChild(@NonNull Canvas canvas, View child, long drawingTime) {

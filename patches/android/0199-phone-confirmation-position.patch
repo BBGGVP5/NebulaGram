@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
+index 184b0c66..396ae722 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java
-@@ -8614,6 +8614,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -8936,6 +8936,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
          private FrameLayout popupLayout;
  
          private boolean dismissed;
@@ -9,7 +10,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
  
          private PhoneNumberConfirmView(@NonNull Context context, ViewGroup fragmentView, View fabContainer, String numberText, IConfirmDialogCallback callback) {
              super(context);
-@@ -8689,6 +8690,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -9011,6 +9012,7 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
  
          private final PointF pointF = new PointF();
          private void updateFabPosition() {
@@ -17,7 +18,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/LoginActivity.java b/TM
              ViewPositionWatcher.computeCoordinatesInParent(fabContainer, fragmentView, pointF);
              fabButton.setTranslationX(pointF.x + (LocaleController.isRTL ? 0 : Math.max(0, fabContainer.getWidth() - dp(56))));
              fabButton.setTranslationY(pointF.y);
-@@ -8706,16 +8708,33 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
+@@ -9037,16 +9039,33 @@ public class LoginActivity extends BaseFragment implements NotificationCenter.No
              fabButton.updateColors();
          }
  

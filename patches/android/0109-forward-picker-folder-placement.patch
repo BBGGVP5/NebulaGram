@@ -1,5 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-index 65245778..5f8d2b43 100644
+index fbde82d6..400d2eaa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 @@ -1321,7 +1321,8 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
@@ -12,15 +12,15 @@ index 65245778..5f8d2b43 100644
                              : getPaddingTop() + actionBar.getMeasuredHeight() + dp(nebulaSearchSlotHeight());
                  } else if (child == topPanelLayout || child == topBubblesFadeView) {
                      childTop += actionBar.getMeasuredHeight();
-@@ -4926,6 +4927,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -4839,6 +4840,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  protected void onChangedIslandTotalHeight(float h) {
                      chatInputViewsContainer.setInputBubbleHeight(h);
                      checkUi_chatListViewPaddingsBottom();
 +                    if (filterTabsView != null) filterTabsView.requestLayout();
-                     blur3_InvalidateBlur();
                      checkUi_fadeView();
                  }
-@@ -14414,6 +14416,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+@@ -14022,6 +14024,16 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
                  ? Math.round(app.nebulagram.ui.NebulaFolderTabs.reserved() * getFilterTabsVisibilityFactor(true)) : 0;
      }
  
@@ -37,7 +37,7 @@ index 65245778..5f8d2b43 100644
      private void updateNebulaBottomInsets() {
          int main = hasMainTabs && app.nebulagram.ui.NebulaBottomBar.enabled() ? dp(MAIN_TABS_HEIGHT_WITH_MARGINS) : 0;
          int folders = nebulaFolderTabsReserved();
-@@ -14430,11 +14442,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -14038,11 +14050,12 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
  
      private int calculateListViewPaddingBottom() {
          if (commentView != null) {

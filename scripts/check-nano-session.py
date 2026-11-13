@@ -24,7 +24,8 @@ methods = '\n'.join(method(s) for s in [
     '    private static void releaseSession(',
     '    private static <T> T await(java.util.concurrent.Future<T> future, long timeout, TimeUnit unit,',
     '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled)',
-    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive)'])
+    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive)',
+    '    public static String generate(String instructions, String input, java.util.function.BooleanSupplier cancelled, boolean interactive,'])
 program = r'''package app.nebulagram.ui;
 import java.util.*;
 import java.util.concurrent.*;
@@ -43,7 +44,15 @@ public class NanoSessionCheck {
    if(fail)pending.completeExceptionally(new IllegalStateException("test failure")); else if(!cancel)pending.complete(new GenerateContentResponse());
    return pending;}
  }
- static class Session { static int opened,closed; final Client client=new Client(); Session(boolean p,boolean f){opened++;} void close(){closed++;} }
+ interface StreamingCallback { void onNewText(String chunk); }
+ static class NebulaAiClient { interface Progress { void update(String answer); } }
+ static class Session { static int opened,closed; static String lastSystem,lastInput; static boolean systemPrompt=true;
+  final Client client=new Client(); Session(boolean p,boolean f){opened++;} void close(){closed++;}
+  boolean systemPromptAvailable(){return systemPrompt;} boolean thinkingAvailable(){return false;}
+  CompletableFuture<GenerateContentResponse> generate(String system,String input,boolean thinking,StreamingCallback callback){
+   lastSystem=system; lastInput=input; if(callback!=null){callback.onNewText("trans");callback.onNewText("lated");}
+   return client.generateContent(input);}
+ }
  static class Dummy extends FutureTask<Void> implements ScheduledFuture<Void> {
   Dummy(){super(()->null);}public long getDelay(TimeUnit u){return 0;}public int compareTo(Delayed d){return 0;}
  }
@@ -76,6 +85,10 @@ public class NanoSessionCheck {
   catch(java.io.InterruptedIOException expected){}
   check(Client.pending.isCancelled() && warmSession==null && Session.closed==4,"cancel future and discard engine");
   check(NebulaNanoInferenceGate.tryAcquire(),"cancellation releases slot");NebulaNanoInferenceGate.release();
+  Client.cancel=false; StringBuilder seen=new StringBuilder();
+  check(generate("translate","seven",()->false,true,false,a->{seen.setLength(0);seen.append(a);}).equals("translated"),"streamed generation");
+  check(seen.toString().equals("translated"),"progress receives the growing answer");
+  check(Session.lastSystem.equals("translate") && Session.lastInput.equals("seven"),"instructions travel as a system instruction");
   System.out.println("Nano session: model/status reuse, configuration, failure, cancellation and idle races passed");
  }
 }

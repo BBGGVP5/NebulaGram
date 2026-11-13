@@ -45,6 +45,16 @@ public class NebulaServersFragment extends BaseFragment {
     private final HashMap<String, NebulaRow> serverRows = new HashMap<>();
     private final NebulaProbeSession.Listener probeListener = this::onProbeProgress;
     private JSONObject lastData;
+    /** Состояние автовыбора из ядра: включён ли он, кого выбрал, с каким откликом. */
+    private JSONObject autoState;
+    private NebulaRow autoRow;
+    private boolean autoBusy;
+    private final NebulaLink.AutoListener autoListener = state -> {
+        autoState = state;
+        updateAutoRow();
+        // Автовыбор мог переключить сервер: подсветка строк должна это показать.
+        if ("ready".equals(state.optString("state")) && !state.optString("server_id").equals(selectedId)) load();
+    };
     private final NebulaLink.StatusListener statusListener = status -> {
         if (lastData != null) {
             render(lastData);
@@ -56,6 +66,7 @@ public class NebulaServersFragment extends BaseFragment {
         super.onResume();
         NebulaLink.addStatusListener(statusListener);
         NebulaProbeSession.addListener(probeListener);
+        NebulaLink.addAutoListener(autoListener);
         load();
     }
 
@@ -65,6 +76,7 @@ public class NebulaServersFragment extends BaseFragment {
         stopPendingAnimation();
         NebulaLink.removeStatusListener(statusListener);
         NebulaProbeSession.removeListener(probeListener);
+        NebulaLink.removeAutoListener(autoListener);
         super.onPause();
     }
 
@@ -74,8 +86,10 @@ public class NebulaServersFragment extends BaseFragment {
         stopPendingAnimation();
         NebulaProbeSession.removeListener(probeListener);
         NebulaLink.removeStatusListener(statusListener);
+        NebulaLink.removeAutoListener(autoListener);
         serverRows.clear();
         probeAction = null;
+        autoRow = null;
         content = null;
         super.onFragmentDestroy();
     }
@@ -125,6 +139,12 @@ public class NebulaServersFragment extends BaseFragment {
         } catch (JSONException e) {
             return;
         }
+        NebulaLink.call("auto.status", null, auto -> {
+            if (auto.ok && auto.data != null) {
+                autoState = auto.data;
+                updateAutoRow();
+            }
+        });
         NebulaLink.call("servers.list", payload, result -> {
             if (result.ok && result.data != null) {
                 selectedId = result.data.optString("selected", "");
@@ -170,6 +190,14 @@ public class NebulaServersFragment extends BaseFragment {
                     LocaleController.getString(R.string.NebulaNoServers)));
             return;
         }
+
+        NebulaCard auto = new NebulaCard(context);
+        autoRow = new NebulaRow(context).icon(R.drawable.msg_speed)
+                .title(NebulaText.text("Авто — самый быстрый", "Auto — the fastest"))
+                .withClick(v -> toggleAuto());
+        updateAutoRow();
+        auto.add(autoRow);
+        content.addView(auto, cardParams());
 
         int total = data.optInt("total", servers.size());
         content.addView(NebulaCard.header(context, LocaleController.formatString(
@@ -257,7 +285,9 @@ public class NebulaServersFragment extends BaseFragment {
         boolean connected = active != null && "connected".equals(status.optString("state"))
                 && id.equals(active.optString("id")) && NebulaLink.isRoutingThroughTunnel();
         row.subtitle(describe(server, connected), false);
-        row.selection(selected);
+        // При автовыборе отмечена строка «Авто», а выбранный ею сервер виден
+        // по «Подключено» и по подписи строки «Авто».
+        row.selection(selected && !autoEnabled());
         if (connected) {
             row.connected(true);
         }
@@ -360,6 +390,66 @@ public class NebulaServersFragment extends BaseFragment {
             } else {
                 report(result.error);
             }
+        });
+    }
+
+    private boolean autoEnabled() {
+        return autoState != null && autoState.optBoolean("enabled");
+    }
+
+    /** Подпись строки «Авто»: кого выбрал и с каким откликом, или что он сейчас делает. */
+    private void updateAutoRow() {
+        if (autoRow == null) return;
+        boolean enabled = autoEnabled();
+        String line;
+        String phase = autoState == null ? "" : autoState.optString("state");
+        if (autoBusy || "checking".equals(phase)) {
+            int measured = autoState == null ? 0 : autoState.optInt("measured");
+            int total = autoState == null ? 0 : autoState.optInt("total");
+            line = NebulaText.text("Проверяю серверы…", "Checking servers…")
+                    + (total > 0 && measured > 0 ? " " + measured + "/" + total : "");
+        } else if (!enabled) {
+            line = NebulaText.text("Подключаться к серверу с наименьшим откликом",
+                    "Connect to the server with the lowest latency");
+        } else if ("no_answer".equals(phase)) {
+            line = NebulaText.text("Ни один сервер не ответил", "No server answered");
+        } else if ("failed".equals(phase)) {
+            line = NebulaText.text("Не удалось подключиться", "Could not connect");
+        } else if (!autoState.optString("server_id").isEmpty()) {
+            NebulaServerLabel label = new NebulaServerLabel(autoState.optString("server_name"),
+                    "", autoState.optString("flag"));
+            String ping = NebulaLatency.format(autoState.optInt("latency_ms"), autoState.optString("latency_method"),
+                    autoState.optLong("checked_at"), LocaleController.getString(R.string.NebulaMs),
+                    LocaleController.getString(R.string.NebulaLatencyUnknown),
+                    LocaleController.getString(R.string.NebulaNoReply));
+            line = (label.flag.isEmpty() ? "" : label.flag + " ") + label.title + " · " + ping;
+        } else {
+            line = NebulaText.text("Выберет сервер при подключении", "Picks a server on connect");
+        }
+        autoRow.subtitle(line, false);
+        autoRow.selection(enabled);
+    }
+
+    /** Первое нажатие включает автовыбор, следующие — проверяют серверы заново. */
+    private void toggleAuto() {
+        if (autoBusy) return;
+        autoBusy = true;
+        updateAutoRow();
+        JSONObject payload = new JSONObject();
+        try {
+            payload.put("enabled", true);
+        } catch (JSONException e) {
+            autoBusy = false;
+            return;
+        }
+        NebulaLink.call(autoEnabled() ? "auto.check" : "auto.set", payload, result -> {
+            autoBusy = false;
+            if (result.ok && result.data != null) {
+                autoState = result.data;
+            } else if (!result.ok) {
+                report(NebulaText.text("Автовыбор не смог проверить серверы", "Auto could not check the servers"));
+            }
+            load();
         });
     }
 

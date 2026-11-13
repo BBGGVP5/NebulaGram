@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
+index 9b56bbf2..a728a4fd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason.java
 @@ -74,6 +74,11 @@ public class FlagSecureReason {
@@ -14,9 +15,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FlagSecureReason
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index 60b3dfde..97458688 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -6687,6 +6687,13 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -6672,6 +6672,13 @@ public class MessagesController extends BaseController implements NotificationCe
      }
  
      public boolean isChatNoForwards(TLRPC.Chat chat) {
@@ -30,7 +32,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
          if (chat == null) {
              return false;
          }
-@@ -6712,6 +6719,9 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -6697,6 +6704,9 @@ public class MessagesController extends BaseController implements NotificationCe
      }
  
      public boolean isUserNoForwards(TLRPC.UserFull userFull) {

@@ -1,0 +1,115 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index bf952b0..28c9444 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+@@ -91,6 +91,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+     private let nebulaBannerFade = ASDisplayNode()
+     private let nebulaBannerGradient = CAGradientLayer()
+     private var nebulaBannerColor: UIColor?
++    private let nebulaPage = NebulaProfilePage()
++    /// The Cherrygram-style page colour below the header; nil keeps Telegram's background.
++    private(set) var nebulaPageColor: UIColor?
+     let avatarClippingNode: SparseNode
+     let avatarListNode: PeerInfoAvatarListNode
+     
+@@ -2501,10 +2504,25 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+         
+         transition.updateFrame(node: self.regularContentNode, frame: CGRect(origin: CGPoint(), size: CGSize(width: width, height: resolvedHeight)))
+ 
++        let nebulaHasPhoto = peer?.profileImageRepresentations.isEmpty == false && self.forumTopicThreadId == nil
++        var nebulaPeerColor: UIColor?
++        if let emojiStatus = peer?.emojiStatus, case let .starGift(_, _, _, _, _, _, outerColor, _, _) = emojiStatus.content {
++            nebulaPeerColor = UIColor(rgb: UInt32(bitPattern: outerColor))
++        } else if let profileColor = peer?.effectiveProfileColor {
++            let colors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
++            nebulaPeerColor = colors.secondary ?? colors.main
++        }
++        let nebulaStore = NebulaSettingsStore.shared
++        self.nebulaPageColor = self.nebulaPage.color(
++            source: NebulaProfilePagePolicy.source(style: nebulaStore.profileStyle, background: nebulaStore.profileBackground,
++                photoBanner: nebulaStore.profilePhotoBanner, hasPeerColor: nebulaPeerColor != nil,
++                hasPhoto: nebulaHasPhoto, editing: state.isEditing),
++            peerColor: nebulaPeerColor, photo: self.avatarListNode.avatarContainerNode.avatarNode.unroundedImage,
++            dark: presentationData.theme.overallDarkAppearance)
+         self.nebulaUpdateBanner(width: width, bottom: apparentBackgroundHeight,
+             protectedBottom: self.isAvatarExpanded ? 0.0 : apparentAvatarFrame.maxY,
+-            hasPhoto: peer?.profileImageRepresentations.isEmpty == false && self.forumTopicThreadId == nil,
+-            editing: state.isEditing, color: presentationData.theme.list.blocksBackgroundColor,
++            hasPhoto: nebulaHasPhoto,
++            editing: state.isEditing, color: self.nebulaPageColor ?? presentationData.theme.list.blocksBackgroundColor,
+             transition: transition)
+         
+         transition.updateFrameAdditive(node: self.buttonsContainerNode, frame: CGRect(origin: CGPoint(x: 0.0, y: apparentBackgroundHeight - backgroundHeight), size: CGSize(width: width, height: 1000.0)))
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
+index a1842eb..8888702 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
+@@ -598,6 +598,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+     let isReady = Promise<Bool>()
+     var didSetIsReady = false
+     
++    /// The profile page colour behind the tabs and panes (Cherrygram style); nil keeps Telegram's.
++    var nebulaPageColor: UIColor?
+     private var currentParams: (size: CGSize, sideInset: CGFloat, bottomInset: CGFloat, topInset: CGFloat, deviceMetrics: DeviceMetrics, visibleHeight: CGFloat, expansionFraction: CGFloat, presentationData: PresentationData, data: PeerInfoScreenData?, areTabsHidden: Bool, disableTabSwitching: Bool, navigationHeight: CGFloat)?
+     
+     private(set) var currentPaneKey: PeerInfoPaneKey?
+@@ -987,7 +989,7 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+             }
+         }
+         
+-        self.backgroundColor = backgroundColor
++        self.backgroundColor = self.nebulaPageColor ?? backgroundColor
+ 
+         let isScrollingLockedAtTop = expansionFraction < 1.0 - CGFloat.ulpOfOne
+ 
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+index ad5d16a..5788b6b 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+@@ -240,6 +240,7 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+     let cachedDataPromise = Promise<EngineCachedPeerData?>()
+     
+     let scrollNode: ASScrollNode
++    private let nebulaPageGradient = CAGradientLayer()
+     let edgeEffectView: EdgeEffectView
+     
+     let headerNode: PeerInfoHeaderNode
+@@ -1335,6 +1336,8 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+         })
+         
+         self.backgroundColor = self.presentationData.theme.list.blocksBackgroundColor
++        self.nebulaPageGradient.isHidden = true
++        self.layer.insertSublayer(self.nebulaPageGradient, at: 0)
+         
+         self.scrollNode.view.showsVerticalScrollIndicator = false
+         if #available(iOS 11.0, *) {
+@@ -5643,6 +5646,10 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+         self.ignoreScrolling = true
+         
+         transition.updateFrame(node: self.scrollNode, frame: CGRect(origin: CGPoint(), size: layout.size))
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
++        self.nebulaPageGradient.frame = CGRect(origin: CGPoint(), size: layout.size)
++        CATransaction.commit()
+         
+         if self.isSettings {
+             let edgeEffectHeight: CGFloat = layout.intrinsicInsets.bottom
+@@ -6028,6 +6035,18 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+         } else {
+             color = self.presentationData.theme.list.blocksBackgroundColor.mixedWith(self.presentationData.theme.list.plainBackgroundColor, alpha: self.effectiveAreaExpansionFraction)
+         }
++        // Cherrygram-style page: the profile colour runs on under the cards and the media tabs.
++        let nebulaPage = self.headerNode.nebulaPageColor
++        self.paneContainerNode.nebulaPageColor = nebulaPage.map { NebulaProfilePage.bottom($0, base: color, dark: self.presentationData.theme.overallDarkAppearance) }
++        CATransaction.begin()
++        CATransaction.setDisableActions(true)
++        if let nebulaPage {
++            self.nebulaPageGradient.isHidden = false
++            self.nebulaPageGradient.colors = [nebulaPage.cgColor, (self.paneContainerNode.nebulaPageColor ?? nebulaPage).cgColor]
++        } else {
++            self.nebulaPageGradient.isHidden = true
++        }
++        CATransaction.commit()
+         if let expansionBackgroundView = self.expansionBackgroundView {
+             expansionBackgroundView.backgroundColor = color
+             return

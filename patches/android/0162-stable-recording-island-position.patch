@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-index b975caf8..7f70ee4f 100644
+index 922e1a19..7520163d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
-@@ -18645,21 +18645,23 @@ public class ChatActivity extends BaseFragment implements
+@@ -19168,21 +19168,23 @@ public class ChatActivity extends BaseFragment implements
                      }
                  }
  
@@ -39,7 +39,7 @@ index b975caf8..7f70ee4f 100644
  
              if (scrimView != null || messageEnterTransitionContainer.isRunning()) {
                  if (mentionContainer == null || mentionContainer.getVisibility() != View.VISIBLE) {
-@@ -33436,6 +33438,21 @@ public class ChatActivity extends BaseFragment implements
+@@ -34122,6 +34124,21 @@ public class ChatActivity extends BaseFragment implements
                  }
              });
              scrimViewAlphaAnimator.setDuration(150);
@@ -62,10 +62,10 @@ index b975caf8..7f70ee4f 100644
          }
      }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index ca14ac43..003da56d 100644
+index 41318373..180ef50e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -14594,6 +14594,12 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -14815,6 +14815,12 @@ public class ChatActivityEnterView extends FrameLayout implements
                  && MeasureSpec.getSize(widthMeasureSpec) >= dp(260);
          nebulaComposerStyle.setRecordingPanels(recordPanel, recordedAudioPanel, nebulaRecordingSupported);
          boolean nebulaRecordingIslands = nebulaRecordingSupported && app.nebulagram.ui.NebulaAppearance.iosComposer();

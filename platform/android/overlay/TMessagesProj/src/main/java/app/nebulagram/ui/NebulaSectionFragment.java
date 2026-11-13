@@ -257,6 +257,7 @@ public class NebulaSectionFragment extends BaseFragment {
                         refreshPalette();
                     }));
         }
+        addPictureAccent(context, card);
         card.add(toggle(context, R.drawable.msg_edit,
                 R.string.NebulaLoginStyleTitle, R.string.NebulaLoginStyleSub,
                 NebulaLoginStyle.enabled(), NebulaLoginStyle::setEnabled));
@@ -292,6 +293,36 @@ public class NebulaSectionFragment extends BaseFragment {
                 LocaleController.getString(R.string.NebulaRestartHint)));
     }
 
+    /**
+     * «Цвета из аватарки / обоев»: another accent source next to Material You.
+     * The preview under the row repaints as soon as Palette has an answer.
+     */
+    private void addPictureAccent(Context context, NebulaCard card) {
+        String title = NebulaText.text("Цвета из аватарки / обоев", "Colours from avatar / wallpaper");
+        NebulaRow row = new NebulaRow(context).icon(R.drawable.msg_palette).title(title)
+                .subtitle(NebulaPictureTheme.names()[NebulaPictureTheme.source()], true)
+                .trailing(NebulaRow.TRAIL_CHEVRON);
+        NebulaPictureAccentPreview preview = new NebulaPictureAccentPreview(context);
+        preview.setOnChanged(() -> {
+            if (NebulaTheme.of(context).primary() != palettePrimary) refreshPalette();
+        });
+        row.withClick(v -> new NebulaDialog.Builder(context).setTitle(title)
+                .setSelectedIndex(NebulaPictureTheme.source())
+                .setItems(NebulaPictureTheme.names(), (dialog, which) -> {
+                    NebulaPictureTheme.setSource(context, which);
+                    row.subtitle(NebulaPictureTheme.names()[which], true);
+                    dialog.dismiss();
+                    refreshPalette(); // shows or hides the preview
+                }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show());
+        card.add(row);
+        if (NebulaPictureTheme.source() != NebulaPictureTheme.OFF) card.add(preview);
+    }
+
+    private static String blurTintLabel(int[] values, String[] labels) {
+        for (int i = 0; i < values.length; i++) if (values[i] == NebulaMessageBlur.tintPercent()) return labels[i];
+        return labels[1];
+    }
+
     private static String transitionName(int style) {
         return style == NebulaTransitions.AOSP ? NebulaText.text("Системная AOSP", "AOSP system")
                 : style == NebulaTransitions.SPRING ? "Spring" : NebulaText.text("Стандартная", "Standard");
@@ -299,15 +330,25 @@ public class NebulaSectionFragment extends BaseFragment {
 
     private void buildChats(Context context) {
         NebulaCard header = new NebulaCard(context);
+        // Centring and capsule width only describe the adaptive header, so they
+        // appear with it instead of sitting next to it as dead switches.
+        final NebulaRow centered = toggle(context, R.drawable.msg_customize,
+                R.string.NebulaCenterHeader, R.string.NebulaCenterHeaderInfo,
+                NebulaAppearance.centeredHeader(), NebulaAppearance::setCenteredHeader);
+        final NebulaRow capsuleWidth = toggle(context, R.drawable.msg_photo_settings,
+                R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
+                NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader);
         header.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaFloatingHeader, R.string.NebulaFloatingHeaderInfo,
-                NebulaAppearance.chatHeader(), NebulaAppearance::setChatHeader));
-        header.add(toggle(context, R.drawable.msg_customize,
-                R.string.NebulaCenterHeader, R.string.NebulaCenterHeaderInfo,
-                NebulaAppearance.centeredHeader(), NebulaAppearance::setCenteredHeader));
-        header.add(toggle(context, R.drawable.msg_photo_settings,
-                R.string.NebulaAdaptiveHeader, R.string.NebulaAdaptiveHeaderInfo,
-                NebulaAppearance.adaptiveHeader(), NebulaAppearance::setAdaptiveHeader));
+                NebulaAppearance.chatHeader(), value -> {
+                    NebulaAppearance.setChatHeader(value);
+                    centered.setVisibility(value ? View.VISIBLE : View.GONE);
+                    capsuleWidth.setVisibility(value ? View.VISIBLE : View.GONE);
+                }));
+        centered.setVisibility(NebulaAppearance.chatHeader() ? View.VISIBLE : View.GONE);
+        capsuleWidth.setVisibility(NebulaAppearance.chatHeader() ? View.VISIBLE : View.GONE);
+        header.add(centered);
+        header.add(capsuleWidth);
         final NebulaRow iosCount = toggle(context, R.drawable.msg_customize,
                 R.string.NebulaUnreadIos, R.string.NebulaUnreadIosInfo,
                 NebulaAppearance.iosUnread(), NebulaAppearance::setIosUnread);
@@ -326,6 +367,37 @@ public class NebulaSectionFragment extends BaseFragment {
                     org.telegram.ui.ActionBar.Theme.reloadAllResources(context);
                 }));
         expandablePreview(context, "header", R.string.NebulaChatHeaderSection, headerPreview(context), header);
+
+        content.addView(NebulaCard.header(context, NebulaText.text("Пузыри сообщений", "Message bubbles")));
+        NebulaCard bubbles = new NebulaCard(context);
+        final int[] tintValues = {35, 55, 75};
+        final String[] tintLabels = {NebulaText.text("Слабый", "Light"), NebulaText.text("Средний", "Medium"), NebulaText.text("Плотный", "Dense")};
+        final NebulaRow tintRow = new NebulaRow(context).icon(R.drawable.msg_customize)
+                .title(NebulaText.text("Цвет поверх размытия", "Colour over the blur"))
+                .subtitle(blurTintLabel(tintValues, tintLabels), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        tintRow.withClick(v -> {
+            int selected = 1;
+            for (int i = 0; i < tintValues.length; i++) if (tintValues[i] == NebulaMessageBlur.tintPercent()) selected = i;
+            showDialog(new NebulaDialog.Builder(context)
+                    .setTitle(NebulaText.text("Цвет поверх размытия", "Colour over the blur"))
+                    .setSelectedIndex(selected)
+                    .setItems(tintLabels, (dialog, which) -> {
+                        NebulaMessageBlur.setTintPercent(tintValues[which]);
+                        tintRow.subtitle(tintLabels[which], true);
+                    }).create());
+        });
+        bubbles.add(new NebulaRow(context).icon(R.drawable.msg_photo_settings)
+                .title(NebulaText.text("Размытые сообщения", "Blurred messages"))
+                .subtitle(NebulaText.text("Вместо заливки — размытые обои под пузырём. Работает с обоями-картинками и градиентами", "Bubbles show the blurred wallpaper instead of a solid fill. Works with picture and gradient wallpapers"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH).checked(NebulaMessageBlur.enabled())
+                .withClick(v -> {
+                    boolean enabled = ((NebulaRow) v).toggleChecked();
+                    NebulaMessageBlur.setEnabled(enabled);
+                    tintRow.setVisibility(enabled ? View.VISIBLE : View.GONE);
+                }));
+        tintRow.setVisibility(NebulaMessageBlur.enabled() ? View.VISIBLE : View.GONE);
+        bubbles.add(tintRow);
+        content.addView(bubbles, cardParams());
 
         composerPreview = new NebulaComposerPreview(context);
         NebulaCard composer = new NebulaCard(context);
@@ -623,7 +695,7 @@ public class NebulaSectionFragment extends BaseFragment {
         card = new NebulaCard(context);
         card.add(toggle(context, R.drawable.nebula_cupertino_chat, R.string.NebulaProfileChannel, R.string.NebulaProfileChannelInfo,
                 NebulaAppearance.profileChannel(), NebulaAppearance::setProfileChannel));
-        card.add(preference(context, R.drawable.msg_calls, "hide_profile_phone", false, "Скрывать номера телефонов", "Hide phone numbers"));
+        card.add(preference(context, R.drawable.msg_calls, "hide_profile_phone", false, "Размывать номера телефонов", "Blur phone numbers"));
         card.add(preference(context, R.drawable.msg_calendar2, "profile_dc", true, "Дата-центр под ID", "Data center under ID"));
         card.add(toggle(context, R.drawable.msg_calendar, R.string.NebulaProfileBirthday, R.string.NebulaProfileBirthdayInfo,
                 NebulaAppearance.profileBirthday(), NebulaAppearance::setProfileBirthday));

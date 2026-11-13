@@ -1,0 +1,24 @@
+diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index 7da5591..5fc1f83 100644
+--- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
++++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+@@ -174,7 +174,8 @@ func infoItems(
+             ))
+         }
+         
+-        if !NebulaMessagePreferences.shared.enabled("hide_profile_phone"), let phone = user.phone {
++        if let phone = user.phone {
++            // NebulaGram: "hide phone digits" keeps the row with masked digits; tapping still opens the native actions.
+             let formattedPhone = formatPhoneNumber(context: context, number: phone)
+             let label: String
+             if formattedPhone.hasPrefix("+888 ") {
+@@ -182,7 +183,8 @@ func infoItems(
+             } else {
+                 label = presentationData.strings.ContactInfo_PhoneLabelMobile
+             }
+-            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: formattedPhone, textColor: .accent, action: { node, progress in
++            let shownPhone = NebulaMessagePreferences.shared.enabled("hide_profile_phone") ? NebulaPhoneMask.mask(formattedPhone) : formattedPhone
++            items[currentPeerInfoSection]!.append(PeerInfoScreenLabeledValueItem(id: ItemPhoneNumber, label: label, text: shownPhone, textColor: .accent, action: { node, progress in
+                 interaction.openPhone(phone, node, nil, progress)
+             }, longTapAction: nil, contextAction: { node, gesture, _ in
+                 interaction.openPhone(phone, node, gesture, nil)

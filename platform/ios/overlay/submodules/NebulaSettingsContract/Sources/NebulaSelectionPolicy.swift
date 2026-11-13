@@ -10,4 +10,7 @@ public enum NebulaSelectionPolicy {
         }
         return result
     }
+
+    /// Cap for "Select loaded": 100 like Telegram, or none with unlimited selection.
+    public static func limit(unlimited: Bool) -> Int { unlimited ? Int.max : 100 }
 }

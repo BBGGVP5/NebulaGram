@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
+index 7baaafda..24371d92 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Switch.java
-@@ -235,7 +235,9 @@ public class Switch extends View {
+@@ -240,7 +240,9 @@ public class Switch extends View implements Theme.Colorable {
  
      private void animateToCheckedState(boolean newCheckedState) {
          checkAnimator = ObjectAnimator.ofFloat(this, "progress", newCheckedState ? 1 : 0);

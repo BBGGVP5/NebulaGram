@@ -1,8 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-index e3961148..96546146 100644
+index ef184d17..0e242c24 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
-@@ -909,7 +909,7 @@ public class ChatActivityEnterView extends FrameLayout implements
+@@ -917,7 +917,7 @@ public class ChatActivityEnterView extends FrameLayout implements
                      && !nebulaCameraChoiceResolved) {
                  nebulaCameraChoicePending = true;
                  recordAudioVideoRunnableStarted = false;

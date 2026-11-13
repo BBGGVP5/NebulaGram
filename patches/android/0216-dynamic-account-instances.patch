@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper.cpp
+index cc9f5d85..8d8f313a 100644
 --- a/TMessagesProj/jni/TgNetWrapper.cpp
 +++ b/TMessagesProj/jni/TgNetWrapper.cpp
 @@ -122,27 +122,27 @@ void sendRequest(JNIEnv *env, jclass c, jint instanceNum, jlong object, jint fla
@@ -37,7 +38,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
      }));
  }
  
-@@ -312,7 +312,7 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
+@@ -308,7 +308,7 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  
      jlong result = ConnectionsManager::getInstance(instanceNum).checkProxy(addressStr, (uint16_t) port, usernameStr, passwordStr, secretStr, [instanceNum, requestTimeFunc](int64_t time) {
          if (requestTimeFunc != nullptr) {
@@ -46,7 +47,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
          }
      }, requestTimeFunc);
  
-@@ -335,83 +335,83 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
+@@ -331,83 +331,83 @@ jlong checkProxy(JNIEnv *env, jclass c, jint instanceNum, jstring address, jint
  class Delegate : public ConnectiosManagerDelegate {
      
      void onUpdate(int32_t instanceNum) {
@@ -142,21 +143,21 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
 +        jniEnv->DeleteLocalRef(nonceStr);
      }
  
-     void onCaptchaCheck(int32_t instanceNum, int32_t requestToken, std::string action, std::string key_id) {
+     void onCaptchaCheck(int32_t instanceNum, int32_t requestToken, int32_t generation, std::string action, std::string key_id) {
 -        jstring actionStr = jniEnv[instanceNum]->NewStringUTF(action.c_str());
 -        jstring keyIdStr = jniEnv[instanceNum]->NewStringUTF(key_id.c_str());
--        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, actionStr, keyIdStr);
+-        jniEnv[instanceNum]->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, generation, actionStr, keyIdStr);
 -        jniEnv[instanceNum]->DeleteLocalRef(actionStr);
 -        jniEnv[instanceNum]->DeleteLocalRef(keyIdStr);
 +        jstring actionStr = jniEnv->NewStringUTF(action.c_str());
 +        jstring keyIdStr = jniEnv->NewStringUTF(key_id.c_str());
-+        jniEnv->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, actionStr, keyIdStr);
++        jniEnv->CallStaticVoidMethod(jclass_ConnectionsManager, jclass_ConnectionsManager_onCaptchaCheck, instanceNum, requestToken, generation, actionStr, keyIdStr);
 +        jniEnv->DeleteLocalRef(actionStr);
 +        jniEnv->DeleteLocalRef(keyIdStr);
      }
  
  };
-@@ -515,11 +515,12 @@ void init(JNIEnv *env, jclass c, jint instanceNum, jint version, jint layer, jin
+@@ -511,11 +511,12 @@ void init(JNIEnv *env, jclass c, jint instanceNum, jint version, jint layer, jin
      }
  }
  
@@ -173,6 +174,7 @@ diff --git a/TMessagesProj/jni/TgNetWrapper.cpp b/TMessagesProj/jni/TgNetWrapper
  
  static const char *ConnectionsManagerClassPathName = "org/telegram/tgnet/ConnectionsManager";
 diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
+index d00397e6..6e18ede5 100644
 --- a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
 +++ b/TMessagesProj/jni/tgnet/ConnectionsManager.cpp
 @@ -17,6 +17,7 @@
@@ -193,7 +195,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  jclass jclass_ByteBuffer = nullptr;
  jmethodID jclass_ByteBuffer_allocateDirect = nullptr;
  #endif
-@@ -137,42 +139,37 @@ ConnectionsManager::~ConnectionsManager() {
+@@ -138,42 +140,37 @@ ConnectionsManager::~ConnectionsManager() {
  }
  
  ConnectionsManager& ConnectionsManager::getInstance(int32_t instanceNum) {
@@ -267,7 +269,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  }
  
  int ConnectionsManager::callEvents(int64_t now) {
-@@ -365,7 +362,9 @@ void *ConnectionsManager::ThreadProc(void *data) {
+@@ -366,7 +363,9 @@ void *ConnectionsManager::ThreadProc(void *data) {
      if (LOGS_ENABLED) DEBUG_D("network thread started");
      auto networkManager = (ConnectionsManager *) (data);
  #ifdef ANDROID
@@ -278,7 +280,7 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  #endif
      if (networkManager->currentUserId != 0 && networkManager->pushConnectionEnabled) {
          Datacenter *datacenter = networkManager->getDatacenterWithId(networkManager->currentDatacenterId);
-@@ -377,6 +376,10 @@ void *ConnectionsManager::ThreadProc(void *data) {
+@@ -378,6 +377,10 @@ void *ConnectionsManager::ThreadProc(void *data) {
      do {
          networkManager->select();
      } while (!done);
@@ -290,9 +292,10 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.cpp b/TMessagesProj/jni/
  }
  
 diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tgnet/ConnectionsManager.h
+index 60f286f6..5d076c6e 100644
 --- a/TMessagesProj/jni/tgnet/ConnectionsManager.h
 +++ b/TMessagesProj/jni/tgnet/ConnectionsManager.h
-@@ -270,7 +270,8 @@ private:
+@@ -272,7 +272,8 @@ private:
  
  #ifdef ANDROID
  extern JavaVM *javaVm;
@@ -303,17 +306,19 @@ diff --git a/TMessagesProj/jni/tgnet/ConnectionsManager.h b/TMessagesProj/jni/tg
  extern jmethodID jclass_ByteBuffer_allocateDirect;
  #endif
 diff --git a/TMessagesProj/jni/tgnet/Defines.h b/TMessagesProj/jni/tgnet/Defines.h
+index 60457743..bd713545 100644
 --- a/TMessagesProj/jni/tgnet/Defines.h
 +++ b/TMessagesProj/jni/tgnet/Defines.h
-@@ -27,7 +27,6 @@
+@@ -28,7 +28,6 @@
  #define DOWNLOAD_CONNECTIONS_COUNT 8
- #define UPLOAD_CONNECTIONS_COUNT 4
+ #define UPLOAD_CONNECTIONS_COUNT 8
  #define CONNECTION_BACKGROUND_KEEP_TIME 10000
 -#define MAX_ACCOUNT_COUNT 11 // Ten signed-in accounts plus the reserved native slot.
  #define USE_DELEGATE_HOST_RESOLVE
  
  #define USE_IPV4_ONLY 0
 diff --git a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
+index 73c84c55..95a9d06b 100644
 --- a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
 +++ b/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp
 @@ -14,7 +14,7 @@ ProxyCheckInfo::~ProxyCheckInfo() {
@@ -326,6 +331,7 @@ diff --git a/TMessagesProj/jni/tgnet/ProxyCheckInfo.cpp b/TMessagesProj/jni/tgne
      }
  #endif
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
+index d554c06b..e1adbc7a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.java
 @@ -8,18 +8,9 @@ import org.telegram.ui.Components.Paint.PersistColorPalette;
@@ -350,6 +356,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AccountInstance.
  
      public AccountInstance(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
+index 4441e841..a5d417ff 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayController.java
 @@ -18,25 +18,11 @@ import java.util.Set;
@@ -382,6 +389,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BirthdayControll
  
      private final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
+index 3db63f1b..75d038a6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.java
 @@ -654,18 +654,9 @@ public class BotForumHelper extends BaseController {
@@ -406,6 +414,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotForumHelper.j
  
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
+index d29b93fc..56ce74cd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.java
 @@ -102,17 +102,8 @@ public class BotGuardHelper extends BaseController {
@@ -429,6 +438,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/BotGuardHelper.j
      }
  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
+index 62b4a630..461235c1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeController.java
 @@ -239,20 +239,10 @@ public class ChatThemeController extends BaseController {
@@ -455,6 +465,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ChatThemeControl
  
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
+index 41ce86e1..ed092adb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/ContactsController.java
 @@ -247,18 +247,9 @@ public class ContactsController extends BaseController {
@@ -479,6 +490,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/ContactsControll
  
      public ContactsController(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
+index 55de2fd4..4f1b332a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/DownloadController.java
 @@ -240,19 +240,10 @@ public class DownloadController extends BaseController implements NotificationCe
@@ -504,9 +516,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/DownloadControll
  
      public DownloadController(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
+index 53d799c0..677366cd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckController.java
-@@ -56,25 +56,11 @@ import java.util.HashMap;
+@@ -57,25 +57,11 @@ import java.util.HashMap;
  
  public class FactCheckController {
  
@@ -536,6 +549,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FactCheckControl
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
+index ad8d00a0..cd0e3a78 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java
 @@ -228,19 +228,10 @@ public class FileLoader extends BaseController {
@@ -561,6 +575,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileLoader.java 
  
      public FileLoader(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
+index 8db01301..e74825bc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/FileRefController.java
 @@ -56,19 +56,10 @@ public class FileRefController extends BaseController {
@@ -586,6 +601,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/FileRefControlle
  
      public FileRefController(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
+index da72da14..022fe3c8 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionController.java
 @@ -762,18 +762,9 @@ public class GiftAuctionController extends BaseController {
@@ -610,6 +626,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/GiftAuctionContr
      }
  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
+index fa1e1ac8..c282f0d4 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchController.java
 @@ -16,26 +16,11 @@ import java.util.HashMap;
@@ -642,6 +659,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/HashtagSearchCon
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
+index 6f24de9a..72271d04 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/LocationController.java
 @@ -77,19 +77,10 @@ public class LocationController extends BaseController implements NotificationCe
@@ -667,6 +685,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/LocationControll
  
      public static class SharingLocationInfo {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
+index a1d74ceb..fb7e3483 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataController.java
 @@ -134,27 +134,12 @@ public class MediaDataController extends BaseController {
@@ -700,6 +719,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaDataControl
  
      public MediaDataController(int num) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
+index f6198eab..735ce14b 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsController.java
 @@ -11,20 +11,10 @@ import org.telegram.tgnet.tl.TL_update;
@@ -726,9 +746,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MemberRequestsCo
  
      private final LongSparseArray<TLRPC.TL_messages_chatInviteImporters> firstImportersCache = new LongSparseArray<>();
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index 97458688..6f10dabe 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
-@@ -1502,25 +1502,11 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -1501,25 +1501,11 @@ public class MessagesController extends BaseController implements NotificationCe
          return 0;
      };
  
@@ -758,6 +779,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
  
      public SharedPreferences getMainSettings() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
+index 0ff96652..bad74ed2 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.java
 @@ -110,13 +110,8 @@ public class MessagesStorage extends BaseController {
@@ -774,7 +796,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
 +    private static final org.telegram.messenger.AccountInstanceRegistry<MessagesStorage> Instance = new org.telegram.messenger.AccountInstanceRegistry<>();
 +
  
-     public final static int LAST_DB_VERSION = 179;
+     public final static int LAST_DB_VERSION = 181;
      private boolean databaseMigrationInProgress;
 @@ -131,16 +126,7 @@ public class MessagesStorage extends BaseController {
  
@@ -795,6 +817,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesStorage.
  
      private void ensureOpened() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+index 4f18f46f..1a52a60d 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 @@ -425,21 +425,12 @@ public class NotificationCenter {
@@ -822,6 +845,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCent
  
      @UiThread
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
+index 020a06e6..8b407517 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsController.java
 @@ -179,25 +179,11 @@ public class NotificationsController extends BaseController implements Notificat
@@ -854,6 +878,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationsCon
  
      public NotificationsController(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
+index d0908311..7da7384e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper.java
 @@ -80,19 +80,10 @@ public class SecretChatHelper extends BaseController {
@@ -879,9 +904,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SecretChatHelper
  
      public SecretChatHelper(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
+index 53fc4598..a32cfdfc 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java
-@@ -955,18 +955,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
+@@ -956,18 +956,9 @@ public class SendMessagesHelper extends BaseController implements NotificationCe
          }
      }
  
@@ -903,6 +929,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelp
  
      public SendMessagesHelper(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
+index 4dbf2db5..b1652fc1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.java
 @@ -118,19 +118,10 @@ public class StatsController extends BaseController {
@@ -928,9 +955,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/StatsController.
  
      private StatsController(int account) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
+index 3dd0ab4b..66ca1a16 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java
-@@ -84,18 +84,9 @@ public class UserConfig extends BaseController {
+@@ -85,18 +85,9 @@ public class UserConfig extends BaseController {
      LongSparseArray<SaveToGallerySettingsHelper.DialogException> groupsSaveGalleryExceptions;
  
  
@@ -952,6 +980,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/UserConfig.java 
  
      public static int getActivatedAccountsCount() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
+index 04a86ce7..88c2f103 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralMessagesHelper.java
 @@ -472,17 +472,8 @@ public class EphemeralMessagesHelper extends BaseController {
@@ -975,9 +1004,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/utils/EphemeralM
      }
  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
+index 132970bb..8a99ef82 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMessagesController.java
-@@ -291,19 +291,10 @@ public class GroupCallMessagesController extends BaseController {
+@@ -313,19 +313,10 @@ public class GroupCallMessagesController extends BaseController {
  
      /* * */
  
@@ -1000,9 +1030,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/voip/GroupCallMe
  
      private GroupCallMessagesController(int accountId) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
+index ab54ee37..c8ef73b7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
 +++ b/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.java
-@@ -193,18 +193,9 @@ public class ConnectionsManager extends BaseController {
+@@ -196,18 +196,9 @@ public class ConnectionsManager extends BaseController {
  
      private static int lastClassGuid = 1;
      
@@ -1024,6 +1055,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/tgnet/ConnectionsManager.j
  
      public ConnectionsManager(int instance) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
+index ef77c276..66c54795 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbotController.java
 @@ -12,24 +12,10 @@ import java.util.ArrayList;
@@ -1055,6 +1087,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessChatbo
  
      private final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
+index 498befdd..6d577f85 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksController.java
 @@ -24,26 +24,11 @@ import java.util.ArrayList;
@@ -1087,6 +1120,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/BusinessLinksC
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
+index 406994c1..93edb098 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesController.java
 @@ -34,24 +34,10 @@ public class QuickRepliesController {
@@ -1118,6 +1152,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/QuickRepliesCo
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
+index a9af0368..a13c5149 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesController.java
 @@ -22,24 +22,10 @@ import java.util.ArrayList;
@@ -1149,6 +1184,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Business/TimezonesContr
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
+index a65223b1..48364d9e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/PersistColorPalette.java
 @@ -49,7 +49,7 @@ public class PersistColorPalette {
@@ -1173,6 +1209,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/Paint/Persis
  
      public int getCurrentTextType() {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
+index 1a2ee669..ef084abd 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsController.java
 @@ -30,25 +30,11 @@ import java.util.HashMap;
@@ -1205,9 +1242,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/BotStarsControlle
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
+index 210d43f7..69458423 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.java
-@@ -96,15 +96,8 @@ public class StarsController {
+@@ -125,15 +125,8 @@ public class StarsController {
      public static final int PERIOD_MINUTE = 60;
      public static final int PERIOD_5MINUTES = 300;
  
@@ -1225,7 +1263,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.j
  
      public static StarsController getTonInstance(int num) {
          return getInstance(num, true);
-@@ -119,16 +112,7 @@ public class StarsController {
+@@ -148,16 +141,7 @@ public class StarsController {
      }
  
      public static StarsController getInstance(int num, boolean ton) {
@@ -1244,6 +1282,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/StarsController.j
  
      public final int currentAccount;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
+index 11d2eaea..08a50b74 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.java
 @@ -22,7 +22,7 @@ import java.util.ArrayList;
@@ -1268,6 +1307,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stories/UserListPoller.
  
      LongSparseLongArray userPollLastTime = new LongSparseLongArray();
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
+index b4ba4d6e..518338e5 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Wallet/GramWallet.java
 @@ -137,19 +137,10 @@ public class GramWallet implements GramWalletStreaming.IGramWalletStreamingSubsc

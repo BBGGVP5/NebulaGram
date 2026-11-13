@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
+index 400082c6..ccbd6089 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsView.java
-@@ -366,7 +366,7 @@ public class FilterTabsView extends FrameLayout {
+@@ -367,7 +367,7 @@ public class FilterTabsView extends FrameLayout {
              boolean animateCounterRemove = animateFromTabCount > 0 && currentTab.counter == 0 && animateTabCounter;
              boolean animateCounterReplace = animateFromTabCount > 0 && currentTab.counter > 0 && animateTabCounter;
  
@@ -11,9 +12,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/FilterTabsVi
                      counterText = String.format("%d", animateFromTabCount);
                  } else {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 293383bc..19933bb0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
-@@ -14100,7 +14100,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+@@ -13719,7 +13719,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
          final float actionModeVisible = Math.max(progressToActionMode, animatorActionModeVisible.getFloatValue());
          final float searchFieldVisible = animatorSearchVisible.getFloatValue();
  

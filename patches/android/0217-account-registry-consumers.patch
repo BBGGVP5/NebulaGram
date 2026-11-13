@@ -1,4 +1,5 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
+index 6f10dabe..d229b6c3 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/MessagesController.java
 @@ -226,7 +226,7 @@ public class MessagesController extends BaseController implements NotificationCe
@@ -10,7 +11,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (channelBoostsControler != null) {
                  return channelBoostsControler;
              }
-@@ -23738,7 +23738,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23799,7 +23799,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (storiesController != null) {
              return storiesController;
          }
@@ -19,7 +20,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (storiesController != null) {
                  return storiesController;
              }
-@@ -23751,7 +23751,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23812,7 +23812,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (savedMessagesController != null) {
              return savedMessagesController;
          }
@@ -28,7 +29,7 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
              if (savedMessagesController != null) {
                  return savedMessagesController;
              }
-@@ -23764,7 +23764,7 @@ public class MessagesController extends BaseController implements NotificationCe
+@@ -23825,7 +23825,7 @@ public class MessagesController extends BaseController implements NotificationCe
          if (unconfirmedAuthController != null) {
              return unconfirmedAuthController;
          }
@@ -38,9 +39,10 @@ diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MessagesControll
                  return unconfirmedAuthController;
              }
 diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
+index 1a52a60d..af45b08e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
 +++ b/TMessagesProj/src/main/java/org/telegram/messenger/NotificationCenter.java
-@@ -1030,7 +1030,7 @@ public class NotificationCenter {
+@@ -1139,7 +1139,7 @@ public class NotificationCenter {
  
      public static void sanitize() {
          sanitizeInternal(globalInstance);

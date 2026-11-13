@@ -100,7 +100,12 @@ public final class NebulaAiClient {
     }
     public String generate(int provider, String custom, String key, String model, String prompt, String input, Options options, Progress progress) throws Exception {
         if (cancelled) throw new InterruptedIOException();
-        if (provider == NANO) return NebulaNanoAi.generate(prompt, input, () -> cancelled);
+        if (provider == NANO) {
+            // The chat streams on-device answers too; other callers stay silent.
+            boolean streaming = options != null && options.stream && progress != null;
+            return NebulaNanoAi.generate(prompt, input, () -> cancelled, progress != null,
+                    options != null && options.reasoning, streaming ? progress : null);
+        }
         if (key.isEmpty() || model.trim().isEmpty() || input.trim().isEmpty()) throw new IOException("Key, model and text required");
         if (input.length() > 50000 || prompt.length() > 20000) throw new IOException("Text too long");
         String modelName = model.startsWith("models/") ? model.substring(7) : model;

@@ -1,7 +1,8 @@
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
+index 42022034..d1189fdb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/MainTabsActivity.java
-@@ -732,6 +732,14 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
+@@ -750,6 +750,14 @@ public class MainTabsActivity extends ViewPagerActivity implements NotificationC
  
      @Override
      protected void onViewPagerScrollEnd() {
