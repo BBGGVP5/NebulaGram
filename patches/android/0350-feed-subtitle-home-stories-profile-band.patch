@@ -1,0 +1,88 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+index 91b84776..b2eb7b7c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/ActionBar.java
+@@ -255,6 +255,36 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
+     public int getNebulaHomeVisibleStories() { return nebulaHomeVisibleStories; }
+ 
++    /**
++     * Сколько аватарок помещается рядом с заголовком прямо сейчас. Замер решает это
++     * один раз, а текст заголовка («Подключение к NebulaLink…») меняется и без
++     * нового замера, и стопка из трёх аватарок наезжала на начало длинного
++     * заголовка. Здесь считается по полной ширине текущего текста.
++     */
++    private int nebulaHomeLiveStories() {
++        int visible = nebulaHomeVisibleStories;
++        if (!nebulaHomeLayout || visible <= 0 || getMeasuredWidth() == 0) return visible;
++        int title = 0;
++        for (SimpleTextView view : titleTextView) {
++            if (view == null || view.getVisibility() == GONE || view.getAlpha() <= 0f || view.getText() == null) continue;
++            CharSequence text = view.getText();
++            int width = (int) Math.ceil(view.getTextPaint().measureText(text, 0, text.length()))
++                    + view.getSideDrawablesSize() + view.getPaddingLeft() + view.getPaddingRight();
++            title = Math.max(title, width);
++        }
++        int available = getMeasuredWidth() - dp(84) - nebulaTitleEndInset();
++        return Math.min(visible, app.nebulagram.ui.NebulaHomeTitleGeometry.visibleStories(
++                nebulaHomeStoryCount, available, title, dp(34), dp(16), dp(8)));
++    }
++
++    /** Перед отрисовкой: стопка не шире, чем оставляет текущий текст заголовка. */
++    private void nebulaClampHomeStories() {
++        int live = nebulaHomeLiveStories();
++        if (live == nebulaHomeVisibleStories) return;
++        nebulaHomeVisibleStories = live;
++        updateNebulaHomeTitleLayout();
++    }
++
+     private int nebulaHomeStoryPrefix() {
+         return app.nebulagram.ui.NebulaHomeTitleGeometry.storyPrefix(
+                 nebulaHomeVisibleStories, dp(34), dp(16), dp(8));
+@@ -2091,6 +2121,11 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+         if (subtitleTextView != null && subtitleTextView.getVisibility() != GONE) {
+             int textTop = getCurrentActionBarHeight() / 2 + (getCurrentActionBarHeight() / 2 - subtitleTextView.getTextHeight()) / 2 - dp(2);
+             int titleLeft = centerTitleAndGlass ? (getMeasuredWidth() - subtitleTextView.getMeasuredWidth()) / 2 : textLeft;
++            // Под центрированным заголовком подпись тоже по центру, а не под «назад».
++            if (nebulaCenterTitle()) {
++                titleLeft = app.nebulagram.ui.NebulaHomeTitleGeometry.left(
++                        getMeasuredWidth(), textLeft, nebulaTitleEndInset(), subtitleTextView.getMeasuredWidth());
++            }
+             subtitleTextView.layout(titleLeft, additionalTop + textTop, titleLeft + subtitleTextView.getMeasuredWidth(), additionalTop + textTop + subtitleTextView.getTextHeight());
+         }
+ 
+@@ -2251,6 +2286,8 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+             } else {
+                 ellipsizeSpanAnimator.removeView(titleTextView[0]);
+             }
++            // Текст сменился без анимации: заголовок и стопка историй перемеряются.
++            if (nebulaHomeLayout) requestLayout();
+         } else if (titleTextView[0] != null) {
+             titleTextView[0].animate().cancel();
+             if (titleTextView[1] != null) {
+@@ -2889,6 +2926,7 @@ public class ActionBar extends FrameLayout implements FactorAnimator.Target, The
+ 
+     @Override
+     protected void dispatchDraw(Canvas canvas) {
++        nebulaClampHomeStories();
+         if (drawSectionsBackground) {
+             final int color = Theme.multAlpha(getThemedColor(Theme.key_windowBackgroundGray), customHeaderAlpha / 255f);
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 174ac2c1..cc4db85a 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -1390,7 +1390,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 canvas.saveLayerAlpha(0, 0, getMeasuredWidth(), y1, (int) (0xFF * (1f - headerBlurFactor)));
+             }
+             if (y1 != 0) {
+-                paint.setColor(currentColor);
++                // Свёрнутая шапка профиля с фото: тот же тон, что у страницы, а не
++                // серый (в тёмной теме чёрный) фон окна. Иначе при сворачивании фото
++                // сменялось чёрной полосой под кнопками, и шапка «мигала».
++                final int nebulaPage = app.nebulagram.ui.NebulaProfileStyle.pageColor(listView);
++                paint.setColor(nebulaPage != 0 && currentColor == getThemedColor(Theme.key_windowBackgroundGray)
++                        ? nebulaPage : currentColor);
+                 updateBackgroundPaint();
+                 final float progressToGradient = (playProfileAnimation == 0 ? 1f : avatarAnimationProgress) * hasColorAnimated.set(hasColorById);
+                 if (progressToGradient < 1) {

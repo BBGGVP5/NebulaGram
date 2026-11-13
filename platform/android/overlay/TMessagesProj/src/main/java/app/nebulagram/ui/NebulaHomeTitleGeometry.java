@@ -57,4 +57,29 @@ public final class NebulaHomeTitleGeometry {
     public static float avatarCenterY(float expandedCenter, float toolbarCenter, float progress) {
         return expandedCenter + (toolbarCenter - expandedCenter) * lift(progress);
     }
+
+    /**
+     * Кольцо историй едет вверх вместе со своим рядом (а не висит на месте ряда до
+     * прокрутки над уехавшими под него чатами), но не заходит в полосу заголовка,
+     * пока по горизонтали ещё задевает заголовок или «Изм.». Удержание включается
+     * плавно, за 3 dp до касания, поэтому кольцо не прыгает.
+     *
+     * @param dp один dp в пикселях
+     */
+    public static float clearCenterY(float y, float toolbarCenter, float radius,
+                                     float ringLeft, float ringRight, float titleLeft, float dp) {
+        // Окно включения 3 dp: у собранной стопки до заголовка и до «Изм.» остаётся
+        // около 5 dp, и удержание в покое не должно стягивать кольца вниз
+        // (с окном 12 dp крайние кольца вставали «треугольником»).
+        float title = ramp((ringRight - (titleLeft - 3 * dp) + 3 * dp) / (3 * dp));
+        float edit = ramp((76 * dp - ringLeft + 3 * dp) / (3 * dp));
+        float result = y;
+        result = Math.max(result, y + (toolbarCenter + 14.5f * dp + radius - y) * title);
+        result = Math.max(result, y + (toolbarCenter + 22.5f * dp + radius - y) * edit);
+        return result;
+    }
+
+    private static float ramp(float value) {
+        return Math.max(0f, Math.min(1f, value));
+    }
 }
