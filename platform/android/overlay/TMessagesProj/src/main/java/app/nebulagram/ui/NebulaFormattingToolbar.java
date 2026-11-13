@@ -319,6 +319,9 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                     float linear = animation.getAnimatedFraction();
                     revealProgress = Math.max(0f, fromProgress + ((visible ? 1f : 0f) - fromProgress) * t);
                     row.setAlpha(Math.max(0f, Math.min(1f, (revealProgress - .35f) / .65f)));
+                    // Свёрнутый остаток панели (круг 44 точки) гаснет под «A», а не
+                    // остаётся тёмным пятном рядом с ней.
+                    if (!visible) setAlpha(Math.max(0f, Math.min(1f, revealProgress / .3f)));
                     if (!visible && linear >= 1f) { reservedHeight = 0; setVisibility(GONE); }
                     invalidate();
                     layoutChanged.run();
@@ -452,6 +455,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         private final ImageView icon;
         private final GradientDrawable circle = new GradientDrawable();
         private boolean shown;
+        private Boolean shownOpen;
 
         static FloatingOpener attach(NebulaFormattingToolbar toolbar) {
             android.view.ViewParent parent = toolbar.getParent();
@@ -496,8 +500,16 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             circle.setColor(open ? theme.primary() : theme.surfaceContainer());
             circle.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.onSurface(), open ? 0f : .12f));
             icon.setColorFilter(open ? theme.onPrimary() : theme.onSurface());
-            icon.animate().rotation(open ? 90f : 0f).setDuration(220).start();
-            icon.setImageResource(open ? R.drawable.nebula_ios_close : R.drawable.msg_text_outlined);
+            if (shownOpen != open) {
+                // Значок меняется коротким «поджатием», без поворота: повёрнутая
+                // на 90° «A» выглядела как стрелка «Отправить».
+                shownOpen = open;
+                icon.animate().cancel();
+                icon.setRotation(0f);
+                icon.setImageResource(open ? R.drawable.nebula_ios_close : R.drawable.msg_text_outlined);
+                icon.setScaleX(.6f); icon.setScaleY(.6f); icon.setAlpha(.4f);
+                icon.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(180).start();
+            }
             boolean visible = toolbar.openerVisible();
             if (visible == shown) return;
             shown = visible;
@@ -508,8 +520,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260)
                         .setInterpolator(new android.view.animation.OvershootInterpolator(1.6f)).withEndAction(null).start();
             } else {
-                animate().alpha(0f).scaleX(.4f).scaleY(.4f).setDuration(160)
-                        .withEndAction(() -> { if (!shown) setVisibility(GONE); }).start();
+                // Прячем сразу: ряд под «A» в списке сообщений освобождается в тот же
+                // кадр, и гаснущая кнопка ложилась поверх последнего сообщения.
+                setAlpha(0f);
+                setVisibility(GONE);
             }
         }
 
@@ -528,7 +542,11 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             // Над полем ввода. Раскрытая панель — верхняя часть поля ввода, так
             // что кнопка поднимается вместе с ней и висит над ней.
             float x = composerLocation[0] - hostLocation[0] + composer.getWidth() - size - AndroidUtilities.dp(12);
-            float y = composerLocation[1] - hostLocation[1] - size - AndroidUtilities.dp(6);
+            // Пока панель занимает ряд над полем (и всё время, пока сворачивается),
+            // верх поля ввода выше на этот ряд. Свёрнутое положение считаем от
+            // самого поля: иначе при закрытии «A» уезжала вверх на последнее
+            // сообщение, а в конце рывком падала на место.
+            float y = composerLocation[1] - hostLocation[1] + toolbar.reservedHeight - size - AndroidUtilities.dp(6);
             // По центру кнопки голосового/отправки, а не на глаз от края поля.
             View target = toolbar.anchor != null ? toolbar.anchor.get() : null;
             if (target != null && target.isShown() && target.getWidth() > 0) {
