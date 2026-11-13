@@ -408,10 +408,14 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     }
 
     private final android.text.TextWatcher emptiness = new android.text.TextWatcher() {
-        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { }
+        private int lengthBefore;
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) { lengthBefore = s.length(); }
         @Override public void onTextChanged(CharSequence s, int start, int before, int count) { }
         @Override public void afterTextChanged(android.text.Editable s) {
             refreshState();
+            // Поле очистилось целиком одним изменением — так выглядит отправка.
+            // Сообщение вылетает из поля вверх мимо «A»: кнопка на это время гаснет.
+            if (lengthBefore > 1 && s.length() == 0 && opener != null) opener.stepAside();
             // Сообщение отправлено — поле опустело, ручное открытие закрывается.
             if (manual && s.length() == 0) { manual = false; tintToggle(); layoutChanged.run(); }
         }
@@ -487,6 +491,15 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             update();
         }
 
+        /** Пропустить улетающее сообщение: погаснуть и вернуться, когда оно пролетит. */
+        void stepAside() {
+            if (!shown || getVisibility() != VISIBLE) return;
+            animate().cancel();
+            animate().alpha(0f).setDuration(90).setStartDelay(0).withEndAction(() -> {
+                if (shown) animate().alpha(1f).setDuration(180).setStartDelay(380).withEndAction(null).start();
+            }).start();
+        }
+
         void detach() {
             host.getViewTreeObserver().removeOnPreDrawListener(this);
             animate().cancel();
@@ -517,7 +530,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             if (visible) {
                 setVisibility(VISIBLE);
                 setScaleX(.4f); setScaleY(.4f);
-                animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260)
+                animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(260).setStartDelay(0)
                         .setInterpolator(new android.view.animation.OvershootInterpolator(1.6f)).withEndAction(null).start();
             } else {
                 // Прячем сразу: ряд под «A» в списке сообщений освобождается в тот же
