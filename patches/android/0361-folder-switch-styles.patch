@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 4fb13d35..628ee97d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -451,6 +451,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+         public void setTranslationX(float translationX) {
+             if (getTranslationX() != translationX) {
+                 super.setTranslationX(translationX);
++                app.nebulagram.ui.NebulaFolderSwitch.apply(this, translationX);
+                 if (tabsAnimationInProgress) {
+                     if (viewPages[0] == this) {
+                         float scrollProgress = Math.abs(viewPages[0].getTranslationX()) / (float) viewPages[0].getMeasuredWidth();

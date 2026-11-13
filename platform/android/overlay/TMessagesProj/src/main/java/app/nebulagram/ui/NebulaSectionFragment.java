@@ -281,6 +281,7 @@ public class NebulaSectionFragment extends BaseFragment {
                             dialog.dismiss();
                         }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show()));
         content.addView(card, cardParams());
+        buildMotion(context);
 
         content.addView(NebulaCard.header(context,
                 LocaleController.getString(R.string.NebulaListSection)));
@@ -291,6 +292,34 @@ public class NebulaSectionFragment extends BaseFragment {
         content.addView(list, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context,
                 LocaleController.getString(R.string.NebulaRestartHint)));
+    }
+
+    /** Анимации загрузки и смены папок. Обе уважают «уменьшение движения». */
+    private void buildMotion(Context context) {
+        content.addView(NebulaCard.header(context, NebulaText.text("Анимации", "Animations")));
+        NebulaCard motion = new NebulaCard(context);
+        NebulaRow progress = new NebulaRow(context).icon(R.drawable.msg_download)
+                .title(NebulaText.text("Индикатор загрузки Expressive", "Expressive loading indicator"))
+                .subtitle(NebulaText.text("Фигуры с процентом вместо круга при отправке и скачивании",
+                        "Morphing shapes with a percentage instead of the ring"), false)
+                .trailing(NebulaRow.TRAIL_SWITCH)
+                .checked(NebulaShapeProgress.enabled());
+        progress.setOnClickListener(v -> NebulaShapeProgress.setEnabled(progress.toggleChecked()));
+        motion.add(progress);
+
+        String title = NebulaText.text("Переход между папками", "Folder switch");
+        NebulaRow folders = new NebulaRow(context).icon(R.drawable.msg_folders).title(title)
+                .subtitle(NebulaFolderSwitch.names()[NebulaFolderSwitch.style()], true)
+                .trailing(NebulaRow.TRAIL_CHEVRON);
+        folders.withClick(v -> new NebulaDialog.Builder(context).setTitle(title)
+                .setSelectedIndex(NebulaFolderSwitch.style())
+                .setItems(NebulaFolderSwitch.names(), (dialog, which) -> {
+                    NebulaFolderSwitch.setStyle(which);
+                    folders.subtitle(NebulaFolderSwitch.names()[which], true);
+                    dialog.dismiss();
+                }).setNegativeButton(NebulaText.text("Отмена", "Cancel"), null).show());
+        motion.add(folders);
+        content.addView(motion, cardParams());
     }
 
     /**
