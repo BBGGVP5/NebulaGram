@@ -167,7 +167,26 @@ public final class NebulaLink {
             // Withdraw the recorded dead endpoint before core.init, even if the Go core fails.
             // Otherwise a disabled tunnel can leave Telegram reconnecting to a closed local port.
             SharedPreferences saved = context.getSharedPreferences(PREFS, 0);
-            clearPreviousProxy(saved.getInt(KEY_PROXY_PORT, 0));
+            int recordedPort = saved.getInt(KEY_PROXY_PORT, 0);
+            // Если в прошлый раз туннель поднимался сам, прокси не снимаем:
+            // через пару секунд ядро поднимет тот же порт, и Telegram просто
+            // дождётся его. Снятие и повторная установка стоили двух
+            // переподключений подряд («Соединение…», затем «Обновление…») и
+            // окна, в котором клиент шёл напрямую, — там, где Telegram
+            // заблокирован, это и есть долгая загрузка после запуска.
+            final int keptPort = saved.getBoolean(KEY_AUTOSTART, false) && recordedPort > 0 ? recordedPort : 0;
+            if (keptPort > 0) {
+                FileLog.d("NebulaLink: keeping tunnel proxy on port " + keptPort + " until the core starts");
+                AndroidUtilities.runOnUIThread(() -> {
+                    JSONObject status = tunnelStatus;
+                    if (status == null || !"connected".equals(status.optString("state"))) {
+                        FileLog.d("NebulaLink: tunnel not connected in time, dropping kept proxy");
+                        clearPreviousProxy(keptPort);
+                    }
+                }, KEPT_PROXY_TIMEOUT_MS);
+            } else {
+                clearPreviousProxy(recordedPort);
+            }
             EXECUTOR.execute(() -> {
             try {
                 JSONObject payload = new JSONObject();
@@ -180,6 +199,7 @@ public final class NebulaLink {
                 Result result = callBlocking("core.init", payload);
                 if (!result.ok) {
                     FileLog.e("NebulaLink: core.init failed: " + result.error);
+                    if (keptPort > 0) AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(keptPort));
                     return;
                 }
                 JSONObject settings = result.data == null ? null : result.data.optJSONObject("settings");
@@ -188,7 +208,6 @@ public final class NebulaLink {
                 boolean previouslyConnected = preferences.getBoolean(KEY_WAS_CONNECTED, false);
                 int previousPort = preferences.getInt(KEY_PROXY_PORT,
                         previouslyConnected && settings != null ? settings.optInt("socks_port") : 0);
-                if (previousPort > 0) AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(previousPort));
                 if (settings != null && preferences.contains(KEY_WAS_CONNECTED)) {
                     JSONObject migration = new JSONObject();
                     migration.put("auto_connect", previouslyConnected);
@@ -204,11 +223,18 @@ public final class NebulaLink {
                         handleEvent(json);
                     }
                 });
-                if (settings != null && settings.optBoolean("auto_connect")
-                        && !settings.optString("selected_server_id").isEmpty()) {
+                boolean autostart = settings != null && settings.optBoolean("auto_connect")
+                        && !settings.optString("selected_server_id").isEmpty();
+                preferences.edit().putBoolean(KEY_AUTOSTART, autostart).apply();
+                // Оставленный прокси годится, только если ядро поднимет тот же порт.
+                boolean keepProxy = autostart && keptPort > 0 && previousPort == keptPort
+                        && settings.optInt("socks_port", keptPort) == keptPort;
+                if (previousPort > 0 && !keepProxy) AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(previousPort));
+                if (autostart) {
                     Result started = callBlocking("tunnel.start", null);
                     if (!started.ok) {
                         FileLog.e("NebulaLink: automatic connection failed: " + started.error);
+                        if (keepProxy) AndroidUtilities.runOnUIThread(() -> clearPreviousProxy(keptPort));
                     }
                 }
             } catch (JSONException e) {
@@ -253,6 +279,9 @@ public final class NebulaLink {
     private static final String KEY_WAS_CONNECTED = "tunnel_was_connected";
     private static final String KEY_PROXY_PORT = "tunnel_proxy_port";
     private static final String KEY_ROUTE_CALLS = "tunnel_route_calls";
+    /** Поднимался ли туннель сам при прошлом запуске: тогда его прокси на старте не снимаем. */
+    private static final String KEY_AUTOSTART = "tunnel_autostart";
+    private static final long KEPT_PROXY_TIMEOUT_MS = 30_000;
 
     /** A killed process leaves its SOCKS entry behind, even when startup is disabled. */
     private static void clearPreviousProxy(int port) {
@@ -331,9 +360,13 @@ public final class NebulaLink {
         // setProxySettings поднимает сессии заново. Событие «подключено»
         // приходит не только при первом подключении, и каждый раз это стоило
         // пользователю обрыва — отсюда и вечное «Соединение».
-        if (installedProxy != null && installedProxy.settings.getPort() == socksPort && isRoutingThroughTunnel()) {
+        // После перезапуска ссылка installedProxy пуста, а прокси с того же
+        // порта уже стоит (его оставил запуск): узнаём его по записанному порту.
+        if (isRoutingThroughTunnel() && SharedConfig.currentProxy.settings.getPort() == socksPort) {
+            if (installedProxy == null) installedProxy = SharedConfig.currentProxy;
             return;
         }
+        FileLog.d("NebulaLink: routing Telegram through tunnel port " + socksPort);
         // Локальный SOCKS5 без логина: тип указываем явно, потому что сборщик
         // настроек по умолчанию его не угадывает.
         ProxySettings settings = ProxySettings.builder()
@@ -374,6 +407,7 @@ public final class NebulaLink {
      * is left alone: only the entry we installed is withdrawn.
      */
     public static void stopUsingTunnel() {
+        FileLog.d("NebulaLink: tunnel proxy withdrawn");
         // deleteProxy also clears the saved endpoint when this is the current
         // proxy. Clearing currentProxy first would resurrect it on the next launch.
         if (installedProxy != null) {

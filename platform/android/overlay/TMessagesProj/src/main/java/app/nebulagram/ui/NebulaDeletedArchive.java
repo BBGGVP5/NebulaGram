@@ -71,10 +71,11 @@ public final class NebulaDeletedArchive {
         }
         return (SecretKey) store.getKey(ALIAS, null);
     }
-    // Only the most recently used account is cached. Access is under this class's monitor.
+    // One snapshot per account, under this class's monitor. A single slot made
+    // every deletion event of the other account decrypt and parse its whole
+    // archive again on the storage queue, holding the lock both accounts share.
     // Published snapshots are never mutated in place; pending writes stay readable until committed.
-    private static long cachedOwner;
-    private static Snapshot cachedSnapshot;
+    private static final java.util.Map<Long, Snapshot> cachedSnapshots = new java.util.HashMap<>();
     // Message deletion runs on Telegram's single storage queue. Re-encrypting and
     // atomically replacing the entire archive there can stall chat sync for the
     // full duration of a large archive write. Keep only the newest pending
@@ -134,10 +135,10 @@ public final class NebulaDeletedArchive {
             Snapshot pending = uncommittedSnapshots.get(owner);
             if (pending != null) return pending;
         }
-        if (cachedSnapshot != null && cachedOwner == owner) return cachedSnapshot;
+        Snapshot cached = cachedSnapshots.get(owner);
+        if (cached != null) return cached;
         Snapshot loaded = new Snapshot(read(owner));
-        cachedOwner = owner;
-        cachedSnapshot = loaded;
+        cachedSnapshots.put(owner, loaded);
         return loaded;
     }
     private static JSONArray read(long owner) throws Exception {
@@ -157,8 +158,7 @@ public final class NebulaDeletedArchive {
     private static void write(long owner, JSONArray entries) throws Exception {
         Snapshot next = new Snapshot(entries);
         writeFile(owner, entries);
-        cachedOwner = owner;
-        cachedSnapshot = next;
+        cachedSnapshots.put(owner, next);
     }
     private static void writeFile(long owner, JSONArray entries) throws Exception {
         Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding"); cipher.init(Cipher.ENCRYPT_MODE, key());
@@ -317,11 +317,10 @@ public final class NebulaDeletedArchive {
                 for(int i=0;i<all.length();i++){JSONObject entry=all.getJSONObject(i);if(peer!=0&&entry.optLong("peer")!=peer)kept.put(entry);}
                 purgeDifference(account,all,kept);
                 Snapshot next = new Snapshot(kept);
-                cachedOwner = expected;
-                cachedSnapshot = next;
+                cachedSnapshots.put(expected, next);
                 publish(expected,next);
                 ApplicationLoader.applicationContext.getSharedPreferences("nebulagram",0).edit().remove("deleted_archive_error_"+expected).apply();
-                writeAsync(expected, cachedSnapshot, done, error);
+                writeAsync(expected, next, done, error);
             } }
             catch(Exception e){org.telegram.messenger.AndroidUtilities.runOnUIThread(error);}
         });
@@ -342,7 +341,7 @@ public final class NebulaDeletedArchive {
     }
     // Before both remote-deletion UI delivery and database deletion, on the storage queue.
     // Returns only IDs which Telegram should actually remove locally.
-    public static synchronized ArrayList<Integer> retain(int account, long dialog, ArrayList<Integer> ids) {
+    public static ArrayList<Integer> retain(int account, long dialog, ArrayList<Integer> ids) {
         long owner=owner(account);ArrayList<Integer> result=new ArrayList<>(ids);
         if(owner==0||ids.isEmpty())return result;
         // Тот же выход, что и в initialize, и по той же причине: это тоже
@@ -351,6 +350,11 @@ public final class NebulaDeletedArchive {
         // ключом. Если файл есть, войти придётся: даже с выключенным
         // сохранением уже сохранённые сообщения нельзя отдавать на удаление.
         if(!enabled(owner)&&!present(owner))return result;
+        // Замок берём только здесь: выключенный архив не должен ждать, пока
+        // архив другого аккаунта расшифровывается.
+        synchronized (NebulaDeletedArchive.class) {
+        int asked=result.size(), found=0, kept=0;
+        int[] skipped=new int[SKIP_REASONS];
         try {
             Snapshot before = snapshot(owner);
             before.filter(dialog,result);
@@ -359,26 +363,29 @@ public final class NebulaDeletedArchive {
             java.util.Set<String> addedKeys = new java.util.HashSet<>();
             java.util.Map<Long,ArrayList<TLRPC.Message>> changed=new java.util.HashMap<>();
             final boolean capture = enabled(owner), keepSecret = saveSecret(owner), keepExpiring = saveExpiring(owner);
+            asked=result.size();
             if(capture)for(int offset=0;offset<result.size();offset+=100) {
                 ArrayList<Integer> batch=new ArrayList<>(result.subList(offset,Math.min(result.size(),offset+100)));
                 String condition=dialog==0?"is_channel = 0":"uid = "+dialog;
                 SQLiteCursor cursor=MessagesStorage.getInstance(account).getDatabase().queryFinalized("SELECT uid,data,mid,read_state,ttl FROM messages_v2 WHERE mid IN("+TextUtils.join(",",batch)+") AND "+condition);
                 try {while(cursor.next()) {
+                    found++;
                     long peer=cursor.longValue(0);int id=cursor.intValue(2), readState=cursor.intValue(3);
-                    if(DialogObject.isEncryptedDialog(peer)&&!keepSecret||peer==777000||protectedPeer(account,peer))continue;
+                    if(DialogObject.isEncryptedDialog(peer)&&!keepSecret||peer==777000||protectedPeer(account,peer)){skipped[SKIP_PROTECTED]++;continue;}
                     // Где сохранять — выбор пользователя: личные чаты, группы,
                     // каналы и боты включаются по отдельности.
-                    if(!NebulaDeletedStyle.retains(account,peer))continue;
+                    if(!NebulaDeletedStyle.retains(account,peer)){skipped[SKIP_SCOPE]++;continue;}
                     if(before.keys.contains(marker(peer,id)))continue;
-                    NativeByteBuffer data=cursor.byteBufferValue(1);if(data==null)continue;
+                    NativeByteBuffer data=cursor.byteBufferValue(1);if(data==null){skipped[SKIP_UNREADABLE]++;continue;}
                     TLRPC.Message message;
                     try {message=TLRPC.Message.TLdeserialize(data,data.readInt32(false),false);if(message!=null)message.readAttachPath(data,owner);}finally{data.reuse();}
-                    if(message==null)continue;
+                    if(message==null){skipped[SKIP_UNREADABLE]++;continue;}
                     message.ttl=Math.max(message.ttl,cursor.intValue(4));
                     boolean secret=DialogObject.isEncryptedDialog(peer);
                     boolean expiring=message.ttl_period>0||cursor.intValue(4)>0||message.media!=null&&message.media.ttl_seconds>0;
-                    if(!NebulaRetentionPolicy.allowed(capture,secret,expiring,keepSecret,keepExpiring,message.noforwards,NebulaRetentionPolicy.receivedOrSaved(!message.out,peer,owner),message instanceof TLRPC.TL_messageService,id!=0&&(id>0||secret)))continue;
+                    if(!NebulaRetentionPolicy.allowed(capture,secret,expiring,keepSecret,keepExpiring,message.noforwards,NebulaRetentionPolicy.receivedOrSaved(!message.out,peer,owner),message instanceof TLRPC.TL_messageService,id!=0&&(id>0||secret))){skipped[SKIP_POLICY]++;continue;}
                     if(!addedKeys.add(marker(peer,id)))continue;
+                    kept++;
                     if(entries==null)entries=copyEntries(before.entries);
                     message.id=id;message.dialog_id=peer;message.unread=(readState&1)==0;message.media_unread=(readState&2)==0;
                     entries.put(new JSONObject().put("peer",peer).put("id",id).put("scope",dialog).put("inline",true).put("timestamp",message.date)
@@ -391,8 +398,7 @@ public final class NebulaDeletedArchive {
             // queue, so an archive's size cannot hold up loading other chats.
             if(entries!=null) {
                 Snapshot next = new Snapshot(entries, before);
-                cachedOwner = owner;
-                cachedSnapshot = next;
+                cachedSnapshots.put(owner, next);
                 writeAsync(owner, next);
             }
             Snapshot committed = snapshot(owner);
@@ -425,7 +431,56 @@ public final class NebulaDeletedArchive {
                     org.telegram.messenger.NotificationCenter.getInstance(account).postNotificationName(org.telegram.messenger.NotificationCenter.replaceMessagesObjects,peer,objects);
                 });
             }
-        }catch(Exception e){failed(owner);}
+        }catch(Exception e){failed(owner);skipped[SKIP_ERROR]++;}
+        diagnose(account,dialog,asked,found,kept,skipped);
         return result;
+        }
+    }
+
+    private static final int SKIP_PROTECTED=0, SKIP_SCOPE=1, SKIP_POLICY=2, SKIP_UNREADABLE=3, SKIP_ERROR=4, SKIP_REASONS=5;
+    /**
+     * Почему удалённое не попало в архив. Без устройства это не воспроизвести,
+     * поэтому пишем короткую сводку в журнал Telegram (только когда журнал
+     * включён в отладочном меню). Текст сообщений туда не попадает: одни счётчики.
+     * notInDb — сообщение не было загружено на это устройство до удаления.
+     */
+    private static void diagnose(int account,long dialog,int asked,int found,int kept,int[] skipped){
+        if(!org.telegram.messenger.BuildVars.LOGS_ENABLED||asked==kept)return;
+        org.telegram.messenger.FileLog.d("NebulaDeletedArchive: account="+account+" scope="+(dialog==0?"private/groups":dialog<0?"channel":"dialog")
+            +" asked="+asked+" notInDb="+(asked-found)+" kept="+kept+" protected="+skipped[SKIP_PROTECTED]+" scopeOff="+skipped[SKIP_SCOPE]
+            +" policy="+skipped[SKIP_POLICY]+" unreadable="+skipped[SKIP_UNREADABLE]+" error="+skipped[SKIP_ERROR]);
+    }
+
+    /** Есть ли у аккаунта архив, которому нужны события удаления. Дёшево: настройка и наличие файла. */
+    public static boolean active(int account) {
+        long owner=owner(account);
+        return owner!=0&&(enabled(owner)||present(owner));
+    }
+
+    /**
+     * Пачка обновлений с удалениями сначала проходит архив на очереди базы, и
+     * только потом её видит интерфейс. Без удалений или без архива задача
+     * выполняется сразу, как у Telegram, и не ждёт очередь базы.
+     */
+    public static void beforeDeletes(int account, boolean hasDeletes, Runnable task) {
+        if (hasDeletes && active(account)) MessagesStorage.getInstance(account).getStorageQueue().postRunnable(task);
+        else task.run();
+    }
+
+    /**
+     * Условие для массового стирания сообщений чата (перезагрузка канала, сброс
+     * списка чатов): " AND mid NOT IN(...)" с сохранёнными в архиве сообщениями
+     * этого чата или пустая строка. Вызывается с очереди базы.
+     */
+    public static String keepClause(int account, long peer) {
+        if(!active(account))return "";
+        long owner=owner(account);
+        java.util.Set<Integer> ids;
+        synchronized (NebulaDeletedArchive.class) {
+            try { java.util.Set<Integer> scoped=snapshot(owner).scopes.get(peer); ids=scoped==null?null:new java.util.TreeSet<>(scoped); }
+            catch(Exception e){failed(owner);return "";}
+        }
+        if(ids==null||ids.isEmpty())return "";
+        return " AND mid NOT IN("+TextUtils.join(",",ids)+")";
     }
 }

@@ -83,11 +83,17 @@ public final class NebulaDeletedStyle {
             // Секретные чаты — личная переписка, и у них есть свой переключатель.
             return scope(PRIVATE);
         }
+        // Чат или бот, которого ещё нет в памяти, дочитываем из базы, если мы
+        // на её очереди (так зовёт архив). Иначе канал считался группой, и при
+        // «только каналы» его удалённые сообщения молча пропускались.
+        boolean onStorage = Thread.currentThread() == org.telegram.messenger.MessagesStorage.getInstance(account).getStorageQueue();
         if (peer < 0) {
             TLRPC.Chat chat = MessagesController.getInstance(account).getChat(-peer);
+            if (chat == null && onStorage) chat = org.telegram.messenger.MessagesStorage.getInstance(account).getChat(-peer);
             return scope(chat != null && ChatObject.isChannelAndNotMegaGroup(chat) ? CHANNELS : GROUPS);
         }
         TLRPC.User user = MessagesController.getInstance(account).getUser(peer);
+        if (user == null && onStorage) user = org.telegram.messenger.MessagesStorage.getInstance(account).getUser(peer);
         return scope(user != null && user.bot ? BOTS : PRIVATE);
     }
 

@@ -37,7 +37,7 @@ class ArchiveIndexCheck {
   JSONObject optJSONObject(int i){return getJSONObject(i);}
   JSONArray put(JSONObject e){rows.add(e);return this;}
  }
- static long cachedOwner; static Snapshot cachedSnapshot;
+ static Map<Long,Snapshot> cachedSnapshots=new HashMap<>();
  static Map<Long,Snapshot> pendingWrites=new HashMap<>(),uncommittedSnapshots=new HashMap<>();
  static class DialogObject {static boolean isEncryptedDialog(long peer){return peer>1000000000L;}}
  static int diskReads; static boolean readFails; static JSONArray disk;
@@ -67,9 +67,10 @@ class ArchiveIndexCheck {
   if(diskReads!=1||JSONArray.reads!=scans)throw new AssertionError("Repeated archive scan/decryption");
   readFails=true;
   try{snapshot(2);throw new AssertionError("Read failure ignored");}catch(Exception expected){}
-  if(snapshot(1)!=first||cachedOwner!=1)throw new AssertionError("Failed load poisoned cache");
+  if(snapshot(1)!=first||cachedSnapshots.get(1L)!=first)throw new AssertionError("Failed load poisoned cache");
   readFails=false;disk=new JSONArray();Snapshot second=snapshot(2);
-  if(!second.keys.isEmpty()||cachedOwner!=2)throw new AssertionError("Cross-account data leak");
+  if(!second.keys.isEmpty()||cachedSnapshots.get(2L)!=second)throw new AssertionError("Cross-account data leak");
+  int readsBefore=diskReads;if(snapshot(1)!=first||snapshot(2)!=second||diskReads!=readsBefore)throw new AssertionError("Account switch decrypted the archive again");
   Snapshot cleared=new Snapshot(new JSONArray());
   ArrayList<Integer> ids=new ArrayList<>(Arrays.asList(2));cleared.filter(-100,ids);
   if(ids.size()!=1)throw new AssertionError("Clear kept stale markers");
@@ -205,11 +206,11 @@ with tempfile.TemporaryDirectory(prefix='nebula-sync-') as tmp:
     for name in ['ArchiveIndexCheck', 'app.nebulagram.nebulalink.CommandQueueCheck', 'ProxyCleanupCheck']:
         subprocess.run(['java', '-cp', str(work), name], check=True)
 
-retain = method(archive, 'public static synchronized ArrayList<Integer> retain(')
+retain = method(archive, 'public static ArrayList<Integer> retain(')
 assert 'purgeDifference(' not in retain
 assert 'before.keys.contains(marker(peer,id))' in retain
 assert 'if(entries==null)entries=copyEntries(before.entries)' in retain
-assert retain.index('cachedSnapshot = next') < retain.index('writeAsync(owner, next)') < retain.index('committed.filter(')
+assert retain.index('cachedSnapshots.put(owner, next)') < retain.index('writeAsync(owner, next)') < retain.index('committed.filter(')
 assert 'private static void writeAsync(long owner, Snapshot snapshot)' in archive
 assert 'writeFile(owner, next.entries)' in archive and 'ARCHIVE_WRITER.execute' in archive
 write_file = method(archive, 'private static void writeFile(')
@@ -217,7 +218,10 @@ assert write_file.index('target.finishWrite(output)') > write_file.index('output
 assert '.sort(' not in retain
 bridge = (link / 'NebulaLink.java').read_text(encoding='utf-8')
 init = method(bridge, 'public static void init(')
-assert init.index('clearPreviousProxy(saved.getInt') < init.index('callBlocking("core.init"')
+assert init.index('clearPreviousProxy(recordedPort)') < init.index('callBlocking("core.init"')
+# A proxy kept for auto-start is dropped on every failure path and after a timeout.
+assert 'KEPT_PROXY_TIMEOUT_MS' in init and init.count('clearPreviousProxy(keptPort)') == 3
+assert 'settings.optInt("socks_port", keptPort) == keptPort' in init
 assert 'EXECUTOR.execute(method,' in bridge
 assert 'disableStaleProxy(port);' in method(bridge, 'private static void clearPreviousProxy(')
 # Снятие туннеля проходит по списку всегда, а не только когда ссылки нет:

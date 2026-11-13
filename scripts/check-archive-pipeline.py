@@ -18,7 +18,7 @@ def block(signature):
 
 production = '\n'.join(block(s) for s in [
     'private static final class Snapshot', 'private static Snapshot snapshot(long owner)',
-    'private static JSONArray copyEntries', 'public static synchronized ArrayList<Integer> retain',
+    'private static JSONArray copyEntries', 'public static ArrayList<Integer> retain(',
     'private static void writeAsync(long owner, Snapshot snapshot)',
     'private static void writeAsync(long owner, Snapshot snapshot, Runnable done, Runnable error)'
 ])
@@ -34,7 +34,9 @@ for full, short in {
 harness = '''import java.util.*;
 import app.nebulagram.ui.NebulaRetentionPolicy;
 class ArchiveCheck {
- static long accountOwner=42,cachedOwner; static Snapshot cachedSnapshot;
+ static long accountOwner=42; static Map<Long,Snapshot> cachedSnapshots=new HashMap<>();
+ static final int SKIP_PROTECTED=0,SKIP_SCOPE=1,SKIP_POLICY=2,SKIP_UNREADABLE=3,SKIP_ERROR=4,SKIP_REASONS=5;
+ static int diagnosed;static void diagnose(int a,long d,int asked,int found,int kept,int[] s){diagnosed++;}
  static boolean enabled=true; static int queries,writes,prepares,snapshots,failures,reads;
  static Map<Long,Snapshot> pendingWrites=new HashMap<>(),uncommittedSnapshots=new HashMap<>();
  static Set<Long> writingOwners=new HashSet<>();
@@ -104,7 +106,7 @@ class ArchiveCheck {
   void postNotificationName(int event,long peer,ArrayList<MessageObject> objects){}
  }
  static long owner(int account){return accountOwner;}static boolean enabled(long o){return enabled;}
- static boolean present(long o){return cachedSnapshot!=null;}static boolean saveSecret(long o){return true;}
+ static boolean present(long o){return cachedSnapshots.containsKey(o);}static boolean saveSecret(long o){return true;}
  static boolean saveExpiring(long o){return true;}static boolean protectedPeer(int a,long p){return false;}
  static void failed(long o){failures++;}static String marker(long p,int id){return p+":"+id;}
  static JSONArray read(long o){reads++;return new JSONArray();}
@@ -116,11 +118,11 @@ class ArchiveCheck {
  PRODUCTION
  static void check(boolean b,String why){if(!b)throw new AssertionError(why);}
  static ArrayList<Integer> ids(int... values){ArrayList<Integer> r=new ArrayList<>();for(int v:values)r.add(v);return r;}
- static void reset(){cachedSnapshot=null;cachedOwner=0;queries=writes=prepares=snapshots=failures=reads=0;rows.clear();markers.clear();disabledPeers.clear();enabled=true;uncommittedSnapshots.clear();pendingWrites.clear();writingOwners.clear();writeDone.clear();writeError.clear();worker.clear();duringWrite=null;failWrite=false;persisted=null;}
+ static void reset(){cachedSnapshots.clear();diagnosed=0;queries=writes=prepares=snapshots=failures=reads=0;rows.clear();markers.clear();disabledPeers.clear();enabled=true;uncommittedSnapshots.clear();pendingWrites.clear();writingOwners.clear();writeDone.clear();writeError.clear();worker.clear();duringWrite=null;failWrite=false;persisted=null;}
  public static void main(String[] args)throws Exception{
   reset();rows.add(new Row(42,10,true));rows.add(new Row(55,11,true));rows.add(new Row(55,12,false));
   check(retain(0,0,ids(10,11,12)).equals(ids(11)),"remote Saved Messages or ordinary outgoing policy failed");
-  check(cachedSnapshot.entries.length()==2&&writes==0&&prepares==0,"ordinary cached messages rewritten");
+  check(cachedSnapshots.get(42L).entries.length()==2&&writes==0&&prepares==0,"ordinary cached messages rewritten");
   int count=queries;check(retain(0,0,ids(10,12)).isEmpty()&&queries==count,"duplicate remote event touches SQL");
   check(retain(0,42,ids(10)).isEmpty()&&queries==count,"explicit Saved Messages scope loses global entry");
   enabled=false;check(retain(0,0,ids(10,13)).equals(ids(13)),"disabled capture drops old copy");
@@ -131,7 +133,7 @@ class ArchiveCheck {
   check(retain(0,0,ids(10,11)).isEmpty()&&writes==2&&prepares==1,"timers not cleared or statement not reused");
   check(timer.message.ttl==0&&timer2.message.media.ttl_seconds==0,"countdowns kept");
   reset();Snapshot newer=new Snapshot(new JSONArray().put(new JSONObject().put("peer",42L).put("id",20).put("scope",0L).put("inline",true)));
-  uncommittedSnapshots.put(42L,newer);cachedOwner=99;cachedSnapshot=new Snapshot(new JSONArray());
+  uncommittedSnapshots.put(42L,newer);cachedSnapshots.put(99L,new Snapshot(new JSONArray()));
   check(snapshot(42)==newer&&reads==0,"account switch reloaded stale on-disk snapshot");
   reset();Snapshot first=new Snapshot(new JSONArray());Snapshot latest=new Snapshot(new JSONArray());
   boolean[] completed={false};writeAsync(42,first,()->completed[0]=true,()->{throw new AssertionError("unexpected write failure");});
@@ -147,7 +149,13 @@ class ArchiveCheck {
   failWrite=false;writeAsync(42,latest);worker.remove().run();check(persisted==latest.entries&&uncommittedSnapshots.isEmpty(),"write retry lost entries");
   check(!NebulaRetentionPolicy.receivedOrSaved(false,0,0),"logged-out self match");
   check(failures==1,"write failure was not reported");
-  System.out.println("Archive pipeline: remote Saved Messages, scope opt-out, duplicate/global/peer updates, timer writes and pending account switch passed");
+  // Two accounts taking turns must not decrypt their archives again on every deletion event.
+  reset();for(int i=0;i<6;i++){accountOwner=i%2==0?42:77;retain(0,0,ids(500+i));}
+  check(reads==2&&cachedSnapshots.size()==2,"account switch re-read the archive: "+reads);accountOwner=42;
+  // A disabled archive without a file answers without the shared lock or any SQL.
+  reset();enabled=false;int before=queries;check(retain(0,0,ids(7)).equals(ids(7))&&queries==before&&reads==0,"inactive archive touched storage");
+  reset();rows.add(new Row(42,10,true));check(retain(0,0,ids(10,11)).isEmpty()==false&&diagnosed==1,"skip summary not produced");
+  System.out.println("Archive pipeline: remote Saved Messages, scope opt-out, duplicate/global/peer updates, timer writes, pending account switch, per-account cache and inactive fast path passed");
  }
 }'''.replace('PRODUCTION', production)
 with tempfile.TemporaryDirectory(prefix='nebula-archive-pipeline-') as temp:
