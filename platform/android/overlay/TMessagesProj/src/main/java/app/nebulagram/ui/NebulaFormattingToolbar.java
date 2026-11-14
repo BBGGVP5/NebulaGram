@@ -35,6 +35,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
     public static final int GAP_DP = 3;
     /** Плавающая «A»: диаметр и то, насколько она заходит в прозрачный верх поля ввода. */
     static final int OPENER_DP = 36, OPENER_DIP_DP = 4;
+    private static final String TUCK_KEY = "formatting_opener_tucked";
     private final EditTextCaption editor;
     private final Runnable layoutChanged;
     private final SharedPreferences.OnSharedPreferenceChangeListener preferencesChanged = (prefs, key) -> {
@@ -253,9 +254,11 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
      * анимация вылета сообщения от него не зависят.
      */
     public int openerRow() {
-        // Ровно та часть «A», что выступает над полем: раньше резервировался ряд
-        // высотой с панель (47 dp), и сообщения висели заметно выше кнопки.
-        return openerVisible() ? Math.max(0, AndroidUtilities.dp(OPENER_DP - OPENER_DIP_DP) - reservedHeight) : 0;
+        // «A» лежит поверх переписки, как плавающая кнопка, и места в списке не
+        // занимает: поднятый список и его сдвиг при каждом показе/скрытии «A»
+        // выглядели так, будто сообщения задерживаются. Кто не хочет, чтобы она
+        // закрывала сообщения, сворачивает её вбок.
+        return 0;
     }
 
     /** Нажатие на плавающую «A»: открыть или свернуть панель. */
@@ -465,6 +468,12 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
         private boolean shown;
         /** Какой значок уже стоит; до первого update() — никакой. */
         private boolean iconSet, shownOpen;
+        /** Свёрнута к правому краю: видна только полоска, нажатие открывает панель. */
+        private boolean tucked = preferences().getBoolean(TUCK_KEY, false);
+        private float tuck = tucked ? 1f : 0f, dragStartX, dragStartTuck;
+        private boolean dragging;
+        private android.animation.ValueAnimator tuckAnimator;
+        private final int touchSlop = android.view.ViewConfiguration.get(ApplicationLoader.applicationContext).getScaledTouchSlop();
 
         static FloatingOpener attach(NebulaFormattingToolbar toolbar) {
             android.view.ViewParent parent = toolbar.getParent();
@@ -489,6 +498,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             if (android.os.Build.VERSION.SDK_INT >= 26) setTooltipText(getContentDescription());
             setFocusable(false);
             setOnClickListener(v -> { NebulaHaptics.tick(v); toolbar.toggleManually(); });
+            icon.setAlpha(1f - tuck);
             setVisibility(GONE);
             setAlpha(0f);
             host.addView(this, new android.widget.FrameLayout.LayoutParams(size, size, Gravity.TOP | Gravity.LEFT));
@@ -496,9 +506,87 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             update();
         }
 
+        /** Сколько остаётся видно от свёрнутой «A» у края экрана. */
+        private static int peek() { return AndroidUtilities.dp(14); }
+
+        /**
+         * Горизонтальный свайп: вправо сворачивает «A» к краю, влево возвращает.
+         * Короткое касание — обычное нажатие: открыть или закрыть панель (в том
+         * числе со свёрнутой «A», она при этом остаётся свёрнутой).
+         */
+        @Override public boolean onTouchEvent(android.view.MotionEvent event) {
+            switch (event.getActionMasked()) {
+                case android.view.MotionEvent.ACTION_DOWN:
+                    dragging = false;
+                    dragStartX = event.getRawX();
+                    dragStartTuck = tuck;
+                    break;
+                case android.view.MotionEvent.ACTION_MOVE: {
+                    float dx = event.getRawX() - dragStartX;
+                    if (!dragging && Math.abs(dx) > touchSlop && !toolbar.expanded) {
+                        dragging = true;
+                        if (tuckAnimator != null) tuckAnimator.cancel();
+                        getParent().requestDisallowInterceptTouchEvent(true);
+                        cancelLongPress();
+                        setPressed(false);
+                    }
+                    if (dragging) {
+                        float travel = Math.max(1f, travel());
+                        setTuck(Math.max(0f, Math.min(1f, dragStartTuck + dx / travel)));
+                        return true;
+                    }
+                    break;
+                }
+                case android.view.MotionEvent.ACTION_UP:
+                case android.view.MotionEvent.ACTION_CANCEL:
+                    if (dragging) {
+                        dragging = false;
+                        float dx = event.getRawX() - dragStartX;
+                        boolean target = Math.abs(dx) > AndroidUtilities.dp(24) ? dx > 0 : tuck > .5f;
+                        settleTuck(target);
+                        return true;
+                    }
+                    break;
+            }
+            return super.onTouchEvent(event);
+        }
+
+        /** Путь от обычного места до свёрнутого у края. */
+        private float travel() {
+            float home = homeX();
+            return host.getWidth() - peek() - home;
+        }
+
+        private float homeX = Float.NaN;
+        private float homeX() { return Float.isNaN(homeX) ? getX() : homeX; }
+
+        private void setTuck(float value) {
+            tuck = value;
+            icon.setAlpha(1f - Math.min(1f, value * 1.6f));
+            host.invalidate();
+            onPreDraw();
+        }
+
+        private void settleTuck(boolean value) {
+            if (tucked != value) {
+                tucked = value;
+                preferences().edit().putBoolean(TUCK_KEY, value).apply();
+                NebulaHaptics.tick(this);
+            }
+            if (tuckAnimator != null) tuckAnimator.cancel();
+            float from = tuck, to = value ? 1f : 0f;
+            if (NebulaGlass.reduced() || from == to) { setTuck(to); return; }
+            tuckAnimator = android.animation.ValueAnimator.ofFloat(from, to);
+            tuckAnimator.setDuration(220);
+            tuckAnimator.setInterpolator(new android.view.animation.DecelerateInterpolator(1.6f));
+            tuckAnimator.addUpdateListener(a -> setTuck((Float) a.getAnimatedValue()));
+            tuckAnimator.start();
+        }
+
         /** Пропустить улетающее сообщение: погаснуть и вернуться, когда оно пролетит. */
         void stepAside() {
-            if (!shown || getVisibility() != VISIBLE) return;
+            // Свёрнутая к краю «A» сообщению не мешает.
+            if (!shown || getVisibility() != VISIBLE || tuck >= 1f) return;
             animate().cancel();
             animate().alpha(0f).setDuration(90).setStartDelay(0).withEndAction(() -> {
                 if (shown) animate().alpha(1f).setDuration(180).setStartDelay(380).withEndAction(null).start();
@@ -518,6 +606,8 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             circle.setColor(open ? theme.primary() : theme.surfaceContainer());
             circle.setStroke(AndroidUtilities.dp(1), NebulaTheme.stateLayer(theme.onSurface(), open ? 0f : .12f));
             icon.setColorFilter(open ? theme.onPrimary() : theme.onSurface());
+            // Открытая панель показывает «✕» целиком, даже если «A» свёрнута к краю.
+            icon.setAlpha(open ? 1f : 1f - Math.min(1f, tuck * 1.6f));
             if (!iconSet || shownOpen != open) {
                 iconSet = true;
                 // Значок меняется коротким «поджатием», без поворота: повёрнутая
@@ -527,7 +617,7 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
                 icon.setRotation(0f);
                 icon.setImageResource(open ? R.drawable.nebula_ios_close : R.drawable.msg_text_outlined);
                 icon.setScaleX(.6f); icon.setScaleY(.6f); icon.setAlpha(.4f);
-                icon.animate().scaleX(1f).scaleY(1f).alpha(1f).setDuration(180).start();
+                icon.animate().scaleX(1f).scaleY(1f).alpha(open ? 1f : 1f - Math.min(1f, tuck * 1.6f)).setDuration(180).start();
             }
             boolean visible = toolbar.openerVisible();
             if (visible == shown) return;
@@ -579,6 +669,10 @@ public final class NebulaFormattingToolbar extends HorizontalScrollView {
             }
             // Открытая панель: «A» стоит в её правом конце, панель разворачивается
             // из кнопки влево. Между положениями кнопка едет вместе с разворотом.
+            // Свёрнутая «A» уезжает к правому краю, видна полоска peek(). Пока панель
+            // открыта, кнопка стоит в её конце как «✕», а при закрытии уезжает обратно.
+            homeX = x;
+            if (tuck > 0f) x += (host.getWidth() - peek() - x) * tuck;
             float progress = Math.max(0f, Math.min(1f, toolbar.revealProgress));
             if (progress > 0f && toolbar.getVisibility() == VISIBLE && toolbar.getWidth() > 0) {
                 toolbar.getLocationInWindow(toolbarLocation);
