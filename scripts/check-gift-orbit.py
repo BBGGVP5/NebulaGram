@@ -40,6 +40,10 @@ assert 'NebulaProfileArt.pillsHeight()' in patch
 assert 'NebulaGiftOrbit.wander(i, count, nebulaSeconds' in patch and 'nebulaField.bounds(' in patch, 'bubbles wander inside the header'
 assert 'visibility == VISIBLE && !nebulaOwnSong' in patch, 'the profile song has no separate player strip'
 assert 'nebulaRing.setColor(' in patch
+assert 'out.add(getOrCreate(KEY_MORE));' in patch and 'case ProfileActionsView.KEY_MORE:' in patch, 'iOS row ends with more'
+assert 'insertIfAvailable(out, KEY_CALL);\n+                    insertIfAvailable(out, KEY_NOTIFICATION);' in patch, 'iOS order: chat, call, mute, more'
+assert 'otherItem.addSubItem(video_call_item' in patch, 'video call stays reachable from the menu'
+assert 'cs = actionLabel(cs);' in patch
 art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')
 assert 'if (iosProfile()) return; // круг' in art and 'return dp(iosProfile() ? 98 : 74);' in art
 

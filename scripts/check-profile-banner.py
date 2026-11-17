@@ -56,7 +56,8 @@ contracts = {
  protected int actionTextColor(int color){return color;}protected void onAttachedToWindow(){}protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
  protected void drawActionSurface(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha){}
  protected void drawActionIconBackground(android.graphics.Canvas c,android.graphics.Rect b,int key,int lines,float alpha){}
- protected float actionTextY(float y,int lines){return y;}protected float actionIconTop(float top,android.graphics.RectF r){return top;}}""",
+ protected float actionTextY(float y,int lines){return y;}protected float actionIconTop(float top,android.graphics.RectF r){return top;}
+ protected CharSequence actionLabel(CharSequence t){return t;}protected boolean actionLabelRegular(){return false;}}""",
  'app/nebulagram/ui/NebulaAppearance.java': """package app.nebulagram.ui;public class NebulaAppearance {
  public static boolean style=true,banner=true;public static boolean profileStyle(){return style;}public static boolean profilePhotoBanner(){return banner;}
  public static boolean glassHighlights(){return true;}}""",

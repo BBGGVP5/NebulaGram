@@ -18,10 +18,19 @@ index 0c6cb9d..6a499cc 100644
                  });
                  if (exists) {
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
-index 00da7de..413ffa7 100644
+index 00da7de..1dad82f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
-@@ -358,7 +358,7 @@ public class ProfileActionsView extends View {
+@@ -104,6 +104,8 @@ public class ProfileActionsView extends View {
+     public static final int KEY_EDIT_USERNAME = 15;
+     public static final int KEY_EDIT_INFO = 16;
+     public static final int KEY_SETTINGS = 17;
++    /** NebulaGram, профиль как в iOS: «ещё» открывает меню профиля. */
++    public static final int KEY_MORE = 18;
+ 
+     private boolean isApplying;
+     private boolean isNotificationsEnabled;
+@@ -358,7 +360,7 @@ public class ProfileActionsView extends View {
  
          action.text.setMaxWidth(action.rect.width() - dp(2));
          action.textScale = action.text.getLineCount() >= 3 ? 0.75f : action.text.getLineCount() >= 2 ? 0.85f : 1.0f;
@@ -30,14 +39,62 @@ index 00da7de..413ffa7 100644
          action.setBounds(
              (int) (cx - drawableR),
              (int) (drawableTop),
-@@ -482,6 +482,7 @@ public class ProfileActionsView extends View {
+@@ -482,6 +484,9 @@ public class ProfileActionsView extends View {
      protected int actionTextColor(int color) { return color; }
      protected int actionIconColor(int color, int key) { return color; }
      protected float actionTextY(float y, int lines) { return y; }
 +    protected float actionIconTop(float top, RectF rect) { return top; }
++    protected CharSequence actionLabel(CharSequence text) { return text; }
++    protected boolean actionLabelRegular() { return false; }
  
      public float getRoundRadius() {
          return dp(16);
+@@ -687,6 +692,14 @@ public class ProfileActionsView extends View {
+ 
+         switch (mode) {
+             case MODE_USER:
++                if (app.nebulagram.ui.NebulaProfileArt.iosProfile()) {
++                    // Как в iOS: чат, звонок, звук, ещё; видео и подарок — в меню «ещё».
++                    insertIfAvailable(out, KEY_MESSAGE);
++                    insertIfAvailable(out, KEY_CALL);
++                    insertIfAvailable(out, KEY_NOTIFICATION);
++                    out.add(getOrCreate(KEY_MORE));
++                    break;
++                }
+                 insertIfAvailable(out, KEY_MESSAGE);
+                 insertIfAvailable(out, KEY_NOTIFICATION);
+                 insertIfAvailable(out, KEY_CALL);
+@@ -868,6 +881,10 @@ public class ProfileActionsView extends View {
+                 newAction = new Action();
+                 updateNotification(newAction, false);
+                 break;
++            case KEY_MORE:
++                newAction = new Action(ActionButton.MORE);
++                newAction.setText(app.nebulagram.ui.NebulaText.text("Ещё", "More"));
++                break;
+         }
+ 
+         if (newAction != null) {
+@@ -1001,7 +1018,8 @@ public class ProfileActionsView extends View {
+         }
+ 
+         public void setText(CharSequence cs) {
+-            this.text = new Text(cs, 11, AndroidUtilities.bold())
++            cs = actionLabel(cs);
++            this.text = (actionLabelRegular() ? new Text(cs, 12) : new Text(cs, 11, AndroidUtilities.bold()))
+                 .multiline(3)
+                 .align(Layout.Alignment.ALIGN_CENTER);
+         }
+@@ -1205,7 +1223,8 @@ public class ProfileActionsView extends View {
+         SET_PHOTO(R.string.ProfileActionsEditPhoto2, R.drawable.filled_profile_photo, R.drawable.outline_profile_photo),
+         EDIT_USERNAME(R.string.ProfileActionsEditUsername, R.drawable.filled_profile_edit_24, R.drawable.outline_profile_edit_24),
+         EDIT_INFO(R.string.ProfileActionsEditInfo, R.drawable.filled_profile_edit_24, R.drawable.outline_profile_edit_24),
+-        SETTINGS(R.string.Settings, R.drawable.filled_profile_settings, R.drawable.outline_profile_settings),;
++        SETTINGS(R.string.Settings, R.drawable.filled_profile_settings, R.drawable.outline_profile_settings),
++        MORE(R.string.AccDescrMoreOptions, R.drawable.ic_ab_other, R.drawable.ic_ab_other),;
+ 
+         final @StringRes int title;
+         final @DrawableRes int filledIcon;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
 index ffa7f55..44275d0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
@@ -220,7 +277,7 @@ index 36fccb4..055054f 100644
              };
              fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..9f08fb1 100644
+index c317662..7431ec7 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -244,7 +301,7 @@ index c317662..9f08fb1 100644
              balanceView = new ProfileBalanceView(context, resourcesProvider);
              musicView.setTrailingView(balanceView);
              if (buttonsGlass != null) {
-@@ -3901,12 +3908,23 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3901,17 +3908,33 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      MediaController.getInstance().currentSavedMusicList = savedMusicList;
                      MediaController.getInstance().getPlaylist().clear();
                      MediaController.getInstance().getPlaylist().addAll(savedMusicList.list);
@@ -271,7 +328,17 @@ index c317662..9f08fb1 100644
              setActionsMode();
              updateNotifications(false);
  
-@@ -5714,6 +5732,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             actionsView.setOnActionClickListener((key, x, y) -> {
+                 switch (key) {
++                    case ProfileActionsView.KEY_MORE:
++                        if (otherItem != null) {
++                            otherItem.toggleSubMenu();
++                        }
++                        break;
+                     case ProfileActionsView.KEY_GIFT:
+                         onGiftPermiumClicked();
+                         break;
+@@ -5714,6 +5737,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
          giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
          avatarContainer2.addView(giftsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -279,7 +346,7 @@ index c317662..9f08fb1 100644
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
-@@ -6277,7 +6296,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6277,7 +6301,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      private int getActionsExtraHeight(boolean withPills) {
          if (userId != 0 && imageUpdater != null && !myProfile)
              return 0;
@@ -288,7 +355,7 @@ index c317662..9f08fb1 100644
      }
  
      private int getHeaderExtraHeight() {
-@@ -8060,6 +8079,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8060,6 +8084,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  super.onFactorChanged(id, factor, fraction, callee);
                  updateHeaderBar();
              }
@@ -305,7 +372,7 @@ index c317662..9f08fb1 100644
          };
          simpleActionBar.setTitlesAlpha(0f);
          if (!fragmentOpened && !hasMainTabs && playProfileAnimation != 0 && allowProfileAnimation && !disableProfileAnimation) {
-@@ -11748,11 +11777,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11748,11 +11782,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
              actionsView.clipHeight = avatarContainer.getY() + vh;
              actionsView.setAlpha(avatarAnimationProgress);
@@ -319,7 +386,7 @@ index c317662..9f08fb1 100644
              actionsView.updatePosition(bottom - height, height);
          }
  
-@@ -11778,16 +11807,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11778,16 +11812,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
  //            musicView.clipHeight = avatarContainer.getY() + vh;
              musicView.setAlpha(avatarAnimationProgress);
@@ -338,6 +405,17 @@ index c317662..9f08fb1 100644
 +            musicView.updatePosition(bottom - height, height - app.nebulagram.ui.NebulaProfileArt.actionsHeight());
          }
      }
+ 
+@@ -12606,6 +12640,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                     if (getMessagesController().config.walletAvailable.get() && !MessagesController.isSupportUser(user) && !UserObject.isService(user.id)) {
+                         otherItem.addSubItem(send_money, R.drawable.ic_gram, LocaleController.getString(R.string.WalletSendMoney));
+                     }
++                    if (app.nebulagram.ui.NebulaProfileArt.iosProfile() && userInfo != null && userInfo.video_calls_available) {
++                        // Профиль как в iOS: кнопки видео в ряду нет, она в меню «ещё».
++                        otherItem.addSubItem(video_call_item, R.drawable.msg_videocall, LocaleController.getString(R.string.VideoCall));
++                    }
+                     otherItem.addSubItem(start_secret_chat, R.drawable.msg_secret, LocaleController.getString(R.string.StartEncryptedChat));
+                     otherItem.setSubItemShown(start_secret_chat, DialogObject.isEmpty(getMessagesController().isUserContactBlocked(userId)));
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 index a253fee..46a964c 100644

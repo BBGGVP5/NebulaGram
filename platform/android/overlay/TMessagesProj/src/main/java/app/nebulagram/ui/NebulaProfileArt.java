@@ -144,7 +144,10 @@ public final class NebulaProfileArt {
             final boolean banner = NebulaAppearance.profilePhotoBanner() && !iosProfile() && (collapsedPhoto != null || galleryPhoto != null);
             if (buttons != null) buttons.setBannerActive(banner);
             // Keep Telegram's peer colour/emoji decoration when no photo is available.
-            if (!banner) return;
+            if (!banner) {
+                if (iosProfile() && expanded > 0f) iosExpandFade(width, title, bottom, clamp(expanded) * (1f - clamp(media)), provider);
+                return;
+            }
             final ImageReceiver collapsedReceiver = (collapsedPhoto != null ? collapsedPhoto : galleryPhoto).getImageReceiver();
             final ImageReceiver galleryReceiver = galleryPhoto != null ? galleryPhoto.getImageReceiver() : collapsedReceiver;
             if (bannerPhoto != null) bannerPhoto.accept(collapsedReceiver);
@@ -184,6 +187,31 @@ public final class NebulaProfileArt {
             if (buttons != null && canvas.isHardwareAccelerated()) {
                 buttons.captureBanner(this, collapsedReceiver, galleryReceiver, rect, expansion);
             }
+        }
+
+        /**
+         * Раскрытое фото как в iOS: низ снимка растворяется в цвете страницы над именем,
+         * имя, плашки и кнопки лежат уже на цвете профиля.
+         */
+        private void iosExpandFade(int width, SimpleTextView title, float bottom, float alpha, Theme.ResourcesProvider provider) {
+            if (alpha <= .01f) return;
+            final int pageColor = page != null ? page.getAsInt() : 0;
+            final int color = pageColor != 0 ? pageColor : Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000;
+            final float titleTop = title.getY();
+            final float fadeTop = Math.max(0, titleTop - dp(130));
+            final float fadeEnd = Math.min(bottom, titleTop + dp(6));
+            if (fadeEnd <= fadeTop) return;
+            rect.set(0, fadeTop, width, bottom);
+            if (bottomFade == null || previousFadeColor != color || previousFadeTop != fadeTop || previousFadeBottom != fadeEnd) {
+                bottomFade = new LinearGradient(0, fadeTop, 0, fadeEnd,
+                        new int[] {ColorUtils.setAlphaComponent(color, 0), ColorUtils.setAlphaComponent(color, 90),
+                                ColorUtils.setAlphaComponent(color, 205), color},
+                        new float[] {0f, .4f, .75f, 1f}, Shader.TileMode.CLAMP);
+                previousFadeColor = color;
+                previousFadeTop = fadeTop;
+                previousFadeBottom = fadeEnd;
+            }
+            foregroundAlpha = alpha;
         }
 
         public void clear(View actions) {
@@ -367,6 +395,13 @@ public final class NebulaProfileArt {
             hasCell = true;
             return rect.top + dp(16);
         }
+        /** iOS: подписи со строчной буквы и обычным начертанием («чат», «звонок»). */
+        @Override protected CharSequence actionLabel(CharSequence text) {
+            if (!iosProfile() || text == null || text.length() == 0) return text;
+            String value = text.toString();
+            return value.substring(0, 1).toLowerCase(java.util.Locale.getDefault()) + value.substring(1);
+        }
+        @Override protected boolean actionLabelRegular() { return iosProfile(); }
         @Override protected float actionTextY(float y, int lines) {
             if (!iosProfile() || !hasCell) return y;
             return cell.top + dp(lines > 1 ? 58 : 61);
