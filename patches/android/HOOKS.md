@@ -1669,6 +1669,10 @@ Telegram не переподключается дважды. Прокси сни
 - `ProfileActivity.nebulaMoreMenu`: «ещё» открывает `ItemOptions` у ряда кнопок с пунктами меню ⋮
   (видимые `ActionBarMenuSubItem`, клик идёт в `onItemClick(id)`), а не меню из угла шапки.
 - Статус-эмодзи у имени при стиле профиля 19 dp вместо 24: имя увеличено ×1.42.
+- `getHeaderOnlyExtraHeight` минус `NebulaProfileArt.headerTrim()` (22 dp в iOS): кнопки ближе к «в сети».
+- `nebulaOnlineExpanded`: сдвиги раскрытого фото у строки статуса после открытия берутся из
+  `currentExpandAnimatorValue`, а не навсегда 1 при `playProfileAnimation == 2` («в сети» правее центра).
+- `ProfileMusicView`: в iOS содержимое (и баланса) центрируется по плашке, а не по полосе.
 
 Голосовое → текст без панели (только оверлей, нативный код Aa из 0200/0206 не менялся):
 `NebulaDraftVoiceInlineHost` теперь `FieldHost` — над записью мерцает строка с распознаваемыми

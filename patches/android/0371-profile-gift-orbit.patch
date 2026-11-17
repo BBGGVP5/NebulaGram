@@ -96,7 +96,7 @@ index 00da7de..1dad82f 100644
          final @StringRes int title;
          final @DrawableRes int filledIcon;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
-index ffa7f55..1c7b25a 100644
+index ffa7f55..0716d66 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
 @@ -77,6 +77,73 @@ public class ProfileMusicView extends View {
@@ -242,12 +242,14 @@ index ffa7f55..1c7b25a 100644
  
          if (glass != null) {
              final float radius = rect.height() / 2f;
-@@ -382,11 +466,15 @@ public class ProfileMusicView extends View {
+@@ -382,11 +466,16 @@ public class ProfileMusicView extends View {
  
          canvas.save();
          canvas.clipPath(clipPath);
+-        canvas.translate(rect.left + dp(8), 0);
 +        if (nebulaIos && nebulaDialogId != 0) nebulaDrawProgress(canvas, alpha);
-         canvas.translate(rect.left + dp(8), 0);
++        // iOS: плашка опущена от кнопок, текст (и у баланса) — по её середине, а не по середине полосы.
++        canvas.translate(rect.left + dp(8), nebulaIos ? rect.centerY() - getHeight() / 2f : 0);
          drawContent(canvas, alpha);
  
          canvas.restore();
@@ -278,7 +280,7 @@ index 36fccb4..055054f 100644
              };
              fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..ba2d8fa 100644
+index c317662..fea80bb 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -347,7 +349,14 @@ index c317662..ba2d8fa 100644
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
-@@ -6274,10 +6298,39 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6268,16 +6292,45 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         if (getActionsExtraHeight() == 0) {
+             return dp(168f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode);
+         }
+-        return dp(152f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode);
++        return dp(152f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode) - app.nebulagram.ui.NebulaProfileArt.headerTrim();
+     }
+ 
      private int getActionsExtraHeight() {
          return getActionsExtraHeight(true);
      }
@@ -459,6 +468,37 @@ index c317662..ba2d8fa 100644
 +                    }
                      otherItem.addSubItem(start_secret_chat, R.drawable.msg_secret, LocaleController.getString(R.string.StartEncryptedChat));
                      otherItem.setSubItemShown(start_secret_chat, DialogObject.isEmpty(getMessagesController().isUserContactBlocked(userId)));
+ 
+@@ -16187,7 +16255,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     private float getOnlineTextViewTranslationXWithOffsets(float onlineX, float ratingPadding) {
+         lastOnlineTextViewX = onlineX;
+         lastOnlineTextRatingPadding = ratingPadding;
+-        final float expanded = Utilities.clamp01(playProfileAnimation == 2 ? 1 : avatarAnimationProgress >= 1 || playProfileAnimation == 0 ? currentExpandAnimatorValue : 0);
++        final float expanded = nebulaOnlineExpanded();
+         final float ratingVisibility = ratingView != null ? ratingView.getVisibilityFactor() : 0;
+         return onlineX + ratingPadding * ratingVisibility * (1f - expanded) + Math.max(0, (customPhotoOffset + getRatingViewTranslationXOffset()) * expanded);
+     }
+@@ -16195,10 +16263,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     // centered subtitle with star rating keeps its position as it was before accounting for padding
+     private float onlineTextRatingPadding, lastOnlineTextRatingPadding;
+ 
++    /**
++     * NebulaGram: насколько раскрыто фото для сдвигов строки статуса. У Telegram при
++     * открытии профиля с раскрытым фото здесь навсегда 1, и «в сети» в свёрнутой шапке
++     * стоял правее центра; после открытия берётся настоящее раскрытие.
++     */
++    private float nebulaOnlineExpanded() {
++        if (playProfileAnimation == 2 && (!fragmentOpened || openAnimationInProgress)) return 1f;
++        return Utilities.clamp01(avatarAnimationProgress >= 1 || playProfileAnimation == 0 || playProfileAnimation == 2 ? currentExpandAnimatorValue : 0);
++    }
++
+     private float lastOnlineTextViewY;
+     private float getOnlineTextViewTranslationYWithOffsets(float onlineY) {
+         lastOnlineTextViewY = onlineY;
+-        final float expanded = Utilities.clamp01(playProfileAnimation == 2 ? 1 : avatarAnimationProgress >= 1 || playProfileAnimation == 0 ? currentExpandAnimatorValue : 0);
++        final float expanded = nebulaOnlineExpanded();
+         return onlineY + getRatingViewTranslationYOffset() * (1.0f - expanded);
+     }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 index a253fee..70d1444 100644

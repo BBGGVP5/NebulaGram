@@ -330,6 +330,14 @@ public final class NebulaProfileArt {
         }
     }
 
+    /**
+     * На сколько короче шапка над кнопками в iOS: ряд кнопок вырос на 24 dp, но аватарка
+     * и имя остались на месте, и весь прирост уходил в зазор между «в сети» и кругами.
+     */
+    public static int headerTrim() {
+        return iosProfile() ? dp(22) : 0;
+    }
+
     /** Высота ряда кнопок: круг 56 dp и подпись под ним не помещаются в прежние 74 dp. */
     public static int actionsHeight() {
         return dp(iosProfile() ? 98 : 74);
