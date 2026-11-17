@@ -420,10 +420,12 @@ public final class NebulaGiftOrbit {
             shade.setColor(Color.BLACK);
         }
 
-        /** Ореол за аватаркой радиуса r. */
-        public void drawHalo(Canvas canvas, float cx, float cy, float r, float alpha) {
+        /** Ореол за аватаркой радиуса r; pulse 0..1 — удар музыки. */
+        public void drawHalo(Canvas canvas, float cx, float cy, float r, float alpha, float pulse) {
             if (alpha <= 0 || r <= 0) return;
-            float outer = r / .70f;
+            // На ударах песни ореол расходится шире и светится ярче.
+            alpha *= 1f + .9f * clamp01(pulse);
+            float outer = r / .70f * (1f + .1f * clamp01(pulse));
             matrix.setScale(outer, outer);
             matrix.postTranslate(cx, cy);
             haloShader.setLocalMatrix(matrix);

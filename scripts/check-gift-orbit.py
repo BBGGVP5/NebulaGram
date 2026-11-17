@@ -30,6 +30,12 @@ assert 'nebulaAlpha[hit] < .3f' in patch, 'faded bubbles do not catch touches'
 assert patch.count('app.nebulagram.ui.NebulaProfileArt.actionsHeight()') == 8, 'every native 74 dp action row follows the iOS height'
 assert 'drawableTop = actionIconTop(' in patch and 'protected float actionIconTop(float top, RectF rect) { return top; }' in patch
 assert 'nebulaRing.drawHalo(' in patch and 'nebulaRing.drawRim(' in patch, 'avatar ring: halo behind, rim in front'
+assert 'actionBar.setOnTouchListener((v, event) -> giftsView != null && giftsView.nebulaForwardTouch(v, event));' in patch, 'bubbles above the avatar are reachable through the header'
+assert 'source.getParent().requestDisallowInterceptTouchEvent(true);' in patch, 'forwarded drag also blocks swipe-back'
+assert 'musicView.setNebulaDialog(getDialogId());' in patch and 'MediaController.getInstance().pauseMessage(nebulaNow);' in patch, 'tap toggles the song inline'
+assert 'showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));' in patch and 'nebulaMusicSheet = true;' in patch, 'long press keeps the full player'
+assert 'if (bounce.isPressed() && !nebulaLongPressed)' in patch, 'long press never also toggles'
+assert 'NebulaProfileArt.pillsHeight()' in patch
 art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')
 assert 'if (iosProfile()) return; // круг' in art and 'return dp(iosProfile() ? 98 : 74);' in art
 

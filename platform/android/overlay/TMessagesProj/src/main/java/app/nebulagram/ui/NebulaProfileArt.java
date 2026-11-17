@@ -306,6 +306,11 @@ public final class NebulaProfileArt {
         return dp(iosProfile() ? 98 : 74);
     }
 
+    /** Полоса плашек «песня / баланс» над кнопками: в iOS плашка выше (26 dp вместо 17). */
+    public static int pillsHeight() {
+        return dp(iosProfile() ? 31 : 25);
+    }
+
     /** Кнопки действий профиля пилюлями Material 3 с тональной заливкой. */
     public static boolean materialButtons() {
         try {
