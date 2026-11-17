@@ -1673,6 +1673,10 @@ Telegram не переподключается дважды. Прокси сни
 - `nebulaOnlineExpanded`: сдвиги раскрытого фото у строки статуса после открытия берутся из
   `currentExpandAnimatorValue`, а не навсегда 1 при `playProfileAnimation == 2` («в сети» правее центра).
 - `ProfileMusicView`: в iOS содержимое (и баланса) центрируется по плашке, а не по полосе.
+- `NebulaProfileArt.Hero.drawPhotoBanner` возвращает `drawRegion` фото аватарки: баннер рисует его тем же
+  `ImageReceiver`, а PhotoViewer по этой области анимирует открытие и закрытие фото.
+- `AudioPlayerAlert.onCustomCloseAnimation` + `NebulaSheetCollapse`: плеер, открытый из профиля в iOS-режиме,
+  сжимается в плашку песни (`ProfileActivity` задаёт одноразовую цель перед `showDialog`).
 
 Голосовое → текст без панели (только оверлей, нативный код Aa из 0200/0206 не менялся):
 `NebulaDraftVoiceInlineHost` теперь `FieldHost` — над записью мерцает строка с распознаваемыми

@@ -17,6 +17,35 @@ index 0c6cb9d..6a499cc 100644
                      }
                  });
                  if (exists) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
+index fb5efa9..bfade34 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/AudioPlayerAlert.java
+@@ -233,6 +233,24 @@ public class AudioPlayerAlert extends BottomSheet implements NotificationCenter.
+     private float lastStatusBarRad = -1f;
+     private app.nebulagram.ui.NebulaMusicPlayer nebulaPlayer;
+ 
++    /** NebulaGram: открытый из профиля плеер сворачивается в плашку песни, как в iOS. */
++    @Override
++    protected boolean onCustomCloseAnimation() {
++        final AnimatorSet nebulaCollapse = app.nebulagram.ui.NebulaSheetCollapse.collapse(containerView, v -> {
++            backDrawable.setAlpha(Math.round(dimBehindAlpha * v));
++            if (getContainer() != null) getContainer().invalidate();
++        }, () -> {
++            currentSheetAnimation = null;
++            currentSheetAnimationType = 0;
++            dismissInternal();
++        });
++        if (nebulaCollapse == null) return super.onCustomCloseAnimation();
++        currentSheetAnimation = nebulaCollapse;
++        currentSheetAnimationType = 2;
++        nebulaCollapse.start();
++        return true;
++    }
++
+     private final static float[] speeds = new float[] {
+             .5f, 1f, 1.2f, 1.5f, 1.7f, 2f
+     };
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
 index 00da7de..1dad82f 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
@@ -280,7 +309,7 @@ index 36fccb4..055054f 100644
              };
              fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..fea80bb 100644
+index c317662..1721528 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -304,7 +333,7 @@ index c317662..fea80bb 100644
              balanceView = new ProfileBalanceView(context, resourcesProvider);
              musicView.setTrailingView(balanceView);
              if (buttonsGlass != null) {
-@@ -3901,17 +3908,33 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -3901,17 +3908,34 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      MediaController.getInstance().currentSavedMusicList = savedMusicList;
                      MediaController.getInstance().getPlaylist().clear();
                      MediaController.getInstance().getPlaylist().addAll(savedMusicList.list);
@@ -321,6 +350,7 @@ index c317662..fea80bb 100644
 +                        musicView.invalidate();
 +                    } else {
 +                        if (!sameList) MediaController.getInstance().playMessage(savedMusicList.list.get(0));
++                        app.nebulagram.ui.NebulaSheetCollapse.target(app.nebulagram.ui.NebulaProfileArt.iosProfile() ? musicView : null);
 +                        showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));
 +                    }
                  }
@@ -341,7 +371,7 @@ index c317662..fea80bb 100644
                      case ProfileActionsView.KEY_GIFT:
                          onGiftPermiumClicked();
                          break;
-@@ -5714,6 +5737,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5714,6 +5738,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
          giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
          avatarContainer2.addView(giftsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
@@ -349,7 +379,7 @@ index c317662..fea80bb 100644
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
-@@ -6268,16 +6292,45 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6268,16 +6293,45 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          if (getActionsExtraHeight() == 0) {
              return dp(168f) + app.nebulagram.ui.NebulaProfileStyle.titleSpacing(isInLandscapeMode);
          }
@@ -397,7 +427,7 @@ index c317662..fea80bb 100644
      }
  
      private int getHeaderExtraHeight() {
-@@ -8060,6 +8113,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8060,6 +8114,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  super.onFactorChanged(id, factor, fraction, callee);
                  updateHeaderBar();
              }
@@ -414,7 +444,7 @@ index c317662..fea80bb 100644
          };
          simpleActionBar.setTitlesAlpha(0f);
          if (!fragmentOpened && !hasMainTabs && playProfileAnimation != 0 && allowProfileAnimation && !disableProfileAnimation) {
-@@ -11667,7 +11730,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11667,7 +11731,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  
      private Drawable getEmojiStatusDrawable(TLRPC.EmojiStatus emojiStatus, boolean switchable, boolean animated) {
          if (emojiStatusDrawable == null) {
@@ -424,7 +454,7 @@ index c317662..fea80bb 100644
              if (fragmentViewAttached) {
                  emojiStatusDrawable.attach();
              }
-@@ -11748,11 +11812,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11748,11 +11813,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
              actionsView.clipHeight = avatarContainer.getY() + vh;
              actionsView.setAlpha(avatarAnimationProgress);
@@ -438,7 +468,7 @@ index c317662..fea80bb 100644
              actionsView.updatePosition(bottom - height, height);
          }
  
-@@ -11778,16 +11842,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11778,16 +11843,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
  //            musicView.clipHeight = avatarContainer.getY() + vh;
              musicView.setAlpha(avatarAnimationProgress);
@@ -458,7 +488,7 @@ index c317662..fea80bb 100644
          }
      }
  
-@@ -12606,6 +12670,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12606,6 +12671,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      if (getMessagesController().config.walletAvailable.get() && !MessagesController.isSupportUser(user) && !UserObject.isService(user.id)) {
                          otherItem.addSubItem(send_money, R.drawable.ic_gram, LocaleController.getString(R.string.WalletSendMoney));
                      }
@@ -469,7 +499,7 @@ index c317662..fea80bb 100644
                      otherItem.addSubItem(start_secret_chat, R.drawable.msg_secret, LocaleController.getString(R.string.StartEncryptedChat));
                      otherItem.setSubItemShown(start_secret_chat, DialogObject.isEmpty(getMessagesController().isUserContactBlocked(userId)));
  
-@@ -16187,7 +16255,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -16187,7 +16256,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      private float getOnlineTextViewTranslationXWithOffsets(float onlineX, float ratingPadding) {
          lastOnlineTextViewX = onlineX;
          lastOnlineTextRatingPadding = ratingPadding;
@@ -478,7 +508,7 @@ index c317662..fea80bb 100644
          final float ratingVisibility = ratingView != null ? ratingView.getVisibilityFactor() : 0;
          return onlineX + ratingPadding * ratingVisibility * (1f - expanded) + Math.max(0, (customPhotoOffset + getRatingViewTranslationXOffset()) * expanded);
      }
-@@ -16195,10 +16263,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -16195,10 +16264,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      // centered subtitle with star rating keeps its position as it was before accounting for padding
      private float onlineTextRatingPadding, lastOnlineTextRatingPadding;
  

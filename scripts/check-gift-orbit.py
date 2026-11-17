@@ -51,6 +51,8 @@ assert 'NebulaAppearance.profileStyle() ? 19 : 24' in patch, 'status emoji is si
 assert 'NebulaProfileArt.headerTrim()' in patch, 'buttons sit closer to the status line'
 assert patch.count('final float expanded = nebulaOnlineExpanded();') == 2, 'status line offsets follow real expansion'
 assert 'rect.centerY() - getHeight() / 2f' in patch, 'pill text is centred on the pill'
+assert 'NebulaSheetCollapse.collapse(containerView' in patch and 'NebulaSheetCollapse.target(' in patch, 'player collapses into the song pill'
+assert 'receiver.getDrawRegion().set(savedRegion);' in (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java').read_text(encoding='utf-8'), 'banner keeps the avatar draw region for PhotoViewer'
 art = open(ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java', encoding='utf-8').read()
 assert 'profilePhotoBanner() && !iosProfile()' not in art, 'banner setting is honoured in the iOS profile'
 art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')

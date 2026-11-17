@@ -47,6 +47,7 @@ contracts = {
  public float getImageX(){return x;}public float getImageY(){return y;}public float getImageWidth(){return w;}public float getImageHeight(){return h;}
  public float getAlpha(){return alpha;}public int[] getRoundRadius(){return radii;}public boolean hasImageLoaded(){return loaded;}
  public void setAlpha(float a){alpha=a;}public void setRoundRadius(int[] r){System.arraycopy(r,0,radii,0,4);}
+ public final android.graphics.RectF region=new android.graphics.RectF();public android.graphics.RectF getDrawRegion(){return region;}
  public void setImageCoords(float xx,float yy,float ww,float hh){x=xx;y=yy;w=ww;h=hh;}
  public void setImageCoords(android.graphics.RectF r){setImageCoords(r.left,r.top,r.width(),r.height());}
  public void draw(android.graphics.Canvas c,Object ignored){draws++;lastDrawAlpha=alpha;if(throwDraw||draws==failAtDraw)throw new IllegalStateException("test draw failure");}}""",

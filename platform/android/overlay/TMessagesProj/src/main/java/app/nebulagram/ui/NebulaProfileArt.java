@@ -106,6 +106,7 @@ public final class NebulaProfileArt {
         private int previousStart, previousEnd, previousWidth;
         private float previousTop, previousBottom;
 
+        private final RectF savedRegion = new RectF();
         private final int[] savedRadii = new int[4];
         private final int[] squareRadii = new int[4];
         private float foregroundAlpha;
@@ -298,6 +299,9 @@ public final class NebulaProfileArt {
             final float imageX = receiver.getImageX(), imageY = receiver.getImageY();
             final float imageW = receiver.getImageWidth(), imageH = receiver.getImageHeight();
             final float imageAlpha = receiver.getAlpha();
+            // Баннер рисует фото аватарки тем же ImageReceiver: его drawRegion берёт
+            // PhotoViewer для анимации открытия и закрытия, поэтому область возвращаем.
+            savedRegion.set(receiver.getDrawRegion());
             System.arraycopy(receiver.getRoundRadius(), 0, savedRadii, 0, 4);
             int save = canvas.save();
             try {
@@ -313,6 +317,7 @@ public final class NebulaProfileArt {
                 receiver.setAlpha(imageAlpha);
                 receiver.setRoundRadius(savedRadii);
                 receiver.setImageCoords(imageX, imageY, imageW, imageH);
+                receiver.getDrawRegion().set(savedRegion);
             }
         }
     }
