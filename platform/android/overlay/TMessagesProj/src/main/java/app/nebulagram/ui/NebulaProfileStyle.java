@@ -298,6 +298,14 @@ public final class NebulaProfileStyle {
         text.setTypeface(AndroidUtilities.bold());
         text.setLetterSpacing(.04f);
         text.setAllCaps(true);
+        if (NebulaProfileArt.iosProfile()) {
+            // iOS: подпись секции — просто текст над карточкой, без плашки.
+            text.setTypeface(null);
+            text.setLetterSpacing(.02f);
+            text.setPadding(AndroidUtilities.dp(4), 0, AndroidUtilities.dp(4), 0);
+            text.setBackground(null);
+            return;
+        }
         text.setPadding(AndroidUtilities.dp(10), 0, AndroidUtilities.dp(10), 0);
         text.setBackground(new NebulaProfileArt.LabelBackground(cell.getContext(), provider));
     }

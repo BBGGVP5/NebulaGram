@@ -288,6 +288,24 @@ public final class NebulaProfileArt {
         }
     }
 
+    /**
+     * Профиль как в iOS-бете Telegram: круглые стеклянные кнопки с подписью под
+     * ними, стеклянный ободок у аватарки, заголовки секций без плашек. Работает
+     * поверх стиля профиля NebulaGram.
+     */
+    public static boolean iosProfile() {
+        try {
+            return NebulaAppearance.profileStyle() && NebulaMessagePreferences.enabled("profile_ios", true);
+        } catch (Throwable e) {
+            return false;
+        }
+    }
+
+    /** Высота ряда кнопок: круг 56 dp и подпись под ним не помещаются в прежние 74 dp. */
+    public static int actionsHeight() {
+        return dp(iosProfile() ? 98 : 74);
+    }
+
     /** Кнопки действий профиля пилюлями Material 3 с тональной заливкой. */
     public static boolean materialButtons() {
         try {
@@ -310,6 +328,9 @@ public final class NebulaProfileArt {
     /** Native hit targets and press animation, with a shared photographic glass source. */
     public static final class Actions extends ProfileActionsView {
         private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint actionRim = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final RectF cell = new RectF();
+        private boolean hasCell;
         private final Theme.ResourcesProvider provider;
         private NebulaProfileGlass glass;
         private boolean bannerReady, bannerActive, hasNativeColor, nativeHasColorById;
@@ -329,9 +350,44 @@ public final class NebulaProfileArt {
                     !active && nativeHasColorById);
         }
         @Override protected boolean hasCustomActionSurface(Canvas canvas) {
-            return materialButtons() || NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
+            return iosProfile() || materialButtons() || NebulaAppearance.profileStyle() && NebulaMenuStyle.enabled();
         }
-        @Override public float getRoundRadius() { return materialButtons() ? dp(28) : dp(18); }
+        @Override public float getRoundRadius() { return iosProfile() || materialButtons() ? dp(28) : dp(18); }
+
+        /** iOS: значок в центре круга у верхнего края ячейки, подпись под кругом. */
+        @Override protected float actionIconTop(float top, RectF rect) {
+            if (!iosProfile()) return top;
+            cell.set(rect);
+            hasCell = true;
+            return rect.top + dp(16);
+        }
+        @Override protected float actionTextY(float y, int lines) {
+            if (!iosProfile() || !hasCell) return y;
+            return cell.top + dp(lines > 1 ? 58 : 61);
+        }
+        @Override protected void drawActionIconBackground(Canvas canvas, Rect bounds, int key, int lines, float alpha) {
+            if (!iosProfile()) return;
+            final float r = dp(28);
+            final float cx = (bounds.left + bounds.right) / 2f, cy = (bounds.top + bounds.bottom) / 2f;
+            if (bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported()) {
+                cell.set(cx - r, cy - r, cx + r, cy + r);
+                glass.draw(canvas, cell, key, r, alpha, getX(), getY());
+                hasCell = false;
+            } else {
+                // На цвете профиля — светлое стекло того же тона, без цвета — карточка темы.
+                actionFill.setColor(bannerActive ? 0x882b3337 : nativeHasColorById
+                        ? (dark(provider) ? 0x30ffffff : 0x4dffffff) : surface(provider));
+                actionFill.setAlpha(Math.round(Color.alpha(actionFill.getColor()) * alpha));
+                canvas.drawCircle(cx, cy, r, actionFill);
+            }
+            // Тонкий ободок сверху светлее — как край стеклянной линзы.
+            actionRim.setStyle(Paint.Style.STROKE);
+            final float stroke = Math.max(1f, dp(1));
+            actionRim.setStrokeWidth(stroke);
+            actionRim.setColor(bannerActive || nativeHasColorById ? Color.WHITE : ink(provider));
+            actionRim.setAlpha(Math.round((bannerActive || nativeHasColorById ? 46 : 18) * alpha));
+            canvas.drawCircle(cx, cy, r - stroke / 2f, actionRim);
+        }
         @Override protected int actionTextColor(int color) {
             if (materialButtons() && !bannerActive && !nativeHasColorById) return materialOnTonal(provider);
             return bannerActive||nativeHasColorById?android.graphics.Color.WHITE:Theme.getColor(Theme.key_windowBackgroundWhiteBlackText,provider);
@@ -347,6 +403,7 @@ public final class NebulaProfileArt {
         }
 
         @Override protected void drawActionSurface(Canvas canvas, RectF rect, int key, float radius, float alpha) {
+            if (iosProfile()) return; // круг рисуется вокруг значка, см. drawActionIconBackground
             if (materialButtons()) {
                 // Material 3: заполненная тональная пилюля. Цвет профиля сохраняется —
                 // на нём пилюля становится светлым тоном того же цвета.

@@ -54,14 +54,16 @@ contracts = {
  public int color;public boolean byId;public ProfileActionsView(android.content.Context c,int h){super(c);}
  public void setActionsColor(int c,boolean b){color=c;byId=b;}public float getRoundRadius(){return 16;}
  protected int actionTextColor(int color){return color;}protected void onAttachedToWindow(){}protected boolean hasCustomActionSurface(android.graphics.Canvas c){return false;}
- protected void drawActionSurface(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha){}}""",
+ protected void drawActionSurface(android.graphics.Canvas c,android.graphics.RectF r,int key,float radius,float alpha){}
+ protected void drawActionIconBackground(android.graphics.Canvas c,android.graphics.Rect b,int key,int lines,float alpha){}
+ protected float actionTextY(float y,int lines){return y;}protected float actionIconTop(float top,android.graphics.RectF r){return top;}}""",
  'app/nebulagram/ui/NebulaAppearance.java': """package app.nebulagram.ui;public class NebulaAppearance {
  public static boolean style=true,banner=true;public static boolean profileStyle(){return style;}public static boolean profilePhotoBanner(){return banner;}
  public static boolean glassHighlights(){return true;}}""",
  'app/nebulagram/ui/NebulaTheme.java': """package app.nebulagram.ui;public class NebulaTheme {
  public static NebulaTheme of(android.content.Context c){return new NebulaTheme();}public boolean isDynamic(){return false;}public int surfaceContainer(){return 0xff112233;}}""",
  'app/nebulagram/ui/NebulaMenuStyle.java': 'package app.nebulagram.ui;public class NebulaMenuStyle {public static boolean enabled(){return true;}}',
- 'app/nebulagram/ui/NebulaMessagePreferences.java': 'package app.nebulagram.ui;public class NebulaMessagePreferences {public static boolean enabled(String key,boolean fallback){return fallback;}}',
+ 'app/nebulagram/ui/NebulaMessagePreferences.java': 'package app.nebulagram.ui;public class NebulaMessagePreferences {public static boolean ios=false;public static boolean enabled(String key,boolean fallback){return "profile_ios".equals(key)?ios:fallback;}}',
  'app/nebulagram/ui/NebulaProfileGlass.java': """package app.nebulagram.ui;class NebulaProfileGlass {
  static boolean enabled=true;static int captures,ends,draws;static CanvasSize last;static android.graphics.Canvas lastCanvas;
  static class CanvasSize {int w,h;CanvasSize(int w,int h){this.w=w;this.h=h;}}
@@ -107,7 +109,7 @@ android = {
  public int saveLayerAlpha(RectF bounds,int alpha){layers++;layerAlpha=alpha;return save();}
  public void clipPath(Path p){}public void drawRect(RectF r,Paint p){ops.add(new Op(r.bottom,p));}
  public void drawRect(float l,float t,float r,float b,Paint p){ops.add(new Op(b,p));}
- public void drawPath(Path x,Paint p){}public void drawRoundRect(RectF r,float x,float y,Paint p){ops.add(new Op(r.bottom,p));}}""",
+ public void drawPath(Path x,Paint p){}public void drawCircle(float x,float y,float r,Paint p){ops.add(new Op(y+r,p));}public void drawRoundRect(RectF r,float x,float y,Paint p){ops.add(new Op(r.bottom,p));}}""",
  'android/graphics/ColorFilter.java':'package android.graphics;public class ColorFilter {}',
  'android/graphics/PixelFormat.java':'package android.graphics;public class PixelFormat {public static int TRANSLUCENT=-3;}',
  'android/graphics/drawable/Drawable.java':"""package android.graphics.drawable;public abstract class Drawable {

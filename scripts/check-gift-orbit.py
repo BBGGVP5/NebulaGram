@@ -27,6 +27,11 @@ assert 'giftsView.nebulaFrontLayer(context)' in patch, 'near half of the orbit p
 assert 'requestDisallowInterceptTouchEvent(true)' in patch and 'nebulaField.release(' in patch, 'drag owns the gesture and throws on release'
 assert 'onGiftClick(pressedGift);' in patch, 'tap still opens the gift'
 assert 'nebulaAlpha[hit] < .3f' in patch, 'faded bubbles do not catch touches'
+assert patch.count('app.nebulagram.ui.NebulaProfileArt.actionsHeight()') == 8, 'every native 74 dp action row follows the iOS height'
+assert 'drawableTop = actionIconTop(' in patch and 'protected float actionIconTop(float top, RectF rect) { return top; }' in patch
+assert 'nebulaRing.drawHalo(' in patch and 'nebulaRing.drawRim(' in patch, 'avatar ring: halo behind, rim in front'
+art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')
+assert 'if (iosProfile()) return; // круг' in art and 'return dp(iosProfile() ? 98 : 74);' in art
 
 orbit = (UI / 'NebulaGiftOrbit.java').read_text(encoding='utf-8')
 reveal = (UI / 'NebulaVoiceReveal.java').read_text(encoding='utf-8')

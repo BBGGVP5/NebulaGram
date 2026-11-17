@@ -395,6 +395,58 @@ public final class NebulaGiftOrbit {
         }
     }
 
+    /**
+     * Стеклянный ободок аватарки из iOS-беты: мягкий ореол позади (рисуется за
+     * аватаркой) и светлый край линзы поверх неё.
+     */
+    public static final class Ring {
+        private final Paint halo = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint shade = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Matrix matrix = new Matrix();
+        private final Shader haloShader, rimShader;
+
+        public Ring() {
+            haloShader = new RadialGradient(0, 0, 1,
+                    new int[]{0, 0, Color.argb(80, 255, 255, 255), Color.argb(26, 255, 255, 255), 0},
+                    new float[]{0, .66f, .70f, .82f, 1}, Shader.TileMode.CLAMP);
+            halo.setShader(haloShader);
+            rimShader = new LinearGradient(-1, -1, 1, 1,
+                    new int[]{Color.argb(235, 255, 255, 255), Color.argb(40, 255, 255, 255), Color.argb(150, 255, 255, 255)},
+                    new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
+            rim.setShader(rimShader);
+            rim.setStyle(Paint.Style.STROKE);
+            shade.setStyle(Paint.Style.STROKE);
+            shade.setColor(Color.BLACK);
+        }
+
+        /** Ореол за аватаркой радиуса r. */
+        public void drawHalo(Canvas canvas, float cx, float cy, float r, float alpha) {
+            if (alpha <= 0 || r <= 0) return;
+            float outer = r / .70f;
+            matrix.setScale(outer, outer);
+            matrix.postTranslate(cx, cy);
+            haloShader.setLocalMatrix(matrix);
+            halo.setAlpha(Math.round(255 * clamp01(alpha)));
+            canvas.drawCircle(cx, cy, outer, halo);
+        }
+
+        /** Край линзы поверх аватарки; stroke — толщина в пикселях. */
+        public void drawRim(Canvas canvas, float cx, float cy, float r, float stroke, float alpha) {
+            if (alpha <= 0 || r <= stroke) return;
+            int a = Math.round(255 * clamp01(alpha));
+            shade.setStrokeWidth(stroke * .5f);
+            shade.setAlpha(Math.round(a * .14f));
+            canvas.drawCircle(cx, cy, r - stroke * 1.25f, shade);
+            matrix.setScale(r, r);
+            matrix.postTranslate(cx, cy);
+            rimShader.setLocalMatrix(matrix);
+            rim.setStrokeWidth(stroke);
+            rim.setAlpha(a);
+            canvas.drawCircle(cx, cy, r - stroke / 2f, rim);
+        }
+    }
+
     static int alpha(int color, float a) {
         return (color & 0x00FFFFFF) | (Math.round(255 * clamp01(a)) << 24);
     }

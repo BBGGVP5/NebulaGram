@@ -17,10 +17,40 @@ index 0c6cb9d..6a499cc 100644
                      }
                  });
                  if (exists) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+index 00da7de..413ffa7 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileActionsView.java
+@@ -358,7 +358,7 @@ public class ProfileActionsView extends View {
+ 
+         action.text.setMaxWidth(action.rect.width() - dp(2));
+         action.textScale = action.text.getLineCount() >= 3 ? 0.75f : action.text.getLineCount() >= 2 ? 0.85f : 1.0f;
+-        final float drawableTop = Math.max(0, (targetHeight - action.text.getHeight() * action.textScale) / 3f + dpf2(1.33f));
++        final float drawableTop = actionIconTop(Math.max(0, (targetHeight - action.text.getHeight() * action.textScale) / 3f + dpf2(1.33f)), action.rect);
+         action.setBounds(
+             (int) (cx - drawableR),
+             (int) (drawableTop),
+@@ -482,6 +482,7 @@ public class ProfileActionsView extends View {
+     protected int actionTextColor(int color) { return color; }
+     protected int actionIconColor(int color, int key) { return color; }
+     protected float actionTextY(float y, int lines) { return y; }
++    protected float actionIconTop(float top, RectF rect) { return top; }
+ 
+     public float getRoundRadius() {
+         return dp(16);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..db10478 100644
+index c317662..aa02af0 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -3906,7 +3906,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 }
+             });
+ 
+-            actionsView = app.nebulagram.ui.NebulaProfileStyle.actions(context, dp(74), resourcesProvider); // NebulaGram
++            actionsView = app.nebulagram.ui.NebulaProfileStyle.actions(context, app.nebulagram.ui.NebulaProfileArt.actionsHeight(), resourcesProvider); // NebulaGram
+             setActionsMode();
+             updateNotifications(false);
+ 
 @@ -5714,6 +5714,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
          giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
@@ -29,8 +59,51 @@ index c317662..db10478 100644
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
+@@ -6277,7 +6278,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     private int getActionsExtraHeight(boolean withPills) {
+         if (userId != 0 && imageUpdater != null && !myProfile)
+             return 0;
+-        return dp(74 + (withPills && (hasMusic || hasBalance) ? 25 : 0));
++        return app.nebulagram.ui.NebulaProfileArt.actionsHeight() + dp(withPills && (hasMusic || hasBalance) ? 25 : 0);
+     }
+ 
+     private int getHeaderExtraHeight() {
+@@ -11748,11 +11749,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
+             actionsView.clipHeight = avatarContainer.getY() + vh;
+             actionsView.setAlpha(avatarAnimationProgress);
+-            actionsView.updatePosition(listView.getMeasuredWidth(), dp(74));
++            actionsView.updatePosition(listView.getMeasuredWidth(), app.nebulagram.ui.NebulaProfileArt.actionsHeight());
+         } else {
+             actionsView.clipHeight = -1;
+             float bottom = extraHeight + newTop - dp(hasMusic || hasBalance ? 25 : 0);
+-            float height = Math.min(dp(74), bottom - newTop);
++            float height = Math.min(app.nebulagram.ui.NebulaProfileArt.actionsHeight(), bottom - newTop);
+             actionsView.updatePosition(bottom - height, height);
+         }
+ 
+@@ -11778,16 +11779,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
+ //            musicView.clipHeight = avatarContainer.getY() + vh;
+             musicView.setAlpha(avatarAnimationProgress);
+-            musicView.updatePosition(listView.getMeasuredWidth() + dp(74), getActionsExtraHeight() - dp(74));
++            musicView.updatePosition(listView.getMeasuredWidth() + app.nebulagram.ui.NebulaProfileArt.actionsHeight(), getActionsExtraHeight() - app.nebulagram.ui.NebulaProfileArt.actionsHeight());
+         } else {
+             if (openAnimationInProgress) {
+                 musicView.setAlpha(avatarAnimationProgress);
+             }
+ 
+ //            musicView.clipHeight = -1;
+-            float bottom = extraHeight + newTop + dp(74);
++            float bottom = extraHeight + newTop + app.nebulagram.ui.NebulaProfileArt.actionsHeight();
+             float height = Math.min(getActionsExtraHeight(), bottom - newTop);
+-            musicView.updatePosition(bottom - height, height - dp(74));
++            musicView.updatePosition(bottom - height, height - app.nebulagram.ui.NebulaProfileArt.actionsHeight());
+         }
+     }
+ 
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
-index a253fee..b57aaa6 100644
+index a253fee..9d71672 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 @@ -132,6 +132,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
@@ -73,16 +146,23 @@ index a253fee..b57aaa6 100644
                  g.animatedFloat.force(0.0f);
                  if (isAttachedToWindow()) {
                      g.emojiDrawable.addView(this);
-@@ -373,6 +378,8 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -373,6 +378,15 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
  
      @Override
      protected void dispatchDraw(@NonNull Canvas canvas) {
 +        nebulaFrameValid = false;
 +        if (nebulaFront != null) nebulaFront.invalidate();
++        nebulaPrepareRing();
++        if (nebulaRingAlpha > 0f) {
++            canvas.save();
++            canvas.clipRect(0, 0, getWidth(), expandY);
++            nebulaRing.drawHalo(canvas, nebulaRingX, nebulaRingY, nebulaRingR, nebulaRingAlpha);
++            canvas.restore();
++        }
          if (gifts.isEmpty() || expandProgress >= 1.0f || collapseProgress <= 0f) return;
  
          final float realX = avatarContainer.getX();
-@@ -399,6 +406,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -399,6 +413,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          float expandScale = expandY / maxExpandY;
          float closedAlpha = Utilities.clamp01((expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
  
@@ -96,7 +176,7 @@ index a253fee..b57aaa6 100644
          for (int i = 0; i < gifts.size(); ++i) {
              final Gift gift = gifts.get(i);
              final float enter = gift.animatedFloat.set(1.0f);
-@@ -467,6 +481,220 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -467,6 +488,244 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          canvas.restore();
      }
  
@@ -123,6 +203,12 @@ index a253fee..b57aaa6 100644
 +            nebulaFront = new View(context) {
 +                @Override
 +                protected void onDraw(@NonNull Canvas canvas) {
++                    if (nebulaRingAlpha > 0f) {
++                        canvas.save();
++                        canvas.clipRect(0, 0, getWidth(), expandY);
++                        nebulaRing.drawRim(canvas, nebulaRingX, nebulaRingY, nebulaRingR, dp(2.5f), nebulaRingAlpha);
++                        canvas.restore();
++                    }
 +                    nebulaDrawLayer(canvas, true);
 +                }
 +
@@ -133,6 +219,24 @@ index a253fee..b57aaa6 100644
 +            };
 +        }
 +        return nebulaFront;
++    }
++
++    // NebulaGram: стеклянный ободок аватарки (профиль как в iOS): ореол за ней, край линзы поверх.
++    private final app.nebulagram.ui.NebulaGiftOrbit.Ring nebulaRing = new app.nebulagram.ui.NebulaGiftOrbit.Ring();
++    private float nebulaRingX, nebulaRingY, nebulaRingR, nebulaRingAlpha;
++
++    private void nebulaPrepareRing() {
++        nebulaRingAlpha = 0f;
++        if (dialogId <= 0 || !app.nebulagram.ui.NebulaProfileArt.iosProfile() || avatarContainer.getWidth() <= 0) return;
++        final float w = avatarContainer.getWidth() * avatarContainer.getScaleX();
++        final float h = avatarContainer.getHeight() * avatarContainer.getScaleY();
++        nebulaRingX = avatarContainer.getX() + w / 2f;
++        nebulaRingY = avatarContainer.getY() + h / 2f;
++        nebulaRingR = Math.min(w, h) / 2f;
++        final float closed = Utilities.clamp01((expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
++        // Ободок нужен крупной аватарке: у маленькой в шапке и у раскрытого фото его нет.
++        final float size = Utilities.clamp01((nebulaRingR - dp(24)) / dp(16));
++        nebulaRingAlpha = (1f - expandProgress) * (1f - actionBarProgress) * closed * size;
 +    }
 +
 +    private float nebulaBubbleRadius() {
@@ -317,7 +421,7 @@ index a253fee..b57aaa6 100644
      public Gift getGiftUnder(float x, float y) {
          for (int i = 0; i < gifts.size(); ++i) {
              if (gifts.get(i).bounds.contains(x, y))
-@@ -480,6 +708,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -480,6 +739,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
      @Override
      public boolean onTouchEvent(MotionEvent event) {
          if (!active) return false;

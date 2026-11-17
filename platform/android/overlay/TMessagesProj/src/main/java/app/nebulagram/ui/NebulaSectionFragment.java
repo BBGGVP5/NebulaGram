@@ -719,6 +719,8 @@ public class NebulaSectionFragment extends BaseFragment {
                 NebulaAppearance.profilePhotoBanner(), NebulaAppearance::setProfilePhotoBanner));
         card.add(preference(context, R.drawable.msg_customize, "profile_m3_buttons", false,
                 "Кнопки Material 3", "Material 3 buttons"));
+        card.add(preference(context, R.drawable.msg_openprofile, "profile_ios", true,
+                "Профиль как в iOS", "iOS-style profile"));
         card.add(preference(context, R.drawable.msg_gift_premium, NebulaGiftOrbit.KEY, true,
                 "Подарки на орбите", "Orbiting gifts"));
         content.addView(card, cardParams());
