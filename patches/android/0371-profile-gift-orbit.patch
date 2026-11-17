@@ -201,7 +201,7 @@ index ffa7f55..44275d0 100644
      }
  }
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..17ff316 100644
+index c317662..9f08fb1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -252,19 +252,15 @@ index c317662..17ff316 100644
              setActionsMode();
              updateNotifications(false);
  
-@@ -5714,6 +5732,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -5714,6 +5732,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
          avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
          giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
          avatarContainer2.addView(giftsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
 +        avatarContainer2.addView(giftsView.nebulaFrontLayer(context), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
-+        if (actionBar != null) {
-+            // Шапка лежит поверх верхней половины орбиты и забирает касания: пузырь под пальцем берёт их сам.
-+            actionBar.setOnTouchListener((v, event) -> giftsView != null && giftsView.nebulaForwardTouch(v, event));
-+        }
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
-@@ -6277,7 +6300,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6277,7 +6296,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      private int getActionsExtraHeight(boolean withPills) {
          if (userId != 0 && imageUpdater != null && !myProfile)
              return 0;
@@ -273,7 +269,24 @@ index c317662..17ff316 100644
      }
  
      private int getHeaderExtraHeight() {
-@@ -11748,11 +11771,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8060,6 +8079,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+                 super.onFactorChanged(id, factor, fraction, callee);
+                 updateHeaderBar();
+             }
++
++            @Override
++            public boolean onTouchEvent(MotionEvent event) {
++                // NebulaGram: шапка лежит поверх верхней половины орбиты подарков и забирает касания;
++                // пузырь под пальцем (вне кнопок шапки) получает жест сам.
++                if (giftsView != null && giftsView.nebulaForwardTouch(this, event)) {
++                    return true;
++                }
++                return super.onTouchEvent(event);
++            }
+         };
+         simpleActionBar.setTitlesAlpha(0f);
+         if (!fragmentOpened && !hasMainTabs && playProfileAnimation != 0 && allowProfileAnimation && !disableProfileAnimation) {
+@@ -11748,11 +11777,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
              actionsView.clipHeight = avatarContainer.getY() + vh;
              actionsView.setAlpha(avatarAnimationProgress);
@@ -287,7 +300,7 @@ index c317662..17ff316 100644
              actionsView.updatePosition(bottom - height, height);
          }
  
-@@ -11778,16 +11801,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11778,16 +11807,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
  //            musicView.clipHeight = avatarContainer.getY() + vh;
              musicView.setAlpha(avatarAnimationProgress);
