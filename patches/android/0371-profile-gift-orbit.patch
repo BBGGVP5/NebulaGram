@@ -1,0 +1,135 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+index 0c6cb9d..6a499cc 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/MediaController.java
+@@ -4022,12 +4022,13 @@ public class MediaController implements AudioManager.OnAudioFocusChangeListener,
+                 audioPlayer.setAudioVisualizerDelegate(new VideoPlayer.AudioVisualizerDelegate() {
+                     @Override
+                     public void onVisualizerUpdate(boolean playing, boolean animate, float[] values) {
++                        app.nebulagram.ui.NebulaGiftOrbit.onVisualizer(playing, values);
+                         Theme.getCurrentAudiVisualizerDrawable().setWaveform(playing, animate, values);
+                     }
+ 
+                     @Override
+                     public boolean needUpdate() {
+-                        return Theme.getCurrentAudiVisualizerDrawable().getParentView() != null;
++                        return Theme.getCurrentAudiVisualizerDrawable().getParentView() != null || app.nebulagram.ui.NebulaGiftOrbit.listening();
+                     }
+                 });
+                 if (exists) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
+index a253fee..1ee34e9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
+@@ -132,6 +132,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+         super.onAttachedToWindow();
+ 
+         NotificationCenter.getInstance(currentAccount).addWeakObserver(this, NotificationCenter.starUserGiftsLoaded);
++        app.nebulagram.ui.NebulaGiftOrbit.attach();
+ 
+         for (Gift gift : gifts) {
+             gift.emojiDrawable.addView(this);
+@@ -145,6 +146,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+         super.onDetachedFromWindow();
+ 
+         NotificationCenter.getInstance(currentAccount).removeObserver(this, NotificationCenter.starUserGiftsLoaded);
++        app.nebulagram.ui.NebulaGiftOrbit.detach();
+ 
+         for (Gift gift : gifts) {
+             gift.emojiDrawable.removeView(this);
+@@ -205,6 +207,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+         public Paint gradientPaint;
+         public AnimatedEmojiDrawable emojiDrawable;
+         public AnimatedFloat animatedFloat;
++        public app.nebulagram.ui.NebulaGiftOrbit.Bubble nebulaBubble;
+ 
+         public final RectF bounds = new RectF();
+         public final ButtonBounce bounce = new ButtonBounce(ProfileGiftsView.this);
+@@ -216,6 +219,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+             animatedFloat = b.animatedFloat;
+             particles = b.particles;
+             position = b.position;
++            nebulaBubble = b.nebulaBubble;
+         }
+ 
+         public void draw(
+@@ -324,6 +328,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+                     g.emojiDrawable = AnimatedEmojiDrawable.make(currentAccount, AnimatedEmojiDrawable.CACHE_TYPE_MESSAGES, g.documentId);
+                 }
+                 g.animatedFloat = new AnimatedFloat(this, 0, 320, null);
++                g.nebulaBubble = new app.nebulagram.ui.NebulaGiftOrbit.Bubble(g.color, (int) (g.id % 97));
+                 g.animatedFloat.force(0.0f);
+                 if (isAttachedToWindow()) {
+                     g.emojiDrawable.addView(this);
+@@ -399,6 +404,12 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+         float expandScale = expandY / maxExpandY;
+         float closedAlpha = Utilities.clamp01((expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
+ 
++        if (app.nebulagram.ui.NebulaGiftOrbit.enabled()) {
++            nebulaDrawOrbit(canvas, acx, acy, aw, ah, realCX, realCY, expandScale, closedAlpha);
++            canvas.restore();
++            return;
++        }
++
+         for (int i = 0; i < gifts.size(); ++i) {
+             final Gift gift = gifts.get(i);
+             final float enter = gift.animatedFloat.set(1.0f);
+@@ -467,6 +478,58 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+         canvas.restore();
+     }
+ 
++    private final float[] nebulaOrbitPoint = new float[3];
++    private final ArrayList<Gift> nebulaOrbitOrder = new ArrayList<>();
++
++    /** NebulaGram: подарки в стеклянных пузырях летают по орбите и пульсируют под песню профиля. */
++    private void nebulaDrawOrbit(Canvas canvas, float acx, float acy, float aw, float ah, float realCX, float realCY, float expandScale, float closedAlpha) {
++        final double seconds = android.os.SystemClock.uptimeMillis() / 1000.0;
++        final float bubble = dp(21);
++        final float rx = Math.min(aw / 2f + dp(64) * Math.max(.6f, expandScale), getWidth() / 2f - bubble - dp(6));
++        final float ry = ah / 2f + dp(24) * Math.max(.6f, expandScale);
++        final int count = gifts.size();
++        boolean visible = false;
++        nebulaOrbitOrder.clear();
++        nebulaOrbitOrder.addAll(gifts);
++        // Дальние пузыри рисуются первыми, ближние поверх них.
++        java.util.Collections.sort(nebulaOrbitOrder, (a, b) -> Float.compare(nebulaDepth(a, count, seconds), nebulaDepth(b, count, seconds)));
++        for (int k = 0; k < nebulaOrbitOrder.size(); ++k) {
++            final Gift gift = nebulaOrbitOrder.get(k);
++            final int index = gifts.indexOf(gift);
++            final float enter = gift.animatedFloat.set(1.0f);
++            final float alphaBase = enter * (1.0f - expandProgress) * (1.0f - actionBarProgress) * closedAlpha;
++            app.nebulagram.ui.NebulaGiftOrbit.orbit(index, count, seconds, acx, acy, rx, ry, dp(5), nebulaOrbitPoint);
++            float gx = nebulaOrbitPoint[0], gy = nebulaOrbitPoint[1];
++            final float depth = nebulaOrbitPoint[2];
++            float scale = lerp(0.5f, 1.0f, enter) * lerp(.84f, 1.06f, depth);
++            float alpha = alphaBase * lerp(.78f, 1f, depth);
++
++            final float collapseProgressWithEnter = isOpening || enter >= 1f ? collapseProgress : Math.min(enter, collapseProgress);
++            final float collapse = Utilities.clamp01((collapseProgressWithEnter - index * .06f) / (1f - Math.min(.4f, count * .06f)));
++            if (collapse < 1f) {
++                gx = lerp(realCX, gx, giftCollapseXInterpolator.getInterpolation(collapse));
++                gy = lerp(realCY, gy, giftCollapseYInterpolator.getInterpolation(collapse));
++                scale = lerp(scale / 2f, scale, collapse);
++            }
++            if (alpha <= 0f) continue;
++            visible = true;
++            float pulse = 0f;
++            if (gift.nebulaBubble != null) {
++                pulse = gift.nebulaBubble.step(index);
++                gift.nebulaBubble.draw(canvas, gx, gy, bubble * scale * (1f + .16f * pulse) * gift.bounce.getScale(0.1f), seconds + index * 3.1, alpha);
++            }
++            gift.draw(canvas, gx, gy, scale * (1f + .12f * pulse), 0, alpha, 0f);
++        }
++        if (visible) {
++            postInvalidateOnAnimation();
++        }
++    }
++
++    private float nebulaDepth(Gift gift, int count, double seconds) {
++        app.nebulagram.ui.NebulaGiftOrbit.orbit(gifts.indexOf(gift), count, seconds, 0, 0, 1, 1, 0, nebulaOrbitPoint);
++        return nebulaOrbitPoint[2];
++    }
++
+     public Gift getGiftUnder(float x, float y) {
+         for (int i = 0; i < gifts.size(); ++i) {
+             if (gifts.get(i).bounds.contains(x, y))

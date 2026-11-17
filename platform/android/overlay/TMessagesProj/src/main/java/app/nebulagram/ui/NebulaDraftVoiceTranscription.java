@@ -16,6 +16,8 @@ import java.util.function.Supplier;
 /** Explicit Aa preview: recognizes a paused snapshot, never sends or deletes the voice. */
 public final class NebulaDraftVoiceTranscription {
     public interface InlineHost { void show(View content); void hide(); }
+    /** Без панели: show(null) рисует строку распознавания, готовый текст сразу уходит в поле. */
+    public interface FieldHost extends InlineHost { void progress(CharSequence text); void failed(String message); void applied(String text); }
     private final NebulaDraftVoicePolicy.Snapshot source;
     private final Supplier<NebulaDraftVoicePolicy.Snapshot> current;
     private final Consumer<String> useText;
@@ -28,6 +30,7 @@ public final class NebulaDraftVoiceTranscription {
     private TextView retry, apply;
     private NebulaAiPanelUi.Glyph glyph;
     private final InlineHost inline;
+    private final FieldHost field;
     private boolean textSelected = true;
     private volatile boolean cancelled;
     private boolean closed, busy, ready;
@@ -58,6 +61,7 @@ public final class NebulaDraftVoiceTranscription {
             Consumer<String> useText,BiConsumer<NebulaDraftVoicePolicy.Snapshot,String> remember,InlineHost inline) {
         this.host=host;this.source=source;this.current=current;this.useText=useText;this.remember=remember;
         this.inline=inline;
+        this.field=inline instanceof FieldHost?(FieldHost)inline:null;
         Context context=host.getParentActivity();
         LinearLayout body=NebulaAiPanelUi.column(context,inline!=null);
         LinearLayout header=NebulaAiPanelUi.header(context,NebulaAiPanelUi.VOICE,
@@ -95,7 +99,22 @@ public final class NebulaDraftVoiceTranscription {
             }
             public void afterTextChanged(android.text.Editable e){}
         });
-        if(inline!=null) {
+        if(field!=null) {
+            if(field instanceof NebulaDraftVoiceInlineHost)((NebulaDraftVoiceInlineHost)field).onDismiss(this::cancel);
+            transcript.addTextChangedListener(new android.text.TextWatcher() {
+                public void beforeTextChanged(CharSequence s,int start,int count,int after){}
+                public void onTextChanged(CharSequence s,int start,int before,int count){if(busy&&!closed)field.progress(s);}
+                public void afterTextChanged(android.text.Editable e){}
+            });
+        }
+        if(field!=null&&ready&&!changed) {
+            // Та же запись уже распознана: сразу в поле, без повторного запроса.
+            refresh();
+            AndroidUtilities.runOnUIThread(this::deliver);
+            return;
+        }
+        if(field!=null)inline.show(null);
+        else if(inline!=null) {
             ScrollView content=NebulaAiPanelUi.scroll(context,body);
             if(inline instanceof NebulaDraftVoiceInlineHost) {
                 NebulaDraftVoiceInlineHost recorder=(NebulaDraftVoiceInlineHost)inline;
@@ -125,7 +144,22 @@ public final class NebulaDraftVoiceTranscription {
         }
         refresh();
         AndroidUtilities.runOnUIThread(scopeCheck,250);
+        if(field!=null&&!ready&&changed)start();
         if(!ready&&!changed)start();
+    }
+    /** Режим поля: текст заменяет голосовое только если запись не изменилась. */
+    private void deliver(){
+        if(closed||field==null)return;
+        String value=transcript.getText().toString().trim();
+        if(value.isEmpty()||!source.equals(current.get())){cancel();return;}
+        remember.accept(source,value);
+        cancel();
+        useText.accept(value);
+        field.applied(value);
+    }
+    private void fail(String message){
+        status.setText(message);
+        if(field!=null){field.failed(message);cancel();}
     }
     public boolean isTextSelected(){return !closed&&textSelected;}
     public boolean isShowing(){return !closed;}
@@ -144,10 +178,10 @@ public final class NebulaDraftVoiceTranscription {
         stop();cancelled=false;ready=false;busy=true;refresh();
         boolean localMode=NebulaAudioPreferences.localTranscription();
         if(org.telegram.messenger.DialogObject.isEncryptedDialog(source.dialog)&&!localMode) {
-            busy=false;status.setText(NebulaText.text("Для секретного чата выберите распознавание на устройстве.","Choose on-device recognition for a secret chat."));refresh();return;
+            busy=false;refresh();fail(NebulaText.text("Для секретного чата выберите распознавание на устройстве.","Choose on-device recognition for a secret chat."));return;
         }
         final NebulaAudioClient.Configuration configuration;
-        try{configuration=localMode?null:NebulaAudioPreferences.capture(false);}catch(Exception failure){busy=false;status.setText(failure.getMessage());refresh();return;}
+        try{configuration=localMode?null:NebulaAudioPreferences.capture(false);}catch(Exception failure){busy=false;refresh();fail(failure.getMessage());return;}
         final NebulaAudioClient request=cloud=localMode?null:new NebulaAudioClient();
         final NebulaLocalTranscription localRequest=local=localMode?new NebulaLocalTranscription(NebulaLocalAudioPolicy.NANO.equals(NebulaAudioPreferences.serviceId(false)),NebulaAudioPreferences.localLocale()):null;
         final int token=gate.begin(source);
@@ -173,12 +207,13 @@ public final class NebulaDraftVoiceTranscription {
                     busy=false;cloud=null;local=null;worker=null;ready=!result.trim().isEmpty();transcript.setText(result);
                     status.setText(ready?NebulaText.text("Проверьте текст перед отправкой","Review the text before sending"):NebulaText.text("Речь не распознана","No speech recognized"));
                     if(ready)remember.accept(source,result);refresh();
+                    if(field!=null){if(ready)deliver();else fail(NebulaText.text("Речь не распознана","No speech recognized"));}
                 });
             } catch(Exception failure) {
                 AndroidUtilities.runOnUIThread(()->{
                     if(closed||!gate.complete(token,current.get()))return;
                     busy=false;cloud=null;local=null;worker=null;ready=false;
-                    status.setText("DRAFT_VOICE_TOO_LONG".equals(failure.getMessage())?NebulaText.text("Выбранный фрагмент слишком большой. Обрежьте запись и повторите.","The selected fragment is too large. Trim it and retry."):localMode?NebulaLocalTranscription.errorText(failure):NebulaText.text("Не удалось распознать. Проверьте сервис и повторите. Голосовое сохранено.","Transcription failed. Check the service and retry. The voice draft is kept."));refresh();
+                    refresh();fail("DRAFT_VOICE_TOO_LONG".equals(failure.getMessage())?NebulaText.text("Выбранный фрагмент слишком большой. Обрежьте запись и повторите.","The selected fragment is too large. Trim it and retry."):localMode?NebulaLocalTranscription.errorText(failure):NebulaText.text("Не удалось распознать. Проверьте сервис и повторите. Голосовое сохранено.","Transcription failed. Check the service and retry. The voice draft is kept."));
                 });
             } finally { if(pcm!=null)pcm.delete();if(wave!=null)wave.delete(); }
         },"NebulaDraftVoice");worker.start();
