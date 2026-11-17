@@ -380,6 +380,8 @@ public final class NebulaProfileArt {
         private final Paint actionFill = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint actionRim = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final RectF cell = new RectF();
+        /** Круг под стекло: отдельно от cell, по которому стоят подписи. */
+        private final RectF glassCircle = new RectF();
         private boolean hasCell;
         private final Theme.ResourcesProvider provider;
         private NebulaProfileGlass glass;
@@ -427,9 +429,10 @@ public final class NebulaProfileArt {
             final float r = dp(28);
             final float cx = (bounds.left + bounds.right) / 2f, cy = (bounds.top + bounds.bottom) / 2f;
             if (bannerReady && glass != null && canvas.isHardwareAccelerated() && NebulaProfileGlass.supported()) {
-                cell.set(cx - r, cy - r, cx + r, cy + r);
-                glass.draw(canvas, cell, key, r, alpha, getX(), getY());
-                hasCell = false;
+                // Отдельный прямоугольник: иначе подписи теряли свою высоту и прыгали,
+                // когда отрисовка переключалась между стеклом и обычным кругом.
+                glassCircle.set(cx - r, cy - r, cx + r, cy + r);
+                glass.draw(canvas, glassCircle, key, r, alpha, getX(), getY());
             } else {
                 // На цвете профиля — светлое стекло того же тона, без цвета — карточка темы.
                 actionFill.setColor(bannerActive ? 0x882b3337 : nativeHasColorById
