@@ -119,6 +119,145 @@ public final class NebulaGiftOrbit {
         return v < 0 ? 0 : v > 1 ? 1 : v;
     }
 
+    // ---------------------------------------------------------------- физика
+
+    /**
+     * Пузыри как упругие тела: каждый тянется пружиной к своей точке орбиты,
+     * соседи расталкиваются, схваченный пальцем идёт за пальцем, раздувается и
+     * распихивает остальных, а после отпускания пружинит обратно с инерцией.
+     */
+    public static final class Field {
+        public float[] x = new float[0], y = new float[0], vx = new float[0], vy = new float[0], grab = new float[0];
+        private long[] ids = new long[0];
+        private boolean[] placed = new boolean[0];
+        public int count;
+        public int dragged = -1;
+        private float fingerX, fingerY;
+
+        public void ensure(int n) {
+            if (x.length < n) {
+                x = java.util.Arrays.copyOf(x, n);
+                y = java.util.Arrays.copyOf(y, n);
+                vx = java.util.Arrays.copyOf(vx, n);
+                vy = java.util.Arrays.copyOf(vy, n);
+                grab = java.util.Arrays.copyOf(grab, n);
+                ids = java.util.Arrays.copyOf(ids, n);
+                placed = java.util.Arrays.copyOf(placed, n);
+            }
+            count = n;
+            if (dragged >= n) dragged = -1;
+        }
+
+        /** Слот i теперь занят подарком id; новый подарок появляется прямо в своей точке. */
+        public void bind(int i, long id, float tx, float ty) {
+            if (!placed[i] || ids[i] != id) {
+                if (dragged == i) dragged = -1;
+                ids[i] = id;
+                x[i] = tx;
+                y[i] = ty;
+                vx[i] = vy[i] = 0;
+                grab[i] = 0;
+                placed[i] = true;
+            }
+        }
+
+        public void drag(int i, float fx, float fy) {
+            if (i < 0 || i >= count) return;
+            dragged = i;
+            fingerX = fx;
+            fingerY = fy;
+        }
+
+        public void move(float fx, float fy) {
+            fingerX = fx;
+            fingerY = fy;
+        }
+
+        /** Отпускание с жестом: скорость пальца (ограниченная) становится скоростью пузыря. */
+        public void release(float rvx, float rvy, float max) {
+            int d = dragged;
+            dragged = -1;
+            if (d < 0 || d >= count) return;
+            float speed = (float) Math.hypot(rvx, rvy);
+            float k = speed > max && speed > 0 ? max / speed : 1;
+            vx[d] = rvx * k;
+            vy[d] = rvy * k;
+        }
+
+        public float speed(int i) {
+            return (float) Math.hypot(vx[i], vy[i]);
+        }
+
+        /** Растяжение по направлению движения: 1 — круг, до 1.28 на резком броске. */
+        public float stretch(int i, float radius) {
+            if (radius <= 0) return 1;
+            return 1 + Math.min(.28f, speed(i) / (radius * 45f));
+        }
+
+        public float angle(int i) {
+            return (float) Math.toDegrees(Math.atan2(vy[i], vx[i]));
+        }
+
+        /** Шаг симуляции, dt в секундах; tx/ty — точки орбиты, radius — радиус пузыря. */
+        public void step(float dt, float[] tx, float[] ty, float radius) {
+            if (!(dt > 0)) return;
+            dt = Math.min(dt, 1f / 20f);
+            final int sub = 3;
+            final float h = dt / sub;
+            final float grabRate = 1 - (float) Math.exp(-h / .08f);
+            for (int s = 0; s < sub; s++) {
+                for (int i = 0; i < count; i++) {
+                    if (!placed[i]) continue;
+                    boolean held = i == dragged;
+                    float gx = held ? fingerX : tx[i], gy = held ? fingerY : ty[i];
+                    float k = held ? 700f : 55f;
+                    // Свободные пузыри недодемпфированы — подходят к орбите с покачиванием.
+                    float c = 2 * (float) Math.sqrt(k) * (held ? .9f : .42f);
+                    vx[i] += (k * (gx - x[i]) - c * vx[i]) * h;
+                    vy[i] += (k * (gy - y[i]) - c * vy[i]) * h;
+                    grab[i] += ((held ? 1 : 0) - grab[i]) * grabRate;
+                }
+                for (int i = 0; i < count; i++) {
+                    if (!placed[i]) continue;
+                    for (int j = i + 1; j < count; j++) {
+                        if (!placed[j]) continue;
+                        float dx = x[j] - x[i], dy = y[j] - y[i];
+                        float dist = (float) Math.hypot(dx, dy);
+                        float min = radius * (2.1f + .5f * (grab[i] + grab[j]));
+                        if (dist >= min) continue;
+                        float nx, ny;
+                        if (dist < 1e-3f) {
+                            nx = 1;
+                            ny = 0;
+                        } else {
+                            nx = dx / dist;
+                            ny = dy / dist;
+                        }
+                        // Схваченный пузырь неподвижен для соседей: двигаются только они.
+                        float wi = i == dragged ? 0 : 1, wj = j == dragged ? 0 : 1;
+                        float total = wi + wj;
+                        if (total == 0) continue;
+                        float overlap = min - dist;
+                        float push = overlap * .5f, kick = overlap * 14f;
+                        x[i] -= nx * push * wi / total;
+                        y[i] -= ny * push * wi / total;
+                        x[j] += nx * push * wj / total;
+                        y[j] += ny * push * wj / total;
+                        vx[i] -= nx * kick * wi / total;
+                        vy[i] -= ny * kick * wi / total;
+                        vx[j] += nx * kick * wj / total;
+                        vy[j] += ny * kick * wj / total;
+                    }
+                }
+                for (int i = 0; i < count; i++) {
+                    if (!placed[i]) continue;
+                    x[i] += vx[i] * h;
+                    y[i] += vy[i] * h;
+                }
+            }
+        }
+    }
+
     // ---------------------------------------------------------------- пузырь
 
     /** Состояние и краски одного пузыря; цвет — фон подарка. */

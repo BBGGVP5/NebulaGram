@@ -22,7 +22,11 @@ assert 'app.nebulagram.ui.NebulaGiftOrbit.onVisualizer(playing, values);' in pat
 assert '|| app.nebulagram.ui.NebulaGiftOrbit.listening();' in patch
 assert 'NebulaGiftOrbit.attach();' in patch and 'NebulaGiftOrbit.detach();' in patch
 assert 'nebulaBubble = b.nebulaBubble;' in patch, 'bubble state survives gift list refresh'
-assert 'postInvalidateOnAnimation();' in patch and 'if (visible)' in patch, 'animate only while visible'
+assert 'postInvalidateOnAnimation();' in patch and 'if (moving)' in patch, 'animate only while visible'
+assert 'giftsView.nebulaFrontLayer(context)' in patch, 'near half of the orbit passes in front of the avatar'
+assert 'requestDisallowInterceptTouchEvent(true)' in patch and 'nebulaField.release(' in patch, 'drag owns the gesture and throws on release'
+assert 'onGiftClick(pressedGift);' in patch, 'tap still opens the gift'
+assert 'nebulaAlpha[hit] < .3f' in patch, 'faded bubbles do not catch touches'
 
 orbit = (UI / 'NebulaGiftOrbit.java').read_text(encoding='utf-8')
 reveal = (UI / 'NebulaVoiceReveal.java').read_text(encoding='utf-8')
@@ -36,6 +40,9 @@ assert 'field.failed(message);cancel();' in sheet, 'failure keeps the voice and 
 
 pieces = [method(orbit, n) for n in ['static void onVisualizer(boolean playing, float[] values, long now)',
     'public static float target(int slot, long now)', 'public static float follow(', 'public static void orbit(', 'static float clamp01(']]
+field = orbit[orbit.index('    public static final class Field {'):]
+field = field[:method(field, 'public static final class Field {').__len__()]
+pieces.append(field.replace('public static final class Field', 'static final class Field'))
 pieces += [method(reveal, n) for n in ['static float wordProgress(', 'static long duration(', 'static List<int[]> words(']]
 fixture = r'''import java.util.*;
 public class GiftOrbitCheck {
@@ -68,6 +75,22 @@ public class GiftOrbitCheck {
   check(duration(1)==600&&duration(200)==2200&&duration(10)==900,"duration bounds");
   List<int[]> w=words("  Теперь можно\nзаписывать  голосовое ");check(w.size()==4&&w.get(0)[0]==2&&w.get(3)[1]==36,"word ranges");
   check(words("   ").isEmpty(),"blank text has no words");
+  Field f=new Field();f.ensure(3);float[] tx={0,200,400},ty={0,0,0};float r=20;
+  for(int i=0;i<3;i++)f.bind(i,10+i,tx[i],ty[i]);
+  f.drag(1,100,300);for(int i=0;i<120;i++){f.step(1/60f,tx,ty,r);}
+  check(Math.hypot(f.x[1]-100,f.y[1]-300)<2,"held bubble follows the finger");check(f.grab[1]>.99f,"held bubble inflates");
+  f.move(0,0);for(int i=0;i<120;i++)f.step(1/60f,tx,ty,r);
+  check(Math.hypot(f.x[0]-f.x[1],f.y[0]-f.y[1])>=r*2.3f,"held bubble pushes a neighbour aside");check(Math.hypot(f.x[1],f.y[1])<2,"held bubble keeps its place");
+  f.release(9000,0,3000);check(f.vx[1]==3000&&f.dragged==-1,"throw speed is capped");
+  check(f.stretch(1,r)>1.2f&&f.stretch(1,r)<=1.28f,"fast bubble stretches along motion");
+  for(int i=0;i<600;i++)f.step(1/60f,tx,ty,r);
+  for(int i=0;i<3;i++){check(!Float.isNaN(f.x[i])&&Math.hypot(f.x[i]-tx[i],f.y[i]-ty[i])<3,"released bubbles settle back on the orbit "+i);check(f.grab[i]<.01f,"deflates");}
+  check(Math.abs(f.stretch(0,r)-1)<.01f,"resting bubble is round");
+  f.bind(2,99,50,50);check(f.x[2]==50&&f.vx[2]==0,"new gift in a slot starts at its point");
+  Field g=new Field();g.ensure(2);g.bind(0,1,0,0);g.bind(1,2,0,0);float[] z={0,0};
+  for(int i=0;i<240;i++)g.step(1/60f,z,z,r);check(!Float.isNaN(g.x[0])&&Math.hypot(g.x[0]-g.x[1],g.y[0]-g.y[1])>r,"coincident bubbles separate without NaN");
+  g.step(0,z,z,r);g.step(5,z,z,r);check(!Float.isNaN(g.x[0]),"zero and huge dt are safe");
+  g.drag(5,0,0);check(g.dragged==-1,"out of range drag ignored");g.ensure(1);
   System.out.println("OK: "+checks+" gift orbit, music pulse and voice reveal checks");
  }
 }'''.replace('BODY', '\n'.join(pieces))

@@ -17,8 +17,20 @@ index 0c6cb9d..6a499cc 100644
                      }
                  });
                  if (exists) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index c317662..db10478 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -5714,6 +5714,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         avatarContainer2.addView(storyView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+         giftsView = new ProfileGiftsView(context, currentAccount, getDialogId(), avatarContainer, avatarImage, resourcesProvider);
+         avatarContainer2.addView(giftsView, 0, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
++        avatarContainer2.addView(giftsView.nebulaFrontLayer(context), LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+         updateProfileData(true);
+ 
+         writeButton = new RLottieImageView(context);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
-index a253fee..1ee34e9 100644
+index a253fee..b57aaa6 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 @@ -132,6 +132,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
@@ -61,75 +73,257 @@ index a253fee..1ee34e9 100644
                  g.animatedFloat.force(0.0f);
                  if (isAttachedToWindow()) {
                      g.emojiDrawable.addView(this);
-@@ -399,6 +404,12 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -373,6 +378,8 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+ 
+     @Override
+     protected void dispatchDraw(@NonNull Canvas canvas) {
++        nebulaFrameValid = false;
++        if (nebulaFront != null) nebulaFront.invalidate();
+         if (gifts.isEmpty() || expandProgress >= 1.0f || collapseProgress <= 0f) return;
+ 
+         final float realX = avatarContainer.getX();
+@@ -399,6 +406,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          float expandScale = expandY / maxExpandY;
          float closedAlpha = Utilities.clamp01((expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
  
 +        if (app.nebulagram.ui.NebulaGiftOrbit.enabled()) {
-+            nebulaDrawOrbit(canvas, acx, acy, aw, ah, realCX, realCY, expandScale, closedAlpha);
 +            canvas.restore();
++            nebulaPrepareOrbit(acx, acy, aw, ah, realCX, realCY, expandScale, closedAlpha);
++            nebulaDrawLayer(canvas, false);
 +            return;
 +        }
 +
          for (int i = 0; i < gifts.size(); ++i) {
              final Gift gift = gifts.get(i);
              final float enter = gift.animatedFloat.set(1.0f);
-@@ -467,6 +478,58 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -467,6 +481,220 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          canvas.restore();
      }
  
++    // NebulaGram: подарки в стеклянных пузырях летают по орбите, пульсируют под песню профиля,
++    // их можно хватать и бросать. Дальняя половина орбиты рисуется за аватаркой, ближняя и
++    // схваченный пузырь — отдельным слоем поверх неё (nebulaFrontLayer).
 +    private final float[] nebulaOrbitPoint = new float[3];
-+    private final ArrayList<Gift> nebulaOrbitOrder = new ArrayList<>();
++    private final app.nebulagram.ui.NebulaGiftOrbit.Field nebulaField = new app.nebulagram.ui.NebulaGiftOrbit.Field();
++    private float[] nebulaTx = new float[0], nebulaTy = new float[0], nebulaX = new float[0], nebulaY = new float[0],
++            nebulaScale = new float[0], nebulaAlpha = new float[0], nebulaPulse = new float[0], nebulaDepthOf = new float[0],
++            nebulaStretch = new float[0], nebulaAngle = new float[0];
++    private int[] nebulaOrder = new int[0];
++    private Gift[] nebulaGift = new Gift[0];
++    private int nebulaCount;
++    private boolean nebulaFrameValid;
++    private double nebulaSeconds;
++    private long nebulaLastFrame;
++    private float nebulaClipBottom;
++    private View nebulaFront;
 +
-+    /** NebulaGram: подарки в стеклянных пузырях летают по орбите и пульсируют под песню профиля. */
-+    private void nebulaDrawOrbit(Canvas canvas, float acx, float acy, float aw, float ah, float realCX, float realCY, float expandScale, float closedAlpha) {
-+        final double seconds = android.os.SystemClock.uptimeMillis() / 1000.0;
-+        final float bubble = dp(21);
++    /** Слой поверх аватарки: ближние пузыри и схваченный; касания уходят в этот view. */
++    public View nebulaFrontLayer(android.content.Context context) {
++        if (nebulaFront == null) {
++            nebulaFront = new View(context) {
++                @Override
++                protected void onDraw(@NonNull Canvas canvas) {
++                    nebulaDrawLayer(canvas, true);
++                }
++
++                @Override
++                public boolean onTouchEvent(MotionEvent event) {
++                    return ProfileGiftsView.this.onTouchEvent(event);
++                }
++            };
++        }
++        return nebulaFront;
++    }
++
++    private float nebulaBubbleRadius() {
++        return dp(21);
++    }
++
++    private void nebulaEnsure(int n) {
++        if (nebulaTx.length < n) {
++            nebulaTx = new float[n]; nebulaTy = new float[n]; nebulaX = new float[n]; nebulaY = new float[n];
++            nebulaScale = new float[n]; nebulaAlpha = new float[n]; nebulaPulse = new float[n]; nebulaDepthOf = new float[n];
++            nebulaStretch = new float[n]; nebulaAngle = new float[n]; nebulaOrder = new int[n]; nebulaGift = new Gift[n];
++        }
++    }
++
++    private void nebulaPrepareOrbit(float acx, float acy, float aw, float ah, float realCX, float realCY, float expandScale, float closedAlpha) {
++        final long now = android.os.SystemClock.uptimeMillis();
++        final float dt = nebulaLastFrame == 0 ? 1f / 60f : (now - nebulaLastFrame) / 1000f;
++        nebulaLastFrame = now;
++        nebulaSeconds = now / 1000.0;
++        nebulaClipBottom = expandY;
++        final float bubble = nebulaBubbleRadius();
 +        final float rx = Math.min(aw / 2f + dp(64) * Math.max(.6f, expandScale), getWidth() / 2f - bubble - dp(6));
 +        final float ry = ah / 2f + dp(24) * Math.max(.6f, expandScale);
 +        final int count = gifts.size();
-+        boolean visible = false;
-+        nebulaOrbitOrder.clear();
-+        nebulaOrbitOrder.addAll(gifts);
-+        // Дальние пузыри рисуются первыми, ближние поверх них.
-+        java.util.Collections.sort(nebulaOrbitOrder, (a, b) -> Float.compare(nebulaDepth(a, count, seconds), nebulaDepth(b, count, seconds)));
-+        for (int k = 0; k < nebulaOrbitOrder.size(); ++k) {
-+            final Gift gift = nebulaOrbitOrder.get(k);
-+            final int index = gifts.indexOf(gift);
++        nebulaEnsure(count);
++        nebulaField.ensure(count);
++        for (int i = 0; i < count; ++i) {
++            final Gift gift = gifts.get(i);
++            nebulaGift[i] = gift;
++            app.nebulagram.ui.NebulaGiftOrbit.orbit(i, count, nebulaSeconds, acx, acy, rx, ry, dp(5), nebulaOrbitPoint);
++            final float pulse = gift.nebulaBubble != null ? gift.nebulaBubble.step(i) : 0f;
++            nebulaPulse[i] = pulse;
++            // На ударах пузыри отскакивают от аватарки, пружины возвращают их назад.
++            nebulaTx[i] = acx + (nebulaOrbitPoint[0] - acx) * (1f + .14f * pulse);
++            nebulaTy[i] = acy + (nebulaOrbitPoint[1] - acy) * (1f + .14f * pulse);
++            nebulaDepthOf[i] = nebulaOrbitPoint[2];
++            nebulaField.bind(i, gift.id, nebulaTx[i], nebulaTy[i]);
++        }
++        nebulaField.step(dt, nebulaTx, nebulaTy, bubble);
++        boolean moving = false;
++        for (int i = 0; i < count; ++i) {
++            final Gift gift = nebulaGift[i];
 +            final float enter = gift.animatedFloat.set(1.0f);
-+            final float alphaBase = enter * (1.0f - expandProgress) * (1.0f - actionBarProgress) * closedAlpha;
-+            app.nebulagram.ui.NebulaGiftOrbit.orbit(index, count, seconds, acx, acy, rx, ry, dp(5), nebulaOrbitPoint);
-+            float gx = nebulaOrbitPoint[0], gy = nebulaOrbitPoint[1];
-+            final float depth = nebulaOrbitPoint[2];
-+            float scale = lerp(0.5f, 1.0f, enter) * lerp(.84f, 1.06f, depth);
-+            float alpha = alphaBase * lerp(.78f, 1f, depth);
-+
++            final float depth = nebulaDepthOf[i];
++            final float grab = nebulaField.grab[i];
++            float gx = nebulaField.x[i], gy = nebulaField.y[i];
++            float scale = lerp(0.5f, 1.0f, enter) * lerp(lerp(.84f, 1.06f, depth), 1.45f, grab);
 +            final float collapseProgressWithEnter = isOpening || enter >= 1f ? collapseProgress : Math.min(enter, collapseProgress);
-+            final float collapse = Utilities.clamp01((collapseProgressWithEnter - index * .06f) / (1f - Math.min(.4f, count * .06f)));
++            final float collapse = Utilities.clamp01((collapseProgressWithEnter - i * .06f) / (1f - Math.min(.4f, count * .06f)));
 +            if (collapse < 1f) {
 +                gx = lerp(realCX, gx, giftCollapseXInterpolator.getInterpolation(collapse));
 +                gy = lerp(realCY, gy, giftCollapseYInterpolator.getInterpolation(collapse));
 +                scale = lerp(scale / 2f, scale, collapse);
 +            }
-+            if (alpha <= 0f) continue;
-+            visible = true;
-+            float pulse = 0f;
-+            if (gift.nebulaBubble != null) {
-+                pulse = gift.nebulaBubble.step(index);
-+                gift.nebulaBubble.draw(canvas, gx, gy, bubble * scale * (1f + .16f * pulse) * gift.bounce.getScale(0.1f), seconds + index * 3.1, alpha);
-+            }
-+            gift.draw(canvas, gx, gy, scale * (1f + .12f * pulse), 0, alpha, 0f);
++            nebulaX[i] = gx;
++            nebulaY[i] = gy;
++            nebulaScale[i] = scale;
++            nebulaAlpha[i] = enter * (1.0f - expandProgress) * (1.0f - actionBarProgress) * closedAlpha * lerp(lerp(.78f, 1f, depth), 1f, grab);
++            nebulaStretch[i] = nebulaField.stretch(i, bubble);
++            nebulaAngle[i] = nebulaField.angle(i);
++            // Схваченный всегда сверху, остальные — от дальних к ближним.
++            nebulaDepthOf[i] = i == nebulaField.dragged ? 2f + grab : Math.max(depth, grab * 2f);
++            nebulaOrder[i] = i;
++            moving |= nebulaAlpha[i] > 0f;
 +        }
-+        if (visible) {
++        for (int a = 1; a < count; ++a) {
++            final int v = nebulaOrder[a];
++            int b = a - 1;
++            while (b >= 0 && nebulaDepthOf[nebulaOrder[b]] > nebulaDepthOf[v]) {
++                nebulaOrder[b + 1] = nebulaOrder[b];
++                b--;
++            }
++            nebulaOrder[b + 1] = v;
++        }
++        nebulaCount = count;
++        nebulaFrameValid = true;
++        if (moving) {
 +            postInvalidateOnAnimation();
 +        }
 +    }
 +
-+    private float nebulaDepth(Gift gift, int count, double seconds) {
-+        app.nebulagram.ui.NebulaGiftOrbit.orbit(gifts.indexOf(gift), count, seconds, 0, 0, 1, 1, 0, nebulaOrbitPoint);
-+        return nebulaOrbitPoint[2];
++    private void nebulaDrawLayer(Canvas canvas, boolean front) {
++        if (!nebulaFrameValid) return;
++        final float bubble = nebulaBubbleRadius();
++        canvas.save();
++        canvas.clipRect(0, 0, getWidth(), nebulaClipBottom);
++        for (int k = 0; k < nebulaCount; ++k) {
++            final int i = nebulaOrder[k];
++            if ((nebulaDepthOf[i] >= .5f) != front) continue;
++            final float alpha = nebulaAlpha[i];
++            if (alpha <= 0f) continue;
++            final Gift gift = nebulaGift[i];
++            final float x = nebulaX[i], y = nebulaY[i], pulse = nebulaPulse[i], scale = nebulaScale[i];
++            canvas.save();
++            final float stretch = nebulaStretch[i];
++            if (stretch > 1.002f) {
++                // Пузырь вытягивается вдоль движения и сплющивается поперёк, объём сохраняется.
++                canvas.translate(x, y);
++                canvas.rotate(nebulaAngle[i]);
++                canvas.scale(stretch, 1f / stretch);
++                canvas.rotate(-nebulaAngle[i]);
++                canvas.translate(-x, -y);
++            }
++            if (gift.nebulaBubble != null) {
++                gift.nebulaBubble.draw(canvas, x, y, bubble * scale * (1f + .16f * pulse) * gift.bounce.getScale(0.1f), nebulaSeconds + i * 3.1, alpha);
++            }
++            gift.draw(canvas, x, y, scale * (1f + .12f * pulse), 0, alpha, 0f);
++            canvas.restore();
++        }
++        canvas.restore();
++    }
++
++    private android.view.VelocityTracker nebulaVelocity;
++    private boolean nebulaDragging;
++    private float nebulaDownX, nebulaDownY, nebulaGrabDx, nebulaGrabDy;
++
++    /** Тап открывает подарок, движение пальцем хватает пузырь, отпускание бросает его. */
++    private boolean nebulaTouch(MotionEvent event) {
++        final float x = event.getX(), y = event.getY();
++        final int action = event.getActionMasked();
++        if (action == MotionEvent.ACTION_DOWN) {
++            if (pressedGift != null) pressedGift.bounce.setPressed(false);
++            pressedGift = getGiftUnder(x, y);
++            nebulaDragging = false;
++            // Границы обновляются только у видимых пузырей: погасший при сворачивании не ловит касания.
++            final int hit = pressedGift == null ? -1 : gifts.indexOf(pressedGift);
++            if (hit < 0 || hit >= nebulaCount || nebulaAlpha[hit] < .3f) pressedGift = null;
++            if (pressedGift == null) return false;
++            pressedGift.bounce.setPressed(true);
++            nebulaDownX = x;
++            nebulaDownY = y;
++            if (nebulaVelocity == null) nebulaVelocity = android.view.VelocityTracker.obtain();
++            nebulaVelocity.clear();
++            nebulaVelocity.addMovement(event);
++            return true;
++        }
++        if (pressedGift == null) return false;
++        if (nebulaVelocity != null) nebulaVelocity.addMovement(event);
++        final int index = gifts.indexOf(pressedGift);
++        if (action == MotionEvent.ACTION_MOVE) {
++            if (!nebulaDragging && index >= 0 && index < nebulaField.count
++                    && Math.hypot(x - nebulaDownX, y - nebulaDownY) > android.view.ViewConfiguration.get(getContext()).getScaledTouchSlop()) {
++                nebulaDragging = true;
++                pressedGift.bounce.setPressed(false);
++                nebulaGrabDx = nebulaField.x[index] - nebulaDownX;
++                nebulaGrabDy = nebulaField.y[index] - nebulaDownY;
++                nebulaField.drag(index, x + nebulaGrabDx, y + nebulaGrabDy);
++                if (getParent() != null) getParent().requestDisallowInterceptTouchEvent(true);
++                performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP);
++            }
++            if (nebulaDragging) {
++                nebulaField.move(x + nebulaGrabDx, y + nebulaGrabDy);
++                invalidate();
++            }
++            return true;
++        }
++        if (action == MotionEvent.ACTION_UP || action == MotionEvent.ACTION_CANCEL) {
++            if (nebulaDragging) {
++                float vx = 0, vy = 0;
++                if (action == MotionEvent.ACTION_UP && nebulaVelocity != null) {
++                    nebulaVelocity.computeCurrentVelocity(1000);
++                    vx = nebulaVelocity.getXVelocity();
++                    vy = nebulaVelocity.getYVelocity();
++                }
++                nebulaField.release(vx, vy, dp(3200));
++            } else if (action == MotionEvent.ACTION_UP) {
++                onGiftClick(pressedGift);
++            }
++            pressedGift.bounce.setPressed(false);
++            pressedGift = null;
++            nebulaDragging = false;
++            if (nebulaVelocity != null) {
++                nebulaVelocity.recycle();
++                nebulaVelocity = null;
++            }
++            invalidate();
++            return true;
++        }
++        return true;
 +    }
 +
      public Gift getGiftUnder(float x, float y) {
          for (int i = 0; i < gifts.size(); ++i) {
              if (gifts.get(i).bounds.contains(x, y))
+@@ -480,6 +708,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+     @Override
+     public boolean onTouchEvent(MotionEvent event) {
+         if (!active) return false;
++        if (app.nebulagram.ui.NebulaGiftOrbit.enabled() && nebulaFrameValid) {
++            return nebulaTouch(event);
++        }
+         final Gift hit = getGiftUnder(event.getX(), event.getY());
+         if (event.getAction() == MotionEvent.ACTION_DOWN) {
+             pressedGift = hit;
