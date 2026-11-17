@@ -443,10 +443,11 @@ public final class NebulaGiftOrbit {
      */
     public static final class Ring {
         private final Paint halo = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final Paint backdrop = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint shade = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Matrix matrix = new Matrix();
-        private Shader haloShader, rimShader;
+        private Shader haloShader, rimShader, backdropShader;
         private int tint = 1;
 
         public Ring() {
@@ -471,6 +472,10 @@ public final class NebulaGiftOrbit {
                     new int[]{0, 0, alpha(glowColor, .75f), alpha(glowColor, .28f), 0},
                     new float[]{0, .66f, .70f, .84f, 1}, Shader.TileMode.CLAMP);
             halo.setShader(haloShader);
+            backdropShader = new RadialGradient(0, 0, 1,
+                    new int[]{alpha(glowColor, .55f), alpha(glowColor, .32f), alpha(glowColor, .12f), 0},
+                    new float[]{0, .3f, .65f, 1}, Shader.TileMode.CLAMP);
+            backdrop.setShader(backdropShader);
             rimShader = new LinearGradient(-1, -1, 1, 1,
                     new int[]{Color.argb(240, 255, 255, 255), alpha(glowColor, .55f), alpha(mix(color, Color.WHITE, .6f), .9f)},
                     new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
@@ -481,13 +486,28 @@ public final class NebulaGiftOrbit {
         public void drawHalo(Canvas canvas, float cx, float cy, float r, float alpha, float pulse) {
             if (alpha <= 0 || r <= 0) return;
             // На ударах песни ореол расходится шире и светится ярче.
-            alpha *= 1f + .9f * clamp01(pulse);
-            float outer = r / .70f * (1f + .1f * clamp01(pulse));
+            alpha *= .7f + .3f * clamp01(pulse);
+            float outer = r / .70f * (1f + .18f * clamp01(pulse));
             matrix.setScale(outer, outer);
             matrix.postTranslate(cx, cy);
             haloShader.setLocalMatrix(matrix);
             halo.setAlpha(Math.round(255 * clamp01(alpha)));
             canvas.drawCircle(cx, cy, outer, halo);
+        }
+
+        /**
+         * Фон шапки на ударах песни, как в iOS: от аватарки по всей шапке расходится
+         * вспышка цвета ореола. В тишине (pulse = 0) ничего не рисует.
+         */
+        public void drawBackdrop(Canvas canvas, float width, float bottom, float cx, float cy, float alpha, float pulse) {
+            float p = clamp01(pulse);
+            if (alpha <= 0 || p <= .01f || width <= 0 || bottom <= 0) return;
+            float outer = Math.max(width, bottom) * (.8f + .3f * p);
+            matrix.setScale(outer, outer);
+            matrix.postTranslate(cx, cy);
+            backdropShader.setLocalMatrix(matrix);
+            backdrop.setAlpha(Math.round(255 * clamp01(alpha * p)));
+            canvas.drawRect(0, 0, width, bottom, backdrop);
         }
 
         /** Край линзы поверх аватарки; stroke — толщина в пикселях. */

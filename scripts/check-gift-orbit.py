@@ -44,6 +44,12 @@ assert 'out.add(getOrCreate(KEY_MORE));' in patch and 'case ProfileActionsView.K
 assert 'insertIfAvailable(out, KEY_CALL);\n+                    insertIfAvailable(out, KEY_NOTIFICATION);' in patch, 'iOS order: chat, call, mute, more'
 assert 'otherItem.addSubItem(video_call_item' in patch, 'video call stays reachable from the menu'
 assert 'cs = actionLabel(cs);' in patch
+assert 'nebulaRing.drawBackdrop(' in patch, 'header background pulses with the song'
+assert 'nebulaIos ? dp(14) : dp(10)' in patch, 'song pill keeps a gap below the button labels'
+assert 'private boolean nebulaMoreMenu()' in patch and '!nebulaMoreMenu()' in patch, 'more opens at the buttons'
+assert 'NebulaAppearance.profileStyle() ? 19 : 24' in patch, 'status emoji is sized for the larger name'
+art = open(ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java', encoding='utf-8').read()
+assert 'profilePhotoBanner() && !iosProfile()' not in art, 'banner setting is honoured in the iOS profile'
 art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')
 assert 'if (iosProfile()) return; // круг' in art and 'return dp(iosProfile() ? 98 : 74);' in art
 

@@ -140,8 +140,8 @@ public final class NebulaProfileArt {
             BackupImageView collapsedPhoto = findPhoto(avatar);
             if (collapsedPhoto != null && !collapsedPhoto.getImageReceiver().hasImageLoaded()) collapsedPhoto = null;
             if (galleryPhoto != null && !galleryPhoto.getImageReceiver().hasImageLoaded()) galleryPhoto = null;
-            // В профиле как в iOS шапка в цвете профиля, без размытого фото за ней.
-            final boolean banner = NebulaAppearance.profilePhotoBanner() && !iosProfile() && (collapsedPhoto != null || galleryPhoto != null);
+            // Баннер из фото включается отдельной настройкой и в профиле как в iOS тоже остаётся.
+            final boolean banner = NebulaAppearance.profilePhotoBanner() && (collapsedPhoto != null || galleryPhoto != null);
             if (buttons != null) buttons.setBannerActive(banner);
             // Keep Telegram's peer colour/emoji decoration when no photo is available.
             if (!banner) {
@@ -335,9 +335,12 @@ public final class NebulaProfileArt {
         return dp(iosProfile() ? 98 : 74);
     }
 
-    /** Полоса плашек «песня / баланс» над кнопками: в iOS плашка выше (26 dp вместо 17). */
+    /**
+     * Полоса плашек «песня / баланс» под кнопками: в iOS плашка выше (26 dp вместо 17)
+     * и отступает от подписей кнопок на 14 dp.
+     */
     public static int pillsHeight() {
-        return dp(iosProfile() ? 31 : 25);
+        return dp(iosProfile() ? 44 : 25);
     }
 
     /** Кнопки действий профиля пилюлями Material 3 с тональной заливкой. */

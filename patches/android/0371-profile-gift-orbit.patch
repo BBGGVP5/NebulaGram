@@ -96,7 +96,7 @@ index 00da7de..1dad82f 100644
          final @StringRes int title;
          final @DrawableRes int filledIcon;
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
-index ffa7f55..44275d0 100644
+index ffa7f55..1c7b25a 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ProfileMusicView.java
 @@ -77,6 +77,73 @@ public class ProfileMusicView extends View {
@@ -224,13 +224,14 @@ index ffa7f55..44275d0 100644
  
          canvas.translate(dp(16.6f), 0);
          this.author.draw(canvas, 0, cy, textColor, alpha);
-@@ -340,9 +418,14 @@ public class ProfileMusicView extends View {
+@@ -340,9 +418,15 @@ public class ProfileMusicView extends View {
              left = (getWidth() - containerWidth) / 2f;
          }
  
 -        rect.set(left, dp(10), left + containerWidth, dp(10) + dp(17) * alpha);
 +        final boolean nebulaIos = app.nebulagram.ui.NebulaProfileArt.iosProfile();
-+        final float nebulaTop = nebulaIos ? dp(5) : dp(10);
++        // iOS: плашка отступает от подписей кнопок, а не жмётся к ним.
++        final float nebulaTop = nebulaIos ? dp(14) : dp(10);
 +        rect.set(left, nebulaTop, left + containerWidth, nebulaTop + (nebulaIos ? dp(26) : dp(17)) * alpha);
 +        final boolean nebulaPlaying = nebulaIos && nebulaPlaying();
 +        // Под музыку плашка чуть дышит вместе с пузырями подарков.
@@ -241,7 +242,7 @@ index ffa7f55..44275d0 100644
  
          if (glass != null) {
              final float radius = rect.height() / 2f;
-@@ -382,11 +465,15 @@ public class ProfileMusicView extends View {
+@@ -382,11 +466,15 @@ public class ProfileMusicView extends View {
  
          canvas.save();
          canvas.clipPath(clipPath);
@@ -277,7 +278,7 @@ index 36fccb4..055054f 100644
              };
              fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..7431ec7 100644
+index c317662..ba2d8fa 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -331,7 +332,7 @@ index c317662..7431ec7 100644
              actionsView.setOnActionClickListener((key, x, y) -> {
                  switch (key) {
 +                    case ProfileActionsView.KEY_MORE:
-+                        if (otherItem != null) {
++                        if (otherItem != null && !nebulaMoreMenu()) {
 +                            otherItem.toggleSubMenu();
 +                        }
 +                        break;
@@ -346,7 +347,39 @@ index c317662..7431ec7 100644
          updateProfileData(true);
  
          writeButton = new RLottieImageView(context);
-@@ -6277,7 +6301,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -6274,10 +6298,39 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+     private int getActionsExtraHeight() {
+         return getActionsExtraHeight(true);
+     }
++
++    /**
++     * NebulaGram, профиль как в iOS: «ещё» открывает меню у ряда кнопок, а не
++     * выращивает его из ⋮ в углу шапки. Пункты те же, что в меню ⋮, и ведут туда же.
++     */
++    private boolean nebulaMoreMenu() {
++        if (actionsView == null || otherItem == null || !otherItem.hasSubMenu() || actionBar == null) return false;
++        final ActionBarPopupWindow.ActionBarPopupWindowLayout nebulaLayout = otherItem.getPopupLayout();
++        if (nebulaLayout == null) return false;
++        final ItemOptions nebulaOptions = ItemOptions.makeOptions(this, actionsView)
++                .setGravity(Gravity.RIGHT)
++                .setDrawScrim(false);
++        int nebulaCount = 0;
++        for (int i = 0; i < nebulaLayout.getItemsCount(); ++i) {
++            final View child = nebulaLayout.getItemAt(i);
++            if (!(child instanceof ActionBarMenuSubItem) || child.getVisibility() != View.VISIBLE || !(child.getTag() instanceof Integer)) continue;
++            final ActionBarMenuSubItem sub = (ActionBarMenuSubItem) child;
++            final int id = (Integer) sub.getTag();
++            nebulaOptions.add(sub.getIconResId(), sub.getTextView().getText(), () -> {
++                if (actionBar.getActionBarMenuOnItemClick() != null) {
++                    actionBar.getActionBarMenuOnItemClick().onItemClick(id);
++                }
++            });
++            nebulaCount++;
++        }
++        if (nebulaCount == 0) return false;
++        nebulaOptions.show();
++        return true;
++    }
      private int getActionsExtraHeight(boolean withPills) {
          if (userId != 0 && imageUpdater != null && !myProfile)
              return 0;
@@ -355,7 +388,7 @@ index c317662..7431ec7 100644
      }
  
      private int getHeaderExtraHeight() {
-@@ -8060,6 +8084,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -8060,6 +8113,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                  super.onFactorChanged(id, factor, fraction, callee);
                  updateHeaderBar();
              }
@@ -372,7 +405,17 @@ index c317662..7431ec7 100644
          };
          simpleActionBar.setTitlesAlpha(0f);
          if (!fragmentOpened && !hasMainTabs && playProfileAnimation != 0 && allowProfileAnimation && !disableProfileAnimation) {
-@@ -11748,11 +11782,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11667,7 +11730,8 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+     private Drawable getEmojiStatusDrawable(TLRPC.EmojiStatus emojiStatus, boolean switchable, boolean animated) {
+         if (emojiStatusDrawable == null) {
+-            emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView, AndroidUtilities.dp(24), AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
++            // NebulaGram: имя в профиле крупнее (×1.42), статус-эмодзи меньше, чтобы не перерастать текст.
++            emojiStatusDrawable = new AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable(nameTextView, AndroidUtilities.dp(app.nebulagram.ui.NebulaAppearance.profileStyle() ? 19 : 24), AnimatedEmojiDrawable.CACHE_TYPE_KEYBOARD);
+             if (fragmentViewAttached) {
+                 emojiStatusDrawable.attach();
+             }
+@@ -11748,11 +11812,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
              actionsView.clipHeight = avatarContainer.getY() + vh;
              actionsView.setAlpha(avatarAnimationProgress);
@@ -386,7 +429,7 @@ index c317662..7431ec7 100644
              actionsView.updatePosition(bottom - height, height);
          }
  
-@@ -11778,16 +11812,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11778,16 +11842,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
  //            musicView.clipHeight = avatarContainer.getY() + vh;
              musicView.setAlpha(avatarAnimationProgress);
@@ -406,7 +449,7 @@ index c317662..7431ec7 100644
          }
      }
  
-@@ -12606,6 +12640,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12606,6 +12670,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      if (getMessagesController().config.walletAvailable.get() && !MessagesController.isSupportUser(user) && !UserObject.isService(user.id)) {
                          otherItem.addSubItem(send_money, R.drawable.ic_gram, LocaleController.getString(R.string.WalletSendMoney));
                      }
@@ -418,7 +461,7 @@ index c317662..7431ec7 100644
                      otherItem.setSubItemShown(start_secret_chat, DialogObject.isEmpty(getMessagesController().isUserContactBlocked(userId)));
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
-index a253fee..46a964c 100644
+index a253fee..70d1444 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 @@ -132,6 +132,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
@@ -461,7 +504,7 @@ index a253fee..46a964c 100644
                  g.animatedFloat.force(0.0f);
                  if (isAttachedToWindow()) {
                      g.emojiDrawable.addView(this);
-@@ -373,6 +378,19 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -373,6 +378,21 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
  
      @Override
      protected void dispatchDraw(@NonNull Canvas canvas) {
@@ -471,6 +514,8 @@ index a253fee..46a964c 100644
 +        if (nebulaRingAlpha > 0f) {
 +            canvas.save();
 +            canvas.clipRect(0, 0, getWidth(), expandY);
++            // На ударах песни вспыхивает весь фон шапки, затем ореол и пузыри.
++            nebulaRing.drawBackdrop(canvas, getWidth(), expandY, nebulaRingX, nebulaRingY, nebulaRingAlpha, nebulaRingPulse);
 +            nebulaRing.drawHalo(canvas, nebulaRingX, nebulaRingY, nebulaRingR, nebulaRingAlpha, nebulaRingPulse);
 +            // Ореол дышит под песню профиля, даже без подарков.
 +            if (nebulaRingPulse > .005f || app.nebulagram.ui.NebulaGiftOrbit.target(0, android.os.SystemClock.uptimeMillis()) > 0f) {
@@ -481,7 +526,7 @@ index a253fee..46a964c 100644
          if (gifts.isEmpty() || expandProgress >= 1.0f || collapseProgress <= 0f) return;
  
          final float realX = avatarContainer.getX();
-@@ -399,6 +417,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -399,6 +419,13 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          float expandScale = expandY / maxExpandY;
          float closedAlpha = Utilities.clamp01((expandY - (AndroidUtilities.statusBarHeight + ActionBar.getCurrentActionBarHeight())) / dp(50));
  
@@ -495,7 +540,7 @@ index a253fee..46a964c 100644
          for (int i = 0; i < gifts.size(); ++i) {
              final Gift gift = gifts.get(i);
              final float enter = gift.animatedFloat.set(1.0f);
-@@ -467,6 +492,286 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -467,6 +494,286 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          canvas.restore();
      }
  
@@ -782,7 +827,7 @@ index a253fee..46a964c 100644
      public Gift getGiftUnder(float x, float y) {
          for (int i = 0; i < gifts.size(); ++i) {
              if (gifts.get(i).bounds.contains(x, y))
-@@ -480,6 +785,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -480,6 +787,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
      @Override
      public boolean onTouchEvent(MotionEvent event) {
          if (!active) return false;
