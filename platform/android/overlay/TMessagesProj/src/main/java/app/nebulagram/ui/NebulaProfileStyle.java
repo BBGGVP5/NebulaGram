@@ -124,6 +124,23 @@ public final class NebulaProfileStyle {
         return 0;
     }
 
+    /**
+     * Цвет страницы профиля для вида из шапки: шапка не лежит внутри списка, поэтому
+     * ищется ближайший предок, в котором есть список профиля. 0 — обычный фон.
+     */
+    public static int pageColorAround(View view) {
+        for (View ancestor = view; ancestor != null;
+             ancestor = ancestor.getParent() instanceof View ? (View) ancestor.getParent() : null) {
+            for (java.util.Map.Entry<View, Integer> entry : pages.entrySet()) {
+                View list = entry.getKey();
+                for (View up = list; up != null; up = up.getParent() instanceof View ? (View) up.getParent() : null) {
+                    if (up == ancestor) return entry.getValue() == null ? 0 : entry.getValue();
+                }
+            }
+        }
+        return 0;
+    }
+
     private static void invalidateTree(View view, int depth) {
         view.invalidate();
         if (depth > 4 || !(view instanceof ViewGroup)) return;

@@ -115,6 +115,27 @@ public final class NebulaGiftOrbit {
         out[2] = (float) ((Math.sin(angle) + 1) / 2);
     }
 
+    /**
+     * Хаотичное плавание как в iOS: у каждого подарка своя «зона» вокруг аватарки
+     * (угол и удалённость разные), а точка внутри зоны блуждает по сумме синусов с
+     * несоизмеримыми частотами — движение не повторяется и не идёт строем.
+     * out[0]=x, out[1]=y, out[2]=глубина 0 (за аватаркой) .. 1 (перед ней).
+     */
+    public static void wander(int index, int count, double t, float cx, float cy, float rx, float ry, float amp, float[] out) {
+        int n = Math.max(1, count);
+        // Золотой угол раскладывает зоны равномерно при любом числе подарков.
+        double base = -Math.PI / 2 + index * 2.39996 + (n == 1 ? .9 : 0);
+        double reach = .82 + .22 * ((index * 7 % 5) / 4.0);
+        double drift = .35 * Math.sin(t * .071 + index * 1.3);
+        double hx = Math.cos(base + drift) * rx * reach, hy = Math.sin(base + drift) * ry * reach;
+        double s1 = 1 + index * .37, s2 = 1.7 + index * .23;
+        double nx = Math.sin(t * .31 * s1 + index * 1.7) + .6 * Math.sin(t * .53 * s2 + index * 2.9) + .3 * Math.sin(t * 1.13 + index);
+        double ny = Math.cos(t * .27 * s2 + index * 2.1) + .6 * Math.sin(t * .61 * s1 + index * .7) + .3 * Math.cos(t * .97 + index * 1.9);
+        out[0] = cx + (float) (hx + nx * amp / 1.9);
+        out[1] = cy + (float) (hy + ny * amp / 1.9);
+        out[2] = (float) ((Math.sin(t * .23 + index * 2.2) + 1) / 2);
+    }
+
     static float clamp01(float v) {
         return v < 0 ? 0 : v > 1 ? 1 : v;
     }
@@ -133,6 +154,14 @@ public final class NebulaGiftOrbit {
         public int count;
         public int dragged = -1;
         private float fingerX, fingerY;
+        private float minX = -Float.MAX_VALUE, minY = -Float.MAX_VALUE, maxX = Float.MAX_VALUE, maxY = Float.MAX_VALUE;
+        /** После броска пузырь не прилипает к точке: пружина слабая, он долго летит и отскакивает. */
+        public float[] calm = new float[0];
+
+        /** Стенки шапки: центр пузыря не выходит за них, от них он отскакивает. */
+        public void bounds(float left, float top, float right, float bottom) {
+            minX = left; minY = top; maxX = Math.max(left, right); maxY = Math.max(top, bottom);
+        }
 
         public void ensure(int n) {
             if (x.length < n) {
@@ -141,6 +170,7 @@ public final class NebulaGiftOrbit {
                 vx = java.util.Arrays.copyOf(vx, n);
                 vy = java.util.Arrays.copyOf(vy, n);
                 grab = java.util.Arrays.copyOf(grab, n);
+                calm = java.util.Arrays.copyOf(calm, n);
                 ids = java.util.Arrays.copyOf(ids, n);
                 placed = java.util.Arrays.copyOf(placed, n);
             }
@@ -157,6 +187,7 @@ public final class NebulaGiftOrbit {
                 y[i] = ty;
                 vx[i] = vy[i] = 0;
                 grab[i] = 0;
+                calm[i] = 1;
                 placed[i] = true;
             }
         }
@@ -182,6 +213,7 @@ public final class NebulaGiftOrbit {
             float k = speed > max && speed > 0 ? max / speed : 1;
             vx[d] = rvx * k;
             vy[d] = rvy * k;
+            calm[d] = 0;
         }
 
         public float speed(int i) {
@@ -210,9 +242,11 @@ public final class NebulaGiftOrbit {
                     if (!placed[i]) continue;
                     boolean held = i == dragged;
                     float gx = held ? fingerX : tx[i], gy = held ? fingerY : ty[i];
-                    float k = held ? 700f : 55f;
-                    // Свободные пузыри недодемпфированы — подходят к орбите с покачиванием.
-                    float c = 2 * (float) Math.sqrt(k) * (held ? .9f : .42f);
+                    // Свободный пузырь мягко плывёт за своей точкой; брошенный сначала летит почти
+                    // свободно (calm около нуля) и за пару секунд снова успокаивается в своей зоне.
+                    if (!held) calm[i] = Math.min(1f, calm[i] + h / 2.2f);
+                    float k = held ? 700f : 2f + 16f * calm[i] * calm[i];
+                    float c = held ? 2 * (float) Math.sqrt(k) * .9f : .6f + 2.4f * calm[i];
                     vx[i] += (k * (gx - x[i]) - c * vx[i]) * h;
                     vy[i] += (k * (gy - y[i]) - c * vy[i]) * h;
                     grab[i] += ((held ? 1 : 0) - grab[i]) * grabRate;
@@ -253,6 +287,12 @@ public final class NebulaGiftOrbit {
                     if (!placed[i]) continue;
                     x[i] += vx[i] * h;
                     y[i] += vy[i] * h;
+                    if (i == dragged) continue;
+                    // Отскок от стенок шапки с потерей части скорости.
+                    if (x[i] < minX) { x[i] = minX; if (vx[i] < 0) vx[i] = -vx[i] * .6f; }
+                    else if (x[i] > maxX) { x[i] = maxX; if (vx[i] > 0) vx[i] = -vx[i] * .6f; }
+                    if (y[i] < minY) { y[i] = minY; if (vy[i] < 0) vy[i] = -vy[i] * .6f; }
+                    else if (y[i] > maxY) { y[i] = maxY; if (vy[i] > 0) vy[i] = -vy[i] * .6f; }
                 }
             }
         }
@@ -282,12 +322,14 @@ public final class NebulaGiftOrbit {
             this.seed = seed;
             int light = mix(this.color, Color.WHITE, .45f);
             int deep = mix(this.color, Color.BLACK, .25f);
+            // Неоновое свечение как в iOS: плотное у края пузыря и широкий мягкий хвост.
+            int neon = mix(this.color, Color.WHITE, .18f);
             glowShader = new RadialGradient(0, 0, 1,
-                    new int[]{alpha(this.color, .62f), alpha(this.color, .22f), alpha(this.color, 0)},
-                    new float[]{0, .5f, 1}, Shader.TileMode.CLAMP);
+                    new int[]{alpha(neon, .95f), alpha(neon, .78f), alpha(this.color, .32f), alpha(this.color, 0)},
+                    new float[]{0, .42f, .62f, 1}, Shader.TileMode.CLAMP);
             glow.setShader(glowShader);
             bodyShader = new RadialGradient(-.28f, -.34f, 1.45f,
-                    new int[]{alpha(light, .34f), alpha(this.color, .40f), alpha(deep, .86f)},
+                    new int[]{alpha(light, .55f), alpha(this.color, .62f), alpha(deep, .95f)},
                     new float[]{0, .58f, 1}, Shader.TileMode.CLAMP);
             body.setShader(bodyShader);
             rimShader = new LinearGradient(-1, -1, 1, 1,
@@ -324,9 +366,9 @@ public final class NebulaGiftOrbit {
             float p = pulse;
 
             // Свечение вокруг: сильнее на ударах.
-            float glowR = r * (1.8f + .55f * p);
+            float glowR = r * (2.1f + .7f * p);
             setUnit(glowShader, cx, cy, glowR);
-            glow.setAlpha(Math.round(a * (.62f + .38f * p)));
+            glow.setAlpha(Math.round(a * (.8f + .2f * p)));
             canvas.drawCircle(cx, cy, glowR, glow);
 
             // «Жидкий» контур: три гармоники с разной скоростью, на ударе дрожит сильнее.
@@ -404,20 +446,35 @@ public final class NebulaGiftOrbit {
         private final Paint rim = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Paint shade = new Paint(Paint.ANTI_ALIAS_FLAG);
         private final Matrix matrix = new Matrix();
-        private final Shader haloShader, rimShader;
+        private Shader haloShader, rimShader;
+        private int tint = 1;
 
         public Ring() {
-            haloShader = new RadialGradient(0, 0, 1,
-                    new int[]{0, 0, Color.argb(80, 255, 255, 255), Color.argb(26, 255, 255, 255), 0},
-                    new float[]{0, .66f, .70f, .82f, 1}, Shader.TileMode.CLAMP);
-            halo.setShader(haloShader);
-            rimShader = new LinearGradient(-1, -1, 1, 1,
-                    new int[]{Color.argb(235, 255, 255, 255), Color.argb(40, 255, 255, 255), Color.argb(150, 255, 255, 255)},
-                    new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
-            rim.setShader(rimShader);
+            setColor(Color.WHITE);
             rim.setStyle(Paint.Style.STROKE);
             shade.setStyle(Paint.Style.STROKE);
             shade.setColor(Color.BLACK);
+        }
+
+        /** Цвет свечения: светлый тон цвета профиля, как бирюзовый ободок в iOS. */
+        public void setColor(int color) {
+            color |= 0xFF000000;
+            if (color == tint) return;
+            tint = color;
+            // Тёмный цвет страницы не светится: берём его насыщенный яркий тон.
+            float[] hsv = new float[3];
+            Color.colorToHSV(color, hsv);
+            if (hsv[1] > .08f) hsv[1] = Math.max(hsv[1], .55f);
+            hsv[2] = .97f;
+            int glowColor = Color.HSVToColor(hsv);
+            haloShader = new RadialGradient(0, 0, 1,
+                    new int[]{0, 0, alpha(glowColor, .75f), alpha(glowColor, .28f), 0},
+                    new float[]{0, .66f, .70f, .84f, 1}, Shader.TileMode.CLAMP);
+            halo.setShader(haloShader);
+            rimShader = new LinearGradient(-1, -1, 1, 1,
+                    new int[]{Color.argb(240, 255, 255, 255), alpha(glowColor, .55f), alpha(mix(color, Color.WHITE, .6f), .9f)},
+                    new float[]{0, .55f, 1}, Shader.TileMode.CLAMP);
+            rim.setShader(rimShader);
         }
 
         /** Ореол за аватаркой радиуса r; pulse 0..1 — удар музыки. */

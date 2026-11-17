@@ -200,6 +200,25 @@ index ffa7f55..44275d0 100644
 +        }
      }
  }
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index 36fccb4..055054f 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -3537,7 +3537,13 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
+             fragmentContextView = new FragmentContextView(context, parent, this, false, resourcesProvider) {
+                 @Override
+                 public void setVisibility(int visibility) {
+-                    topPanelLayout.setViewVisible(fragmentContextViewWrapper, visibility == VISIBLE);
++                    // NebulaGram, профиль как в iOS: песня этого профиля играет из плашки в шапке,
++                    // отдельная полоса плеера над вкладками ей не нужна.
++                    final MediaController nebulaPlayer = MediaController.getInstance();
++                    final boolean nebulaOwnSong = app.nebulagram.ui.NebulaProfileArt.iosProfile()
++                            && nebulaPlayer.currentSavedMusicList != null && nebulaPlayer.currentSavedMusicList.dialogId == dialog_id
++                            && nebulaPlayer.getPlayingMessageObject() != null && nebulaPlayer.getPlayingMessageObject().isMusic();
++                    topPanelLayout.setViewVisible(fragmentContextViewWrapper, visibility == VISIBLE && !nebulaOwnSong);
+                 }
+             };
+             fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 index c317662..9f08fb1 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
@@ -321,7 +340,7 @@ index c317662..9f08fb1 100644
      }
  
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
-index a253fee..70c94f9 100644
+index a253fee..46a964c 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/Stars/ProfileGiftsView.java
 @@ -132,6 +132,7 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
@@ -398,7 +417,7 @@ index a253fee..70c94f9 100644
          for (int i = 0; i < gifts.size(); ++i) {
              final Gift gift = gifts.get(i);
              final float enter = gift.animatedFloat.set(1.0f);
-@@ -467,6 +492,276 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -467,6 +492,286 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
          canvas.restore();
      }
  
@@ -446,7 +465,7 @@ index a253fee..70c94f9 100644
 +    // NebulaGram: стеклянный ободок аватарки (профиль как в iOS): ореол за ней, край линзы поверх.
 +    private final app.nebulagram.ui.NebulaGiftOrbit.Ring nebulaRing = new app.nebulagram.ui.NebulaGiftOrbit.Ring();
 +    private float nebulaRingX, nebulaRingY, nebulaRingR, nebulaRingAlpha, nebulaRingPulse;
-+    private long nebulaRingFrame;
++    private long nebulaRingFrame, nebulaTintCheck;
 +
 +    private void nebulaPrepareRing() {
 +        nebulaRingAlpha = 0f;
@@ -460,6 +479,13 @@ index a253fee..70c94f9 100644
 +        // Ободок нужен крупной аватарке: у маленькой в шапке и у раскрытого фото его нет.
 +        final float size = Utilities.clamp01((nebulaRingR - dp(24)) / dp(16));
 +        nebulaRingAlpha = (1f - expandProgress) * (1f - actionBarProgress) * closed * size;
++        if (nebulaRingAlpha > 0f && android.os.SystemClock.uptimeMillis() - nebulaTintCheck > 500) {
++            // Цвет ободка — цвет страницы профиля, без него — первого подарка, иначе белый.
++            nebulaTintCheck = android.os.SystemClock.uptimeMillis();
++            int tint = app.nebulagram.ui.NebulaProfileStyle.pageColorAround(this);
++            if (tint == 0 && !gifts.isEmpty()) tint = gifts.get(0).color;
++            nebulaRing.setColor(tint == 0 ? 0xFFFFFFFF : tint);
++        }
 +        final long now = android.os.SystemClock.uptimeMillis();
 +        final float dt = nebulaRingFrame == 0 ? 16 : Math.min(100, now - nebulaRingFrame);
 +        nebulaRingFrame = now;
@@ -467,7 +493,7 @@ index a253fee..70c94f9 100644
 +    }
 +
 +    private float nebulaBubbleRadius() {
-+        return dp(21);
++        return dp(24);
 +    }
 +
 +    private void nebulaEnsure(int n) {
@@ -485,15 +511,18 @@ index a253fee..70c94f9 100644
 +        nebulaSeconds = now / 1000.0;
 +        nebulaClipBottom = expandY;
 +        final float bubble = nebulaBubbleRadius();
-+        final float rx = Math.min(aw / 2f + dp(64) * Math.max(.6f, expandScale), getWidth() / 2f - bubble - dp(6));
-+        final float ry = ah / 2f + dp(24) * Math.max(.6f, expandScale);
++        final float rx = Math.min(aw / 2f + dp(70) * Math.max(.6f, expandScale), getWidth() / 2f - bubble - dp(4));
++        final float ry = ah / 2f + dp(34) * Math.max(.6f, expandScale);
 +        final int count = gifts.size();
 +        nebulaEnsure(count);
 +        nebulaField.ensure(count);
++        // Пузыри плавают по всей шапке: от строки состояния до кнопок под именем.
++        nebulaField.bounds(bubble, AndroidUtilities.statusBarHeight + bubble * .6f,
++                getWidth() - bubble, Math.min(expandY - bubble * .5f, acy + ah / 2f + dp(74)));
 +        for (int i = 0; i < count; ++i) {
 +            final Gift gift = gifts.get(i);
 +            nebulaGift[i] = gift;
-+            app.nebulagram.ui.NebulaGiftOrbit.orbit(i, count, nebulaSeconds, acx, acy, rx, ry, dp(5), nebulaOrbitPoint);
++            app.nebulagram.ui.NebulaGiftOrbit.wander(i, count, nebulaSeconds, acx, acy, rx, ry, dp(28), nebulaOrbitPoint);
 +            final float pulse = gift.nebulaBubble != null ? gift.nebulaBubble.step(i) : 0f;
 +            nebulaPulse[i] = pulse;
 +            // На ударах пузыри отскакивают от аватарки, пружины возвращают их назад.
@@ -675,7 +704,7 @@ index a253fee..70c94f9 100644
      public Gift getGiftUnder(float x, float y) {
          for (int i = 0; i < gifts.size(); ++i) {
              if (gifts.get(i).bounds.contains(x, y))
-@@ -480,6 +775,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
+@@ -480,6 +785,9 @@ public class ProfileGiftsView extends View implements NotificationCenter.Notific
      @Override
      public boolean onTouchEvent(MotionEvent event) {
          if (!active) return false;

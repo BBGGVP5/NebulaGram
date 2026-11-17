@@ -140,7 +140,8 @@ public final class NebulaProfileArt {
             BackupImageView collapsedPhoto = findPhoto(avatar);
             if (collapsedPhoto != null && !collapsedPhoto.getImageReceiver().hasImageLoaded()) collapsedPhoto = null;
             if (galleryPhoto != null && !galleryPhoto.getImageReceiver().hasImageLoaded()) galleryPhoto = null;
-            final boolean banner = NebulaAppearance.profilePhotoBanner() && (collapsedPhoto != null || galleryPhoto != null);
+            // В профиле как в iOS шапка в цвете профиля, без размытого фото за ней.
+            final boolean banner = NebulaAppearance.profilePhotoBanner() && !iosProfile() && (collapsedPhoto != null || galleryPhoto != null);
             if (buttons != null) buttons.setBannerActive(banner);
             // Keep Telegram's peer colour/emoji decoration when no photo is available.
             if (!banner) return;

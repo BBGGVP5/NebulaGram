@@ -37,6 +37,9 @@ assert 'musicView.setNebulaDialog(getDialogId());' in patch and 'MediaController
 assert 'showDialog(new AudioPlayerAlert(getContext(), getResourceProvider()));' in patch and 'nebulaMusicSheet = true;' in patch, 'long press keeps the full player'
 assert 'if (bounce.isPressed() && !nebulaLongPressed)' in patch, 'long press never also toggles'
 assert 'NebulaProfileArt.pillsHeight()' in patch
+assert 'NebulaGiftOrbit.wander(i, count, nebulaSeconds' in patch and 'nebulaField.bounds(' in patch, 'bubbles wander inside the header'
+assert 'visibility == VISIBLE && !nebulaOwnSong' in patch, 'the profile song has no separate player strip'
+assert 'nebulaRing.setColor(' in patch
 art = (UI / 'NebulaProfileArt.java').read_text(encoding='utf-8')
 assert 'if (iosProfile()) return; // круг' in art and 'return dp(iosProfile() ? 98 : 74);' in art
 
@@ -51,7 +54,7 @@ assert deliver.index('cancel();\n') < deliver.index('useText.accept(value)')
 assert 'field.failed(message);cancel();' in sheet, 'failure keeps the voice and closes'
 
 pieces = [method(orbit, n) for n in ['static void onVisualizer(boolean playing, float[] values, long now)',
-    'public static float target(int slot, long now)', 'public static float follow(', 'public static void orbit(', 'static float clamp01(']]
+    'public static float target(int slot, long now)', 'public static float follow(', 'public static void orbit(', 'public static void wander(', 'static float clamp01(']]
 field = orbit[orbit.index('    public static final class Field {'):]
 field = field[:method(field, 'public static final class Field {').__len__()]
 pieces.append(field.replace('public static final class Field', 'static final class Field'))
@@ -103,6 +106,23 @@ public class GiftOrbitCheck {
   for(int i=0;i<240;i++)g.step(1/60f,z,z,r);check(!Float.isNaN(g.x[0])&&Math.hypot(g.x[0]-g.x[1],g.y[0]-g.y[1])>r,"coincident bubbles separate without NaN");
   g.step(0,z,z,r);g.step(5,z,z,r);check(!Float.isNaN(g.x[0]),"zero and huge dt are safe");
   g.drag(5,0,0);check(g.dragged==-1,"out of range drag ignored");g.ensure(1);
+  // Хаотичное плавание: зона у каждого своя, точка не стоит и не повторяет соседа.
+  float[] wv=new float[3],w2=new float[3];
+  for(int n=1;n<=6;n++)for(int i=0;i<n;i++){
+   double minR=1e9,maxR=0;float px=Float.NaN,py=0;double path=0;
+   for(double t=0;t<120;t+=.25){wander(i,n,t,180,200,130,90,28,wv);
+    double rr=Math.hypot((wv[0]-180)/130.0,(wv[1]-200)/90.0);minR=Math.min(minR,rr);maxR=Math.max(maxR,rr);
+    check(wv[2]>=0&&wv[2]<=1,"wander depth in range");
+    if(!Float.isNaN(px))path+=Math.hypot(wv[0]-px,wv[1]-py);px=wv[0];py=wv[1];}
+   check(minR>.45&&maxR<1.6,"wander stays around the avatar "+n+"/"+i+" "+minR+".."+maxR);
+   check(path>400,"wander keeps moving "+path);
+  }
+  for(int i=0;i<4;i++){wander(i,5,33,0,0,100,100,28,wv);for(int j=i+1;j<5;j++){wander(j,5,33,0,0,100,100,28,w2);check(Math.hypot(wv[0]-w2[0],wv[1]-w2[1])>15,"zones do not stack "+i+","+j);}}
+  Field b=new Field();b.ensure(1);b.bounds(0,0,100,100);float[] bx={50},by={50};b.bind(0,1,50,50);
+  b.drag(0,50,50);b.release(4000,0,3000);float peak=0;boolean bounced=false;
+  for(int i=0;i<120;i++){b.step(1/60f,bx,by,10);peak=Math.max(peak,b.x[0]);if(b.vx[0]<0)bounced=true;check(b.x[0]>=0&&b.x[0]<=100&&b.y[0]>=0&&b.y[0]<=100,"thrown bubble stays inside the header");}
+  check(bounced&&peak>=99.9f,"thrown bubble flies to the wall and bounces");
+  for(int i=0;i<900;i++)b.step(1/60f,bx,by,10);check(Math.hypot(b.x[0]-50,b.y[0]-50)<3&&b.calm[0]>.99f,"after a while it floats back into its zone");
   System.out.println("OK: "+checks+" gift orbit, music pulse and voice reveal checks");
  }
 }'''.replace('BODY', '\n'.join(pieces))
