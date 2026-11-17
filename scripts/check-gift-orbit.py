@@ -46,12 +46,12 @@ assert 'otherItem.addSubItem(video_call_item' in patch, 'video call stays reacha
 assert 'cs = actionLabel(cs);' in patch
 assert 'nebulaRing.drawBackdrop(' in patch, 'header background pulses with the song'
 assert 'nebulaIos ? dp(14) : dp(10)' in patch, 'song pill keeps a gap below the button labels'
-assert 'private boolean nebulaMoreMenu()' in patch and '!nebulaMoreMenu()' in patch, 'more opens at the buttons'
+assert 'private boolean nebulaMoreMenu(float cellLeft, float cellTop)' in patch and '!nebulaMoreMenu(x, y)' in patch and 'ItemOptions.makeOptions(this, nebulaMoreAnchor)' in patch, 'more opens at the buttons'
 assert 'NebulaAppearance.profileStyle() ? 19 : 24' in patch, 'status emoji is sized for the larger name'
 assert 'NebulaProfileArt.headerTrim()' in patch, 'buttons sit closer to the status line'
 assert patch.count('final float expanded = nebulaOnlineExpanded();') == 2, 'status line offsets follow real expansion'
 assert 'rect.centerY() - getHeight() / 2f' in patch, 'pill text is centred on the pill'
-assert 'NebulaSheetCollapse.collapse(containerView' in patch and 'NebulaSheetCollapse.target(' in patch, 'player collapses into the song pill'
+assert 'NebulaSheetCollapse.morph(containerView, true' in patch and 'NebulaSheetCollapse.morph(containerView, false' in patch and 'NebulaSheetCollapse.target(' in patch, 'player collapses into the song pill'
 assert 'receiver.getDrawRegion().set(savedRegion);' in (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java').read_text(encoding='utf-8'), 'banner keeps the avatar draw region for PhotoViewer'
 art = open(ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java', encoding='utf-8').read()
 assert 'profilePhotoBanner() && !iosProfile()' not in art, 'banner setting is honoured in the iOS profile'
