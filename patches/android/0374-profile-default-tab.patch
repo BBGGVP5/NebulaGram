@@ -1,0 +1,14 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+index 055054fe..fdf23780 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/SharedMediaLayout.java
+@@ -1703,6 +1703,9 @@ public class SharedMediaLayout extends FrameLayout implements Theme.Colorable, N
+                 }
+             }
+         }
++        this.initialTab = app.nebulagram.ui.NebulaProfileTabs.initial(this.initialTab, initialTab, viewType, topicId, hasMedia,
++                userInfo != null && userInfo.stories_pinned_available || chatInfo != null && chatInfo.stories_pinned_available,
++                userInfo != null && userInfo.stargifts_count > 0 || chatInfo != null && chatInfo.stargifts_count > 0);
+         onTabProgress(initialTab);
+         info = chatInfo;
+         this.userInfo = userInfo;

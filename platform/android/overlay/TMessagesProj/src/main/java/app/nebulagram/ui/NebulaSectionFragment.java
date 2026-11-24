@@ -723,6 +723,17 @@ public class NebulaSectionFragment extends BaseFragment {
                 "Профиль как в iOS", "iOS-style profile"));
         card.add(preference(context, R.drawable.msg_gift_premium, NebulaGiftOrbit.KEY, true,
                 "Подарки на орбите", "Orbiting gifts"));
+        NebulaRow defaultTab = new NebulaRow(context).icon(R.drawable.msg_media)
+                .title(NebulaText.text("Вкладка по умолчанию", "Default tab"))
+                .subtitle(NebulaProfileTabs.title(), true).trailing(NebulaRow.TRAIL_CHEVRON);
+        defaultTab.withClick(v -> showDialog(new NebulaDialog.Builder(context)
+                .setTitle(NebulaText.text("Вкладка по умолчанию", "Default tab"))
+                .setSelectedIndex(NebulaProfileTabs.mode())
+                .setItems(NebulaProfileTabs.titles(), (dialog, which) -> {
+                    NebulaProfileTabs.setMode(which);
+                    defaultTab.subtitle(NebulaProfileTabs.title(), true);
+                }).create()));
+        card.add(defaultTab);
         content.addView(card, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Info")));
         card = new NebulaCard(context);
