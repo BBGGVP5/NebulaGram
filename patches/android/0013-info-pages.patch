@@ -136,7 +136,7 @@ index 2e1926da..aa9c451f 100644
              sectionPaint.setColor(getSectionColor(sections[i + 4]));
              canvas.drawRect(sections[i], sections[i + 1], sections[i + 2], sections[i + 3], sectionPaint);
          }
-@@ -415,13 +436,13 @@ public class SectionsScrollView extends ScrollView implements IBlur3Capture {
+@@ -415,13 +436,19 @@ public class SectionsScrollView extends ScrollView implements IBlur3Capture {
      protected void dispatchDraw(@NonNull Canvas canvas) {
          updateColors();
          collectSections();
@@ -144,6 +144,12 @@ index 2e1926da..aa9c451f 100644
 +        if (drawBackground && sectionBackground == null) {
              drawOptimizedBackground(canvas);
          } else {
++            if (drawBackground) {
++                // NebulaGram: own cards are rounded and their gaps are not
++                // painted by drawOptimizedBackground, so the page is filled
++                // whole first; otherwise the gaps keep stale frames.
++                canvas.drawRect(getScrollX(), getScrollY(), getScrollX() + getWidth(), getScrollY() + getHeight(), backgroundPaint);
++            }
              drawSectionsBackgrounds(canvas);
          }
          super.dispatchDraw(canvas);
