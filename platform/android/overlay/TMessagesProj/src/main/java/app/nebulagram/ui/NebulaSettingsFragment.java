@@ -203,7 +203,7 @@ public class NebulaSettingsFragment extends BaseFragment {
         NebulaCard about = new NebulaCard(context);
         about.add(new NebulaRow(context).icon(R.drawable.msg_info).title(NebulaText.text("О приложении", "About"))
                 .subtitle(NebulaText.text("Версия, обновления, значки и поддержка", "Version, updates, badges and support"), false)
-                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaSectionFragment(NebulaSectionFragment.SECTION_ABOUT))));
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaAboutFragment())));
 
         // Здесь только то, что существует. Канал у проекта один; бета-канал,
         // форум и аккаунт разработчика появятся, когда появятся сами, а не
