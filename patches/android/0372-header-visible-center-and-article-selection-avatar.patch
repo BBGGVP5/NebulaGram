@@ -1,0 +1,166 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
+index 963dcabb..742fc1c5 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ActionBar/SimpleTextView.java
+@@ -257,6 +257,41 @@ public class SimpleTextView extends View implements Drawable.Callback {
+         updateFadePaints();
+     }
+ 
++    private boolean nebulaCenterVisibleWidth;
++
++    /**
++     * NebulaGram: centre what is actually drawn — the inside left icon, the
++     * text and every right icon — instead of the text alone. The offset is
++     * taken at draw time from the current drawables, so an icon that arrives
++     * or leaves after the last measure cannot pull the line off-centre.
++     */
++    public void setNebulaCenterVisibleWidth(boolean value) {
++        if (nebulaCenterVisibleWidth == value) {
++            return;
++        }
++        nebulaCenterVisibleWidth = value;
++        invalidate();
++    }
++
++    private void nebulaApplyVisibleCenter() {
++        if (!nebulaCenterVisibleWidth || layout == null || layout.getLineCount() == 0
++                || (gravity & Gravity.HORIZONTAL_GRAVITY_MASK) != Gravity.CENTER_HORIZONTAL) {
++            return;
++        }
++        final int lead = leftDrawable != null && !leftDrawableOutside ? drawablePadding + leftDrawable.getIntrinsicWidth() : 0;
++        int visible = lead + textWidth;
++        if (rightDrawable != null && (rightDrawableOutside || !rightDrawableInside && !rightDrawableHidden && rightDrawableScale > 0)) {
++            visible += drawablePadding + (int) (rightDrawable.getIntrinsicWidth() * rightDrawableScale);
++        }
++        if (rightDrawable2 != null && (rightDrawableOutside || !rightDrawableInside && !rightDrawableHidden && rightDrawableScale > 0)) {
++            visible += drawablePadding + (int) (rightDrawable2.getIntrinsicWidth() * rightDrawableScale);
++        }
++        final int available = getMeasuredWidth() - getPaddingLeft() - getPaddingRight();
++        // Text longer than its own slot (icons excluded) runs as a marquee from the start.
++        final boolean fits = visible <= available && lead + textWidth <= getMaxTextWidth() - getPaddingLeft() - getPaddingRight();
++        offsetX = getPaddingLeft() - (int) layout.getLineLeft(0) + (fits ? (available - visible) / 2 : 0);
++    }
++
+     public void setWidthWrapContent(boolean value) {
+         widthWrapContent = value;
+     }
+@@ -846,6 +881,7 @@ public class SimpleTextView extends View implements Drawable.Callback {
+     @Override
+     protected void onDraw(Canvas canvas) {
+         super.onDraw(canvas);
++        nebulaApplyVisibleCenter();
+         int textOffsetX = 0;
+         layoutX = 0;
+         layoutY = 0;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index 86ffb5cd..c2a53cea 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -17159,6 +17159,33 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         return checkBoxTranslation;
+     }
+ 
++    private boolean nebulaCheckBoxTranslationLimited;
++
++    /**
++     * NebulaGram: a wide rich message (tables, articles) used to drop the
++     * whole selection shift once it could not move the full 35dp. It now moves
++     * as far as the screen edge allows, and reports the limit so the chat does
++     * not borrow the full shift of the sender's previous message for this
++     * message's avatar, which then landed on top of the bubble's first line.
++     */
++    private int nebulaLimitCheckBoxTranslation(int translation) {
++        nebulaCheckBoxTranslationLimited = false;
++        if (currentMessageObject == null || currentMessageObject.type != MessageObject.TYPE_ARTICLE) {
++            return translation;
++        }
++        final int room = Math.max(0, getWidth() - getCurrentBackgroundRight());
++        if (translation <= room) {
++            return translation;
++        }
++        nebulaCheckBoxTranslationLimited = true;
++        return room;
++    }
++
++    /** The avatar must follow this cell's own (limited) shift, not a neighbour's. */
++    public boolean isNebulaCheckBoxTranslationLimited() {
++        return nebulaCheckBoxTranslationLimited && (checkBoxVisible || checkBoxAnimationInProgress);
++    }
++
+     public boolean shouldDrawAlphaLayer() {
+         return (currentMessagesGroup == null || !currentMessagesGroup.transitionParams.backgroundChangeBounds) && getAlpha() != 1f;
+     }
+@@ -18198,9 +18225,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+                 checkBoxAnimationInProgress = false;
+             }
+             Interpolator interpolator = checkBoxVisible ? CubicBezierInterpolator.EASE_OUT : CubicBezierInterpolator.EASE_IN;
+-            checkBoxTranslation = (int) Math.ceil(interpolator.getInterpolation(checkBoxAnimationProgress) * dp(35));
+-            if (currentMessageObject.type == MessageObject.TYPE_ARTICLE && getCurrentBackgroundRight() + dp(35) > getWidth())
+-                checkBoxTranslation = 0;
++            checkBoxTranslation = nebulaLimitCheckBoxTranslation((int) Math.ceil(interpolator.getInterpolation(checkBoxAnimationProgress) * dp(35)));
+             if (!currentMessageObject.isOutOwner() || currentMessageObject.hasWideCode) {
+                 updateTranslation();
+             }
+@@ -23746,9 +23771,7 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         if (currentMessageObject != null && !currentMessageObject.isOutOwner()) {
+             if (update && (checkBoxVisible || checkBoxAnimationInProgress)) {
+                 Interpolator interpolator = checkBoxVisible ? CubicBezierInterpolator.EASE_OUT : CubicBezierInterpolator.EASE_IN;
+-                checkBoxTranslation = (int) Math.ceil(interpolator.getInterpolation(checkBoxAnimationProgress) * dp(35));
+-                if (currentMessageObject.type == MessageObject.TYPE_ARTICLE && getCurrentBackgroundRight() + dp(35) > getWidth())
+-                    checkBoxTranslation = 0;
++                checkBoxTranslation = nebulaLimitCheckBoxTranslation((int) Math.ceil(interpolator.getInterpolation(checkBoxAnimationProgress) * dp(35)));
+             }
+             tx += checkBoxTranslation;
+             if (isCompactLayout()) {
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 469cd56a..f73e596c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -6406,7 +6406,7 @@ public class ChatActivity extends BaseFragment implements
+                         boolean canUpdateTx = false;
+                         if (mcell instanceof ChatMessageCell) {
+                             final ChatMessageCell cmcell = (ChatMessageCell) mcell;
+-                            canUpdateTx = cmcell.isCheckBoxVisible() && tx == 0;
++                            canUpdateTx = cmcell.isCheckBoxVisible() && tx == 0 && !cmcell.isNebulaCheckBoxTranslationLimited();
+                             if (cmcell.isPlayingRound() || cmcell.getTransitionParams().animatePlayingRound) {
+                                 if (cmcell.getTransitionParams().animatePlayingRound) {
+                                     float progressLocal = cmcell.getTransitionParams().animateChangeProgress;
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+index 653dcf5f..6bbed6da 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatAvatarContainer.java
+@@ -852,6 +852,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+         }
+         nebulaAvatarHiddenForSavedMessages = hideAvatar;
+         titleTextView.setGravity(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader() ? Gravity.CENTER_HORIZONTAL : Gravity.LEFT);
++        titleTextView.setNebulaCenterVisibleWidth(enabled && app.nebulagram.ui.NebulaAppearance.chatHeader());
+         // Длинное имя не влезает в капсулу и обрезалось с двух сторон.
+         // Бегущая строка — родной механизм Telegram для этого случая.
+         titleTextView.setScrollNonFitText(enabled);
+@@ -1113,6 +1114,18 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+             titleTextView.setRightDrawable2(mutedIcon);
+         }
+         checkActionBar(true);
++        nebulaRemeasureCenteredTitle();
++    }
++
++    /**
++     * SimpleTextView rebuilds its own layout when text or an icon changes but
++     * never asks the parent to measure again, so the capsule width and the
++     * title gravity chosen in onMeasure would stay from the previous title.
++     */
++    private void nebulaRemeasureCenteredTitle() {
++        if (nebulaCenteredTitle) {
++            requestLayout();
++        }
+     }
+ 
+     public AnimatedEmojiDrawable.SwapAnimatedEmojiDrawable getBotVerificationDrawable(long icon, boolean animated) {
+@@ -1182,6 +1195,7 @@ public class ChatAvatarContainer extends FrameLayout implements FactorAnimator.T
+             rightDrawableContentDescription = null;
+         }
+         checkActionBar(animated);
++        nebulaRemeasureCenteredTitle();
+     }
+ 
+     private Drawable emojiStatusDefaultDrawable;

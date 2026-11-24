@@ -1692,3 +1692,26 @@ Telegram не переподключается дважды. Прокси сни
 нажатие Aa или тап по строке отменяет распознавание.
 
 Проверка: `check-gift-orbit.py`.
+
+### 0372 — имя в шапке по центру и аватарка при выделении
+
+Шапка чата (центрированная стеклянная капсула):
+- `SimpleTextView.setNebulaCenterVisibleWidth` + `nebulaApplyVisibleCenter()` в начале `onDraw`: при
+  `CENTER_HORIZONTAL` смещение берётся по тому, что реально рисуется — левый значок внутри, текст,
+  премиум/эмодзи-статус и значок «без звука»/галочка (`rightDrawableOutside`). Считается в момент
+  отрисовки, а не из `calcOffset` при measure, поэтому значок, который появился или пропал после
+  последнего measure, больше не уводит «Имя ★» левее «в сети». Если текст не влезает — начало
+  строки (бегущая строка, как раньше).
+- `ChatAvatarContainer`: флаг включается в `setNebulaCenteredTitle` вместе с gravity;
+  `setTitle` и `setTitleIcons` зовут `nebulaRemeasureCenteredTitle()` → `requestLayout()`, иначе ширина
+  капсулы и gravity из `onMeasure` оставались от прошлого заголовка (`SimpleTextView` пересобирает
+  только себя).
+
+Выделение сообщений («Выбрано N»):
+- `ChatMessageCell.nebulaLimitCheckBoxTranslation`: широкое rich-сообщение (`TYPE_ARTICLE`, таблицы от
+  ботов) раньше целиком отказывалось от сдвига 35 dp, если не влезало. Теперь сдвигается, насколько
+  позволяет край экрана, и помечает сдвиг как урезанный (`isNebulaCheckBoxTranslationLimited`).
+- `ChatActivity`: `canUpdateTx` не берёт сдвиг предыдущего сообщения того же отправителя для урезанной
+  ячейки — аватарка идёт за своим пузырём, а не наезжает на начало подписи («ebulaGuard Bot»).
+
+Проверка: `check-header-center-selection.py`.
