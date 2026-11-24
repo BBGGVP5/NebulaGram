@@ -78,6 +78,7 @@ public final class NebulaCameraFragment extends BaseFragment {
         round.add(choice(text("Начальная камера кружка","Initial round-video camera"),NebulaRoundCamera.title(),() -> choose(text("Начальная камера кружка","Initial round-video camera"),facing,NebulaRoundCamera.mode(),NebulaRoundCamera::setMode)));
         NebulaRow wide=toggle("ultrawide","Начинать с широкоугольной","Start with ultrawide","Для основной камеры, если объектив доступен","Rear camera, when the lens is available");
         if(!capabilities.wide){wide.setEnabled(false);wide.setAlpha(.55f);} round.add(wide);
+        if(modern) round.add(toggle("lens_stops","Шаги по объективам","Lens zoom steps","Деления зума на реальных объективах телефона: 0,6×, 1×, 3×","Zoom marks at the phone's real lenses: 0.6×, 1×, 3×"));
         round.add(toggle("switch_blur","Размытие при переключении","Blur camera switches","Плавный переход сохраняется в записанном кружке","The smooth transition is retained in the recorded video"));
         String[] output={text("По умолчанию","Default"),"360 × 360","480 × 480"};
         round.add(choice(text("Размер кружка","Round-video size"),output[NebulaCameraSettings.number("round_size",0,0,2)],() -> choose(text("Размер кружка","Round-video size"),output,NebulaCameraSettings.number("round_size",0,0,2),i -> {

@@ -1,0 +1,63 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+index 7fd8feea..72de6924 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/InstantCameraView2.java
+@@ -1171,26 +1171,39 @@ public final class InstantCameraView2 extends InstantCameraViewBase {
+             if (!cameraFlipInProgress || !isRecordingState()) nebulaZoomSlider.setVisibility(View.GONE);
+             return;
+         }
+-        nebulaZoomSlider.setRange(1f, maximum);
+-        nebulaZoomSlider.setCameraFacing(capabilities.getActiveFacing() == RoundVideoSession.CameraFacing.FRONT);
+-        nebulaZoomSlider.setCameraStops(new float[]{1f});
++        boolean front = capabilities.getActiveFacing() == RoundVideoSession.CameraFacing.FRONT;
++        float minimum = nebulaMinimumZoom();
++        nebulaZoomSlider.setRange(minimum, maximum);
++        nebulaZoomSlider.setCameraFacing(front);
++        nebulaZoomSlider.setCameraStops(app.nebulagram.ui.NebulaRoundZoom.stops(front, minimum, maximum));
+         syncNebulaZoomSlider();
+         nebulaZoomSlider.setVisibility(View.VISIBLE);
++        // The controller publishes its real starting ratio once the camera opens; relabel then.
++        app.nebulagram.ui.NebulaRoundZoom.listen(() -> {
++            if (nebulaZoomSlider != null && nebulaZoomSlider.getVisibility() == View.VISIBLE) updateNebulaZoomSlider(true);
++        });
++    }
++
++    /** Ratio at zoom progress 0: below 1× when the controller starts on the ultrawide lens. */
++    private float nebulaMinimumZoom() {
++        if (capabilities == null) return 1f;
++        return Math.min(nebulaMaximumZoom(), app.nebulagram.ui.NebulaRoundZoom.minimum(capabilities.getActiveFacing() == RoundVideoSession.CameraFacing.FRONT));
+     }
+ 
+     private void syncNebulaZoomSlider() {
+         if (nebulaZoomSlider == null) return;
+         float maximum = nebulaMaximumZoom();
+-        nebulaZoomSlider.setCurrent(1f + zoomProgress * Math.max(0f, maximum - 1f));
++        nebulaZoomSlider.setCurrent(app.nebulagram.ui.NebulaRoundZoom.factor(zoomProgress, nebulaMinimumZoom(), maximum));
+     }
+ 
+     private void applyNebulaZoom(float factor) {
+         if (session == null || stateInfo == null || !stateInfo.canControlCamera()) return;
+         if (Float.isNaN(factor) || Float.isInfinite(factor)) return;
+         float maximum = nebulaMaximumZoom();
+-        if (maximum <= 1f) return;
++        float minimum = nebulaMinimumZoom();
++        if (maximum <= minimum) return;
+         if (zoomResetAnimator != null) zoomResetAnimator.cancel();
+-        zoomProgress = clamp((factor - 1f) / (maximum - 1f), 0f, 1f);
++        zoomProgress = app.nebulagram.ui.NebulaRoundZoom.progress(factor, minimum, maximum);
+         session.setZoom(zoomProgress);
+         nebulaZoomSlider.setCurrent(factor);
+     }
+diff --git a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
+index 4c3af748..5e66b402 100644
+--- a/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
++++ b/TMessagesProj/src/main/java/org/telegram/utils/recorder/round/RoundVideoCameraController.java
+@@ -1871,6 +1871,8 @@ final class RoundVideoCameraController {
+             Range<Float> range = characteristics.get(CameraCharacteristics.CONTROL_ZOOM_RATIO_RANGE);
+             if (range != null) minimum = app.nebulagram.ui.NebulaCameraPolicy.startZoom(true, false, range.getLower(), range.getUpper());
+         }
++        app.nebulagram.ui.NebulaRoundZoom.publish(characteristics != null
++                && Integer.valueOf(CameraCharacteristics.LENS_FACING_FRONT).equals(characteristics.get(CameraCharacteristics.LENS_FACING)), minimum);
+         float ratio = minimum + zoomProgress * (maximumZoomRatio - minimum);
+         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+             Range<Float> range = characteristics == null
