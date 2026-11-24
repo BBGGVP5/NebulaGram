@@ -30,7 +30,7 @@
 | `0010-main-settings-nebulagram-entry.patch` | `SettingsActivity.java` | fillItems; onClick | Первый пункт «Настройки NebulaGram» в новой вкладке настроек | +4 / −0 |
 | `0011-chat-chrome.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ChatAvatarContainer.java; ActionBar.java` | создание/измерение поля ввода; фон action bar; размещение аватара и заголовка | Добавляет переключаемые iOS-панель сообщения и центрированную шапку чата на штатном Liquid Glass | +159 / −3 |
 | `0026-ios-chat-chrome-repair.patch` | `ChatActivity.java; ChatActivityEnterView.java; ChatAvatarContainer.java; ActionBar.java` | `headerItem`; `onLayout`; `setNebulaCenteredTitle`; `setNebulaFloatingChatHeader` | Переносит знак «Избранного» в правое меню, не даёт iOS-шапке дублировать его рядом с заголовком и раскладывает «Отправить как» рядом с полем | +26 / −6 |
-| `0013-info-pages.patch` | `ProfileActivity.java; ChatEditActivity.java; ChatUsersActivity.java; ThemeActivity.java; SharedMediaLayout.java; SectionsScrollView.java; ProfileActionsView.java` | создание секций и карточек действий | Обновляет экраны информации и редактирования чата без замены адаптеров и обработчиков | +77 / −38 |
+| `0013-info-pages.patch` | `ProfileActivity.java; ChatEditActivity.java; ChatUsersActivity.java; ThemeActivity.java; SharedMediaLayout.java; SectionsScrollView.java; ProfileActionsView.java` | создание секций и карточек действий | Обновляет экраны информации и редактирования чата без замены адаптеров и обработчиков; под своими карточками `SectionsScrollView` закрашивает фон страницы целиком | +76 / −24 |
 | `0014-main-tabs-swipe.patch` | `MainTabsActivity.java` | `canScrollForward`; `canScrollBackward` | Не даёт жесту открыть отключённую вкладку нижней панели | +5 / −2 |
 | `0034-profile-row.patch` | `SettingsActivity.java` | `fillItems`; обработчик `0x4e43` | Добавляет вход в профиль при скрытой вкладке; иконка `settings_account` на бирюзово-зелёном градиенте как в Cherrygram | +15 / −0 |
 | `0040-chat-reference-layout.patch` | `ActionBar.java; ChatAvatarContainer.java; ChatActivityEnterView.java; ChatInputViewsContainer.java; ChatActivityChannelButtonsLayout.java; ChatActivity.java` | измерение шапки; `dispatchDraw`; создание скрепки; `onLayout`; `updateColors`; `updateBottomOverlay` | Центрирует динамическую плашку и отделяет аватар; разделяет панель ввода, сохраняет скрепку, AI и разворачивание, возвращает акцентную отправку с анимацией Telegram; размещает пересылку и действия канала | +108 / −50 |
@@ -1694,3 +1694,16 @@ Telegram не переподключается дважды. Прокси сни
 нажатие Aa или тап по строке отменяет распознавание.
 
 Проверка: `check-gift-orbit.py`.
+
+### 0013 — фон страницы под карточками экрана «Изменить»
+
+`SectionsScrollView.dispatchDraw`: когда экран рисует карточки сам (`setSectionBackground`,
+сейчас это `NebulaProfileStyle.editor` в `ChatEditActivity`), апстримный
+`drawOptimizedBackground` отключён — он закрашивает только зазоры между прямоугольными
+секциями. Раньше вместо него не рисовалось ничего, и в зазорах, под подписями
+(`TextInfoPrivacyCell`) и под скруглёнными углами оставались прошлые кадры: при прокрутке
+и анимации секций («Темы») карточки, обводки и подписи размножались со сдвигом. Теперь при
+`drawBackground` видимый прямоугольник сначала заливается `backgroundPaint`, потом
+рисуются карточки. Экраны без своих карточек идут прежним путём.
+
+Проверка: `check-editor-page-background.py`.
