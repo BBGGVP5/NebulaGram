@@ -52,6 +52,7 @@ assert 'NebulaProfileArt.headerTrim()' in patch, 'buttons sit closer to the stat
 assert patch.count('final float expanded = nebulaOnlineExpanded();') == 2, 'status line offsets follow real expansion'
 assert 'rect.centerY() - getHeight() / 2f' in patch, 'pill text is centred on the pill'
 assert 'glass.draw(canvas, glassCircle,' in (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java').read_text(encoding='utf-8'), 'labels keep their cell while glass draws'
+assert '- (hasMusic || hasBalance ? app.nebulagram.ui.NebulaProfileArt.pillsHeight() : 0);' in patch, 'actions end above the pills strip, no overlap'
 assert 'NebulaSheetCollapse.morph(containerView, true' in patch and 'NebulaSheetCollapse.morph(containerView, false' in patch and 'NebulaSheetCollapse.target(' in patch, 'player collapses into the song pill'
 assert 'receiver.getDrawRegion().set(savedRegion);' in (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java').read_text(encoding='utf-8'), 'banner keeps the avatar draw region for PhotoViewer'
 art = open(ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaProfileArt.java', encoding='utf-8').read()

@@ -336,7 +336,7 @@ index 36fccb4..055054f 100644
              };
              fragmentContextViewWrapper.addView(fragmentContextView);
 diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
-index c317662..f4eefb7 100644
+index c317662..6b3728e 100644
 --- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 +++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
 @@ -402,6 +402,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
@@ -507,7 +507,7 @@ index c317662..f4eefb7 100644
              if (fragmentViewAttached) {
                  emojiStatusDrawable.attach();
              }
-@@ -11748,11 +11832,11 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11748,11 +11832,12 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
              float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
              actionsView.clipHeight = avatarContainer.getY() + vh;
              actionsView.setAlpha(avatarAnimationProgress);
@@ -515,13 +515,15 @@ index c317662..f4eefb7 100644
 +            actionsView.updatePosition(listView.getMeasuredWidth(), app.nebulagram.ui.NebulaProfileArt.actionsHeight());
          } else {
              actionsView.clipHeight = -1;
-             float bottom = extraHeight + newTop - dp(hasMusic || hasBalance ? 25 : 0);
+-            float bottom = extraHeight + newTop - dp(hasMusic || hasBalance ? 25 : 0);
 -            float height = Math.min(dp(74), bottom - newTop);
++            // NebulaGram: ряд кнопок кончается над полосой плашек; в iOS она 44 dp, а не 25.
++            float bottom = extraHeight + newTop - (hasMusic || hasBalance ? app.nebulagram.ui.NebulaProfileArt.pillsHeight() : 0);
 +            float height = Math.min(app.nebulagram.ui.NebulaProfileArt.actionsHeight(), bottom - newTop);
              actionsView.updatePosition(bottom - height, height);
          }
  
-@@ -11778,16 +11862,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -11778,16 +11863,16 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
  //            float vh = avatarContainer.getHeight() * avatarContainer.getScaleY();
  //            musicView.clipHeight = avatarContainer.getY() + vh;
              musicView.setAlpha(avatarAnimationProgress);
@@ -541,7 +543,7 @@ index c317662..f4eefb7 100644
          }
      }
  
-@@ -12606,6 +12690,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -12606,6 +12691,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
                      if (getMessagesController().config.walletAvailable.get() && !MessagesController.isSupportUser(user) && !UserObject.isService(user.id)) {
                          otherItem.addSubItem(send_money, R.drawable.ic_gram, LocaleController.getString(R.string.WalletSendMoney));
                      }
@@ -552,7 +554,7 @@ index c317662..f4eefb7 100644
                      otherItem.addSubItem(start_secret_chat, R.drawable.msg_secret, LocaleController.getString(R.string.StartEncryptedChat));
                      otherItem.setSubItemShown(start_secret_chat, DialogObject.isEmpty(getMessagesController().isUserContactBlocked(userId)));
  
-@@ -16187,7 +16275,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -16187,7 +16276,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      private float getOnlineTextViewTranslationXWithOffsets(float onlineX, float ratingPadding) {
          lastOnlineTextViewX = onlineX;
          lastOnlineTextRatingPadding = ratingPadding;
@@ -561,7 +563,7 @@ index c317662..f4eefb7 100644
          final float ratingVisibility = ratingView != null ? ratingView.getVisibilityFactor() : 0;
          return onlineX + ratingPadding * ratingVisibility * (1f - expanded) + Math.max(0, (customPhotoOffset + getRatingViewTranslationXOffset()) * expanded);
      }
-@@ -16195,10 +16283,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+@@ -16195,10 +16284,20 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
      // centered subtitle with star rating keeps its position as it was before accounting for padding
      private float onlineTextRatingPadding, lastOnlineTextRatingPadding;
  
