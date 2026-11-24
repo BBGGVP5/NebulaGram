@@ -45,6 +45,7 @@ public final class NebulaSettingsSearch {
         else if (section == -34) f.presentFragment(new NebulaFontFragment());
         else if (section == -35) f.presentFragment(new NebulaBotsFragment(f.getCurrentAccount()));
         else if (section == -62) f.presentFragment(new NebulaInlineResultsFragment());
+        else if (section == -63) f.presentFragment(new NebulaAboutFragment());
         else if (section == -36) f.presentFragment(new NebulaFeedFragment(f.getCurrentAccount()));
         else if (section == -13) NebulaUpdateSettingsSheet.show(f);
         else if (section == -14) f.presentFragment(new NebulaMenuFragment(NebulaMenuFragment.SCREEN_ADVANCED));
@@ -152,7 +153,7 @@ public final class NebulaSettingsSearch {
         result.add(new Entry(-1, NebulaText.text("Экспорт настроек", "Export settings"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(-1, NebulaText.text("Импорт настроек", "Import settings"), "NebulaGram", R.drawable.msg_customize));
         result.add(new Entry(0, NebulaText.text("Анимации Liquid Glass", "Liquid Glass animations"), "NebulaGram", R.drawable.msg_customize));
-        result.add(new Entry(3, NebulaText.text("О программе", "About"), "NebulaGram", R.drawable.msg_info));
+        result.add(new Entry(-63, NebulaText.text("О программе", "About"), "NebulaGram", R.drawable.msg_info));
         result.add(new Entry(3, NebulaText.text("Релизы", "Releases"), "GitHub NebulaGram", R.drawable.msg_download));
         // Append, never insert before existing entries: their history IDs are positional.
         result.add(new Entry(4, NebulaText.text("История поиска настроек", "Settings search history"), "NebulaGram", R.drawable.msg_recent));

@@ -20,7 +20,7 @@ labels = (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebul
 picker = (ROOT / 'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaIconPickerFragment.java').read_text(encoding='utf-8')
 assert selector.count('NebulaLauncherIconLabels.title(getContext(), icon)') == 2
 assert 'NebulaLauncherIconLabels.title(context, icon)' in bulletin
-assert 'NebulaLauncherIconLabels.title(context, icon)' in picker
+assert picker.count('NebulaLauncherIconLabels.title(') >= 3, 'Picker names, previews and thumbnails use the localized labels'
 assert 'getCurrentLocale()' in labels and 'createConfigurationContext(configuration).getString(icon.title)' in labels
 variants = [('DEFAULT', 'DefaultIcon', 'blue'), ('VINTAGE', 'VintageIcon', 'ocean'),
             ('AQUA', 'AquaIcon', 'aurora'), ('PREMIUM', 'PremiumIcon', 'sunset'),
