@@ -76,6 +76,16 @@ public class Check {
   is("20:00 в нью-йорке в мск =","04:00 (+1)");is("01:00 msk in new york =","17:00 (−1)");is("15:00 in tokyo =","21:00");is("12am utc to msk =","03:00");is("15:00 msk =","");
   is("15:00 utc =","18:00");is("25:00 msk in tokyo =","");is("15:00 mars in tokyo =","");
   NebulaInlineResults.Options noZones=options();noZones.timezones=false;is(noZones,"токио =","");
+  // Superscript powers (off by default) and world zones (off by default).
+  is("2³ =","");is("2³","");
+  NebulaInlineResults.Options sup=options();sup.superscript=true;
+  is(sup,"2³ =","8");is(sup,"2³","8");is(sup,"10⁻² =","0.01");is(sup,"(1+2)² =","9");is(sup,"3² + 4² =","25");is(sup,"2^100 =","1.26765060023×10³⁰");is(sup,"2^10 =","1024");
+  is(sup,"м² =","");is(sup,"5 m² =","");is(sup,"x² =","");
+  is("рейкьявик =","");is("iceland =","");is("15:00 msk in lima =","");
+  NebulaInlineResults.Options world=options();world.worldZones=true;
+  is(world,"reykjavik =","10:00");is(world,"15:00 msk in lima =","07:00");is(world,"япония =","19:00");is(world,"japan =","19:00");is(world,"исландия =","10:00");
+  is(world,"сша =","05:00");is(world,"now in argentina =","07:00");is(world,"токио =","19:00");is(world,"atlantis =","");
+  NebulaInlineResults.Options worldOff=options();worldOff.worldZones=true;worldOff.timezones=false;is(worldOff,"reykjavik =","");
   // Only the last line is read; very long drafts stay cheap.
   is("Итого:\n2+2 =","4");is("2+2 =\nпривет","");is("x".repeat(5000)+"\n7*6 =","42");is("7*6 ="+"x".repeat(200),"");
 
@@ -94,6 +104,11 @@ public class Check {
   clear(field);type(field,"2+2");check(result(hint).equals("4"),"unmarked hint");type(field," ");check(text(field).equals("2+2 "),"space without = stays a space");
   clear(field);type(field,"2+2=");field.getText().replace(2,3,"3");check(text(field).equals("2+3="),"mid-text edit");type(field," ");check(text(field).equals("2+3=5 "),"edit then insert");
   clear(field);NebulaInlineSettings.on=false;type(field,"2+2=");check(result(hint).isEmpty(),"master switch hides");type(field," ");check(text(field).equals("2+2= "),"master switch stops insertion");NebulaInlineSettings.on=true;
+  NebulaInlineSettings.options.superscript=true;
+  clear(field);type(field,"2^3+1^2=");type(field," ");check(text(field).equals("2³+1²=9 "),"superscript on insertion: "+text(field));back(field);check(text(field).equals("2^3+1^2="),"backspace restores the carets: "+text(field));
+  clear(field);type(field,"2^(3)=");type(field," ");check(text(field).equals("2^(3)=8 "),"parenthesised power left alone: "+text(field));
+  NebulaInlineSettings.options.superscript=false;
+  clear(field);type(field,"2^3=");type(field," ");check(text(field).equals("2^3=8 "),"superscript off keeps carets: "+text(field));
   hint.draw(field,new android.graphics.Canvas());check(field.getText().watchers.size()==2,"the hint attaches its watcher once");
   System.out.println("Inline results: "+cases+" calculator, currency, unit, time zone and input-field cases passed");
  }
@@ -111,16 +126,17 @@ with tempfile.TemporaryDirectory(prefix='nebula-inline-results-') as work:
         path = work / name
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_bytes(source.encode('utf-8'))
-    sources = [str(ui / (name + '.java')) for name in ['NebulaMath', 'NebulaInlineResults', 'NebulaInlineCurrency', 'NebulaInlineUnits', 'NebulaInlineTime', 'NebulaMathHint']]
+    sources = [str(ui / (name + '.java')) for name in ['NebulaMath', 'NebulaInlineResults', 'NebulaInlineCurrency', 'NebulaInlineUnits', 'NebulaInlineTime', 'NebulaWorldZones', 'NebulaMathHint']]
     subprocess.run([javac, '-encoding', 'UTF-8', '-implicit:none', '-d', str(work), *map(str, work.rglob('*.java')), *sources], check=True)
     subprocess.run([java, '-Dstdout.encoding=UTF-8', '-cp', str(work), 'Check'], check=True)
 
 # The Android-backed settings: literal keys, rate source and cache lifetime.
 settings = (ui / 'NebulaInlineSettings.java').read_text(encoding='utf-8')
 assert 'https://open.er-api.com/v6/latest/USD' in settings and 'DAY = 24L * 60 * 60 * 1000' in settings and '"success".equals(json.optString("result"))' in settings
+assert 'p.getBoolean("inline_superscript", false)' in settings and 'p.getBoolean("inline_world_zones", false)' in settings
 assert 'NebulaInlineCurrency.byPhone(user.phone)' in settings and 'NebulaChatPreferences.math()' in settings
 screen = (ui / 'NebulaInlineResultsFragment.java').read_text(encoding='utf-8')
-for key in ['inline_calculator', 'inline_currency', 'inline_units', 'inline_timezones', 'inline_group_digits', '"inline_math"']:
+for key in ['inline_calculator', 'inline_currency', 'inline_units', 'inline_timezones', 'inline_group_digits', '"inline_math"', '"inline_superscript"', '"inline_world_zones"']:
     assert key in screen, key
 assert 'new NebulaInlineResultsFragment()' in (ui / 'NebulaFeatureControls.java').read_text(encoding='utf-8')
 assert 'section == -62) f.presentFragment(new NebulaInlineResultsFragment())' in (ui / 'NebulaSettingsSearch.java').read_text(encoding='utf-8')

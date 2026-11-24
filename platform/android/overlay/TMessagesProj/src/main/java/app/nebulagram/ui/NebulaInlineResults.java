@@ -15,6 +15,10 @@ public final class NebulaInlineResults {
     public static final class Options {
         public boolean calculator = true, currency = true, units = true, timezones = true;
         public boolean group, degrees = true, imperial, russian;
+        /** "2³" reads as a power, huge results print as ×10ⁿ, and Space writes ^n as ⁿ. Off keeps the old output. */
+        public boolean superscript;
+        /** Any IANA city and country names on top of the built-in list. */
+        public boolean worldZones;
         public String defaultCurrency = "USD";
         /** Units of a currency per US dollar, or null until they are loaded. */
         public Map<String, Double> rates;
@@ -34,7 +38,7 @@ public final class NebulaInlineResults {
         String line = text.subSequence(start, length).toString().trim();
         if (line.isEmpty() || line.length() > 120) return "";
         if (o.calculator) {
-            String value = NebulaMath.result(line, o.degrees, o.group);
+            String value = NebulaMath.result(line, o.degrees, o.group, o.superscript);
             if (!value.isEmpty()) return value;
         }
         if (!line.endsWith("=")) return "";

@@ -22,9 +22,11 @@ public final class NebulaMath {
 
     public static String result(String text) { return result(text, true, false); }
     /** Without a trailing "=" only plain digit arithmetic is answered, so phone numbers, IDs and dates stay quiet. */
-    public static String result(String text, boolean degrees, boolean group) {
+    public static String result(String text, boolean degrees, boolean group) { return result(text, degrees, group, false); }
+    /** With superscript, "2³" reads as 2^3 and a huge result prints as 1.2×10³⁰. */
+    public static String result(String text, boolean degrees, boolean group, boolean superscript) {
         if(text==null||text.length()>120)return "";
-        String s=normalize(text);
+        String s=normalize(text);if(superscript)s=readSuperscript(s);
         boolean marked=s.endsWith("=");if(marked)s=s.substring(0,s.length()-1).trim();
         if(!marked&&!(s.contains("+")&&!s.startsWith("+"))&&!s.matches(".*[*/%()^].*")&&!s.matches(".*\\s[+-]\\s.*"))return "";
         if(!marked&&!s.matches("[0-9.,\\s+*/%()^-]+"))return "";
@@ -32,7 +34,36 @@ public final class NebulaMath {
         String radix=radixCall(s, degrees);if(radix!=null)return radix;
         NebulaMath parser=new NebulaMath(s, degrees);BigDecimal value=parser.evaluate();
         if(value==null||parser.operations==0)return "";
-        return format(value, group);
+        String out=format(value, group);
+        return superscript?exponentForm(out):out;
+    }
+    private static final String SUPER="⁰¹²³⁴⁵⁶⁷⁸⁹";
+    /** "2³", "10⁻²", "(1+1)²": a superscript run right after a digit or ")" becomes ^(n). */
+    static String readSuperscript(String s) {
+        StringBuilder out=new StringBuilder();int i=0,n=s.length();
+        while(i<n){
+            char c=s.charAt(i);
+            if((SUPER.indexOf(c)>=0||c=='⁻')&&out.length()>0&&(Character.isDigit(out.charAt(out.length()-1))||out.charAt(out.length()-1)==')')){
+                StringBuilder digits=new StringBuilder();if(c=='⁻'){digits.append('-');i++;}
+                while(i<n&&SUPER.indexOf(s.charAt(i))>=0){digits.append((char)('0'+SUPER.indexOf(s.charAt(i))));i++;}
+                if(digits.length()==0||digits.toString().equals("-"))return s;
+                out.append("^(").append(digits).append(')');continue;
+            }
+            out.append(c);i++;
+        }
+        return out.toString();
+    }
+    /** "-12" as "⁻¹²". */
+    public static String superscript(String digits) {
+        StringBuilder out=new StringBuilder();
+        for(int i=0;i<digits.length();i++){char c=digits.charAt(i);out.append(c=='-'?'⁻':Character.isDigit(c)?SUPER.charAt(c-'0'):c);}
+        return out.toString();
+    }
+    /** "1.26765060023e30" as "1.26765060023×10³⁰"; other results unchanged. */
+    static String exponentForm(String value) {
+        int e=value.indexOf('e');
+        if(e<=0||e==value.length()-1||!value.substring(e+1).matches("-?\\d+"))return value;
+        return value.substring(0,e)+"×10"+superscript(value.substring(e+1));
     }
     /** An amount for the converters: "5k", "2*50", "1,5". Null when it is not a complete expression. */
     public static BigDecimal value(String text, boolean degrees) {

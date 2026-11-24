@@ -50,8 +50,10 @@ public final class NebulaSettingsSchema {
         map.put("inline_group_digits", Boolean.class);
         map.put("inline_math", Boolean.class);
         map.put("inline_measurement", Integer.class);
+        map.put("inline_superscript", Boolean.class);
         map.put("inline_timezones", Boolean.class);
         map.put("inline_units", Boolean.class);
+        map.put("inline_world_zones", Boolean.class);
         map.put("ios_composer", Boolean.class);
         map.put("ios_icons", Boolean.class);
         map.put("ios_unread", Boolean.class);

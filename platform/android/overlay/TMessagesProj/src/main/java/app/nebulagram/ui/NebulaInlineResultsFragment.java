@@ -42,9 +42,13 @@ public final class NebulaInlineResultsFragment extends BaseFragment {
         card.add(toggle(c, "inline_currency", "Валюты", "Currencies", "Курсы open.er-api.com, обновляются раз в день", "Rates from open.er-api.com, refreshed daily"));
         card.add(toggle(c, "inline_units", "Единицы измерения", "Units of measure", "Длина, вес, температура, скорость и время", "Length, weight, temperature, speed and time"));
         card.add(toggle(c, "inline_timezones", "Часовые пояса", "Time zones", "Города, сокращения и смещения UTC", "Cities, abbreviations and UTC offsets"));
+        if (NebulaInlineSettings.feature("inline_timezones")) card.add(toggle(c, "inline_world_zones", "Все города и страны", "All cities and countries",
+                "Любой город из базы часовых поясов и страны по названию: «рейкьявик =», «япония =»", "Any city from the time zone database and countries by name: \"reykjavik =\", \"japan =\""));
         NebulaFormUi.group(content, text("Функции", "Features"), card);
 
         card = new NebulaCard(c);
+        card.add(toggle(c, "inline_superscript", "Степени надстрочными", "Superscript powers",
+                "2³ считается как 2^3, пробел после «=» пишет ^3 как ³, большие числа — 1,2×10³⁰", "2³ counts as 2^3, Space after \"=\" writes ^3 as ³, large numbers read 1.2×10³⁰"));
         card.add(toggle(c, "inline_group_digits", "Разделять разряды", "Group digits", "1" + NebulaMath.GROUP + "234" + NebulaMath.GROUP + "567 вместо 1234567", "1" + NebulaMath.GROUP + "234" + NebulaMath.GROUP + "567 instead of 1234567"));
         String[] angles = {text("Градусы", "Degrees"), text("Радианы", "Radians")};
         NebulaRow angle = new NebulaRow(c).title(text("Углы", "Angles")).subtitle(angles[NebulaInlineSettings.angle()], true).trailing(NebulaRow.TRAIL_CHEVRON);

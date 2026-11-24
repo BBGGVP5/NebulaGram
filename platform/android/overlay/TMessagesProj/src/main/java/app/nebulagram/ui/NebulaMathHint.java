@@ -7,6 +7,8 @@ import android.text.Layout;
 import android.text.SpannableStringBuilder;
 import android.text.TextWatcher;
 import android.widget.EditText;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * The gray inline result after "=". Space right after "=" inserts it; Backspace right after
@@ -37,13 +39,29 @@ public final class NebulaMathHint {
             if (before != 0 || count != 1 || start != text.length() - 1 || text.charAt(start) != ' ') return;
             String head = text.substring(0, start);
             if (!head.endsWith("=")) return;
-            String value = NebulaInlineResults.compute(head, NebulaInlineSettings.options());
+            NebulaInlineResults.Options options = NebulaInlineSettings.options();
+            String value = NebulaInlineResults.compute(head, options);
             if (value.isEmpty()) return;
             CharSequence original = new SpannableStringBuilder(s, 0, start);
-            replace(s, start, start + 1, spacing(head) + value + " ");
+            int end = options.superscript ? superscriptPowers(s, start) : start;
+            replace(s, end, end + 1, spacing(head) + value + " ");
             beforeInsertion = original; afterInsertion = s.toString();
         }
     };
+    private static final Pattern POWER = Pattern.compile("(?<=[0-9)])\\^(-?\\d{1,4})(?![0-9.])");
+    /** "2^3=" becomes "2³=" in place, from the end so earlier offsets and other spans stay put. Returns the shifted end. */
+    private int superscriptPowers(Editable s, int end) {
+        Matcher m = POWER.matcher(s.subSequence(0, end).toString());
+        java.util.ArrayList<int[]> found = new java.util.ArrayList<>();
+        while (m.find()) found.add(new int[]{m.start(), m.end(), m.start(1), m.end(1)});
+        for (int i = found.size() - 1; i >= 0; i--) {
+            int[] r = found.get(i);
+            String raised = NebulaMath.superscript(s.subSequence(r[2], r[3]).toString());
+            replace(s, r[0], r[1], raised);
+            end -= (r[1] - r[0]) - raised.length();
+        }
+        return end;
+    }
     private void replace(Editable s, int from, int to, CharSequence value) {
         applying = true;
         try { s.replace(from, to, value); } finally { applying = false; }

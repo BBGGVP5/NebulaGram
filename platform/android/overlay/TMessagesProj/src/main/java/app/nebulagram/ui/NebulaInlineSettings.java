@@ -20,7 +20,7 @@ public final class NebulaInlineSettings {
     public static final String RATES_URL = "https://open.er-api.com/v6/latest/USD";
     private static final long DAY = 24L * 60 * 60 * 1000, RETRY = 10L * 60 * 1000;
     private static volatile SharedPreferences preferences;
-    private static volatile boolean calculator, currency, units, timezones, group;
+    private static volatile boolean calculator, currency, units, timezones, group, superscript, worldZones;
     private static volatile int angle, measurement;
     private static volatile String defaultCurrency = "";
     private static volatile Map<String, Double> rates;
@@ -41,6 +41,8 @@ public final class NebulaInlineSettings {
         units = p.getBoolean("inline_units", true);
         timezones = p.getBoolean("inline_timezones", true);
         group = p.getBoolean("inline_group_digits", true);
+        superscript = p.getBoolean("inline_superscript", false);
+        worldZones = p.getBoolean("inline_world_zones", false);
         angle = Math.max(0, Math.min(1, p.getInt("inline_angle_unit", 0)));
         measurement = Math.max(0, Math.min(2, p.getInt("inline_measurement", 0)));
         String code = p.getString("inline_default_currency", "");
@@ -49,7 +51,7 @@ public final class NebulaInlineSettings {
     public static boolean enabled() { return NebulaChatPreferences.math(); }
     public static boolean feature(String key) {
         if (preferences == null) prefs();
-        switch (key) { case "inline_calculator": return calculator; case "inline_currency": return currency; case "inline_units": return units; case "inline_timezones": return timezones; default: return group; }
+        switch (key) { case "inline_calculator": return calculator; case "inline_currency": return currency; case "inline_units": return units; case "inline_timezones": return timezones; case "inline_superscript": return superscript; case "inline_world_zones": return worldZones; default: return group; }
     }
     public static int angle() { if (preferences == null) prefs(); return angle; }
     public static int measurement() { if (preferences == null) prefs(); return measurement; }
@@ -82,7 +84,7 @@ public final class NebulaInlineSettings {
         if (preferences == null) prefs();
         NebulaInlineResults.Options o = new NebulaInlineResults.Options();
         o.calculator = calculator; o.currency = currency; o.units = units; o.timezones = timezones;
-        o.group = group; o.degrees = angle == 0; o.imperial = imperial();
+        o.group = group; o.superscript = superscript; o.worldZones = worldZones; o.degrees = angle == 0; o.imperial = imperial();
         o.russian = "ru".equals(NebulaText.text("ru", "en"));
         o.defaultCurrency = resolvedCurrency();
         o.rates = rates();

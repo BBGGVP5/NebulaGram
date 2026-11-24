@@ -77,13 +77,17 @@ public final class NebulaInlineTime {
         zone("Africa/Johannesburg", "johannesburg", "йоханнесбург", "йоханнесбурге");
     }
 
-    static TimeZone find(String token) {
+    static TimeZone find(String token) { return find(token, null); }
+    static TimeZone find(String token, NebulaInlineResults.Options o) {
         String t = token.trim().toLowerCase(Locale.ROOT).replaceAll("\\s+", " ");
         if (t.isEmpty()) return null;
         String id = ZONES.get(t);
         if (id != null) return TimeZone.getTimeZone(id);
         Matcher m = OFFSET.matcher(t);
-        if (!m.matches()) return null;
+        if (!m.matches()) {
+            id = o != null && o.worldZones ? NebulaWorldZones.find(t) : null;
+            return id == null ? null : TimeZone.getTimeZone(id);
+        }
         int hours = Integer.parseInt(m.group(2)), minutes = m.group(3) == null ? 0 : Integer.parseInt(m.group(3));
         if (hours > 14 || minutes > 59) return null;
         return TimeZone.getTimeZone(String.format(Locale.ROOT, "GMT%s%02d:%02d", m.group(1), hours, minutes));
@@ -92,7 +96,7 @@ public final class NebulaInlineTime {
     static String convert(String body, NebulaInlineResults.Options o) {
         String[][] splits = NebulaInlineResults.splits(body);
         for (String[] split : splits) {
-            TimeZone target = find(split[1]);
+            TimeZone target = find(split[1], o);
             if (target == null) continue;
             String result = convert(split[0], target, o, true);
             if (result != null) return result;
@@ -100,7 +104,7 @@ public final class NebulaInlineTime {
         // "15:00 msk" converts to the phone's zone; a bare city shows its current time.
         String result = convert(body, o.local, o, false);
         if (result != null) return result;
-        TimeZone city = find(body);
+        TimeZone city = find(body, o);
         return city == null ? "" : show(o.now, city, o.local, o);
     }
     private static String convert(String source, TimeZone target, NebulaInlineResults.Options o, boolean explicit) {
@@ -118,7 +122,7 @@ public final class NebulaInlineTime {
         } else if (!explicit) return null;
         // "15:00 in tokyo" starts from the phone's zone; "15:00 =" alone is not a question.
         if (rest.isEmpty() && (!explicit || !time)) return null;
-        TimeZone zone = rest.isEmpty() ? o.local : find(rest);
+        TimeZone zone = rest.isEmpty() ? o.local : find(rest, o);
         if (zone == null) return null;
         if (hour < 0) return show(o.now, target, zone, o);
         if (!explicit && zone.getOffset(o.now) == target.getOffset(o.now)) return null;
