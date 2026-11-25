@@ -65,6 +65,8 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private int lastSecond = -1;
     /** Вид Apple Music: размытая обложка фоном, тонкие шкалы, кнопки без подложек. */
     private final boolean apple = NebulaMediaPreferences.playerStyle() == NebulaMediaPreferences.STYLE_APPLE;
+    /** The moving cover backdrop: always in the Apple style, by choice ("Live background") in the Expressive one. */
+    private final boolean live = apple || NebulaMediaPreferences.liveBackground();
     private final NebulaAppleBackdrop backdrop = new NebulaAppleBackdrop();
     private NebulaAppleSlider slider, volume;
     private float dragStartY, dragStartX;
@@ -81,7 +83,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private NebulaMusicPlayer(Context context, BottomSheet sheet, ActionBarMenuItem options, ActionBarMenuItem repeat, int account) {
         super(context);
         this.sheet = sheet; this.options = options; this.repeat = repeat; this.account = account;
-        setBackground(apple ? backdrop : background);
+        setBackground(live ? backdrop : background);
         backdrop.setCallback(this);
         backdrop.setMoving(!NebulaGlass.reduced() && (android.os.Build.VERSION.SDK_INT < 26 || ValueAnimator.areAnimatorsEnabled()));
         setClickable(true);
@@ -132,7 +134,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
             @Override public void getOutline(View view, android.graphics.Outline outline) { outline.setRoundRect(0, 0, view.getWidth(), view.getHeight(), AndroidUtilities.dp(14)); }
         }); }
         cover.getImageReceiver().setDelegate((receiver, set, thumb, memCache) -> {
-            if (set) { tint(receiver.getBitmap()); if (apple) backdrop.setCover(receiver.getBitmap()); }
+            if (set) { tint(receiver.getBitmap()); if (live) backdrop.setCover(receiver.getBitmap()); }
         });
         stage.addView(cover, new FrameLayout.LayoutParams(AndroidUtilities.dp(280), AndroidUtilities.dp(280), Gravity.CENTER));
         lyricsView = new NebulaLyricsView(context);
@@ -307,7 +309,8 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     @Override protected boolean verifyDrawable(android.graphics.drawable.Drawable who) { return who == backdrop || super.verifyDrawable(who); }
     @Override protected void dispatchDraw(android.graphics.Canvas canvas) {
         super.dispatchDraw(canvas);
-        if (apple && !playlist && !released && backdrop.animating()) postInvalidateOnAnimation();
+        // The backdrop drifts only while the track plays, so a paused player costs nothing.
+        if (live && !playlist && !released && backdrop.animating() && (apple || !MediaController.getInstance().isMessagePaused())) postInvalidateOnAnimation();
     }
 
     /** Apple: лист смахивается вниз за любое свободное место. */
@@ -372,6 +375,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
         else if (id == NotificationCenter.messagePlayingPlayStateChanged) {
             boolean playing = !MediaController.getInstance().isMessagePaused();
             playIcon.setPause(playing, true); setPlayShape(playing, true); seekBar.setPlaying(playing);
+            if (live) invalidate();
             float rest = apple ? 0.8f : 0.9f;
             cover.animate().scaleX(playing ? 1f : rest).scaleY(playing ? 1f : rest).setDuration(apple ? 520 : 320)
                 .setInterpolator(apple && !NebulaGlass.reduced() ? new android.view.animation.OvershootInterpolator(1.4f) : new android.view.animation.DecelerateInterpolator()).start();
@@ -382,7 +386,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private void setPlaylist(boolean value) {
         playlist = value;
         content.setVisibility(value ? GONE : VISIBLE);
-        setBackground(value ? null : apple ? backdrop : background);
+        setBackground(value ? null : live ? backdrop : background);
         returnButton.setVisibility(value ? VISIBLE : GONE);
         setClickable(!value);
     }
@@ -510,7 +514,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
                 if (released || palette == null) return;
                 int base = palette.getDarkVibrantColor(palette.getDarkMutedColor(palette.getDominantColor(BASE_TOP)));
                 int light = palette.getLightVibrantColor(palette.getVibrantColor(palette.getLightMutedColor(0xffe8def8)));
-                if (apple) backdrop.setPalette(palette.getVibrantColor(base), palette.getMutedColor(base), palette.getDominantColor(base));
+                if (live) backdrop.setPalette(palette.getVibrantColor(base), palette.getMutedColor(base), palette.getDominantColor(base));
                 animateTo(shade(base, 0.62f), shade(base, 0.22f), lift(light));
             });
         } catch (Exception ignore) {

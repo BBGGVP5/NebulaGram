@@ -103,3 +103,10 @@ assert 't("Перевод текстов", "Lyrics translation")' in screen
 for row in ['t("Пословная синхронизация", "Word-by-word sync")', 't("Транслитерация", "Transliteration")', 't("Источники текстов", "Lyrics sources")']:
     assert row in screen, row
 print('Lyrics sync: settings, player wiring and drawing verified')
+# Live background: the Apple backdrop behind the Expressive player, drifting only while music plays.
+assert 'getBoolean("player_live_background", false)' in prefs
+assert 'private final boolean live = apple || NebulaMediaPreferences.liveBackground();' in player
+assert 'setBackground(live ? backdrop : background);' in player and 'if (live) backdrop.setCover(receiver.getBitmap());' in player
+assert '(apple || !MediaController.getInstance().isMessagePaused())) postInvalidateOnAnimation();' in player and 'if (live) invalidate();' in player
+assert 't("Живой фон", "Live background")' in screen
+print('Live background verified')

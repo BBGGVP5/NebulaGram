@@ -36,6 +36,9 @@ public final class NebulaMediaFeaturesFragment extends BaseFragment {
         if (android.os.Build.VERSION.SDK_INT >= 29) player.add(toggle(c, t("Транслитерация", "Transliteration"),
             t("Латиница под строками на других алфавитах", "A Latin reading under lines in other scripts"),
             "player_transliteration", NebulaMediaPreferences.transliteration()));
+        player.add(toggle(c, t("Живой фон", "Live background"),
+            t("Размытая обложка медленно движется за плеером во время воспроизведения", "The blurred cover drifts behind the player while music plays"),
+            "player_live_background", NebulaMediaPreferences.liveBackground()));
         player.add(toggle(c, t("Перевод текстов", "Lyrics translation"),
             t("Перевод под строками через переводчик, выбранный для чатов (по умолчанию Google)", "A translation under each line through the translator chosen for chats (Google by default)"),
             "player_translation", NebulaMediaPreferences.lyricsTranslation()));

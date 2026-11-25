@@ -22,6 +22,8 @@ public final class NebulaMediaPreferences {
     public static boolean transliteration() { return prefs().getBoolean("player_transliteration", false); }
     /** A translation under each line, through the web translator chosen for chats. */
     public static boolean lyricsTranslation() { return prefs().getBoolean("player_translation", false); }
+    /** The moving blurred cover behind the Expressive player (the Apple style always has it). */
+    public static boolean liveBackground() { return prefs().getBoolean("player_live_background", false); }
     public static int lyricsSource() { return prefs().getInt("player_lyrics_source", NebulaLyricsSources.LRCLIB); }
     public static void setLyricsSource(int value) { prefs().edit().putInt("player_lyrics_source", value).apply(); }
     public static boolean pdfViewer() { return prefs().getBoolean("pdf_viewer", true); }
