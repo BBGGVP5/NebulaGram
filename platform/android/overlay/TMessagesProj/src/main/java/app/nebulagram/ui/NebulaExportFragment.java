@@ -24,7 +24,7 @@ import org.telegram.ui.ActionBar.BottomSheet;
 /** "Export data", as in Telegram Desktop: what to export, a size limit for files and how to save. */
 public final class NebulaExportFragment extends BaseFragment {
     private static final NebulaExportOptions options = new NebulaExportOptions();
-    private final boolean[] expanded = new boolean[3];
+    private final boolean[] expanded = new boolean[4];
     private LinearLayout column;
 
     private static String t(String ru, String en) { return NebulaText.text(ru, en); }
@@ -34,6 +34,7 @@ public final class NebulaExportFragment extends BaseFragment {
             case 0: return new String[]{t("Информация профиля", "Profile information"), t("Контакты", "Contacts"), t("Активные сеансы", "Active sessions")};
             case 1: return new String[]{t("Личные чаты", "Personal chats"), t("Боты", "Bots"), t("Избранное", "Saved Messages"),
                     t("Частные группы", "Private groups"), t("Публичные группы", "Public groups"), t("Каналы", "Channels")};
+            case 3: return new String[]{t("Фото профиля", "Profile photos"), t("Наборы стикеров", "Sticker sets"), t("Истории в профиле", "Profile stories")};
             default: return new String[]{t("Фото", "Photos"), t("Видео", "Videos"), t("Голосовые", "Voice messages"), t("Кружки", "Video messages"),
                     t("Стикеры", "Stickers"), "GIF", t("Файлы", "Files")};
         }
@@ -60,8 +61,8 @@ public final class NebulaExportFragment extends BaseFragment {
         }
 
         NebulaCard what = new NebulaCard(c);
-        String[] sections = {t("Аккаунт", "Account"), t("Чаты", "Chats"), t("Медиа", "Media")};
-        for (int s = 0; s < 3; s++) {
+        String[] sections = {t("Аккаунт", "Account"), t("Чаты", "Chats"), t("Медиа", "Media"), t("Другое", "Other")};
+        for (int s = 0; s < sections.length; s++) {
             final int section = s;
             int total = NebulaExportOptions.SECTIONS[s].length;
             NebulaRow head = new NebulaRow(c).title(sections[s] + "  " + options.selected(s) + "/" + total + (expanded[s] ? "  ˄" : "  ˅"))

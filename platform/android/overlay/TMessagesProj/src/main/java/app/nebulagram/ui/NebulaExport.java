@@ -165,6 +165,7 @@ public final class NebulaExport implements Runnable {
                 json.write("{\n \"about\": " + NebulaExportOptions.json("Exported by NebulaGram"));
             }
             exportAccount();
+            exportOther();
             exportChats();
             if (json != null) { json.write("\n}\n"); json.close(); json = null; }
             state.percent = 100;
@@ -267,6 +268,150 @@ public final class NebulaExport implements Runnable {
                 + "<h1>" + NebulaExportOptions.html(title) + "</h1>";
     }
 
+    /** "Other": own profile photos and the installed sticker sets. */
+    private void exportOther() throws Exception {
+        if (!options.any(3)) return;
+        List<String> photos = new ArrayList<>();
+        if (options.has(NebulaExportOptions.PROFILE_PHOTOS) && self != null) {
+            state.step = t("Фото профиля", "Profile photos");
+            TLRPC.TL_photos_getUserPhotos request = new TLRPC.TL_photos_getUserPhotos();
+            request.user_id = new TLRPC.TL_inputUserSelf();
+            request.limit = 100;
+            TLObject response = call(request);
+            if (response instanceof TLRPC.photos_Photos) {
+                List<TLRPC.Photo> list = ((TLRPC.photos_Photos) response).photos;
+                for (int i = 0; i < list.size(); i++) {
+                    if (stop) throw new InterruptedException();
+                    TLRPC.Photo photo = list.get(i);
+                    TLRPC.PhotoSize best = FileLoader.getClosestPhotoSizeWithSize(photo.sizes, 2560);
+                    if (best == null || best.size <= 0 || best.size > options.sizeLimit) continue;
+                    String name = "photo_" + (i + 1) + "@" + NebulaExportOptions.isoDate(photo.date, zone).replace(':', '-').replace('T', '_') + ".jpg";
+                    File file = fetch(null, self, best, null, photo, best.size, name);
+                    if (file == null) continue;
+                    String path = unique("profile_pictures", name);
+                    copy(file, path, "image/jpeg");
+                    photos.add(path);
+                }
+            }
+        }
+        List<String[]> stories = new ArrayList<>();
+        if (options.has(NebulaExportOptions.STORIES)) {
+            state.step = t("Истории", "Stories");
+            int offset = 0;
+            for (int page = 0; page < 50; page++) {
+                org.telegram.tgnet.tl.TL_stories.TL_stories_getPinnedStories request = new org.telegram.tgnet.tl.TL_stories.TL_stories_getPinnedStories();
+                request.peer = new TLRPC.TL_inputPeerSelf();
+                request.offset_id = offset;
+                request.limit = 100;
+                TLObject response = call(request);
+                if (!(response instanceof org.telegram.tgnet.tl.TL_stories.TL_stories_stories)) break;
+                List<org.telegram.tgnet.tl.TL_stories.StoryItem> items = ((org.telegram.tgnet.tl.TL_stories.TL_stories_stories) response).stories;
+                for (org.telegram.tgnet.tl.TL_stories.StoryItem story : items) {
+                    if (stop) throw new InterruptedException();
+                    String path = story(story);
+                    stories.add(new String[]{NebulaExportOptions.isoDate(story.date, zone), story.caption == null ? "" : story.caption, path});
+                }
+                if (items.size() < 100) break;
+                offset = items.get(items.size() - 1).id;
+            }
+        }
+        List<String[]> sets = new ArrayList<>();
+        if (options.has(NebulaExportOptions.STICKER_SETS)) {
+            state.step = t("Наборы стикеров", "Sticker sets");
+            for (TLRPC.TL_messages_stickerSet set : org.telegram.messenger.MediaDataController.getInstance(account).getStickerSets(org.telegram.messenger.MediaDataController.TYPE_IMAGE)) {
+                if (set == null || set.set == null) continue;
+                sets.add(new String[]{set.set.title, set.set.short_name, String.valueOf(set.documents == null ? set.set.count : set.documents.size())});
+            }
+        }
+        if (json != null) {
+            if (options.has(NebulaExportOptions.PROFILE_PHOTOS)) {
+                json.write(",\n \"profile_pictures\": [");
+                for (int i = 0; i < photos.size(); i++) json.write((i == 0 ? "\n" : ",\n") + "  {\"photo\": " + NebulaExportOptions.json(photos.get(i)) + "}");
+                json.write("\n ]");
+            }
+            if (options.has(NebulaExportOptions.STORIES)) {
+                json.write(",\n \"stories\": [");
+                for (int i = 0; i < stories.size(); i++) {
+                    String[] s = stories.get(i);
+                    json.write((i == 0 ? "\n" : ",\n") + "  {\"date\": " + NebulaExportOptions.json(s[0]) + ", \"caption\": " + NebulaExportOptions.json(s[1])
+                            + (s[2].isEmpty() ? "" : ", \"file\": " + NebulaExportOptions.json(s[2])) + "}");
+                }
+                json.write("\n ]");
+            }
+            if (options.has(NebulaExportOptions.STICKER_SETS)) {
+                json.write(",\n \"sticker_sets\": [");
+                for (int i = 0; i < sets.size(); i++) {
+                    String[] s = sets.get(i);
+                    json.write((i == 0 ? "\n" : ",\n") + "  {\"title\": " + NebulaExportOptions.json(s[0]) + ", \"link\": " + NebulaExportOptions.json("https://t.me/addstickers/" + s[1]) + ", \"count\": " + s[2] + "}");
+                }
+                json.write("\n ]");
+            }
+        }
+        if (options.format != NebulaExportOptions.FORMAT_JSON) {
+            Writer page = text("other.html", "text/html");
+            page.write(head(t("Другое", "Other")));
+            if (options.has(NebulaExportOptions.PROFILE_PHOTOS)) {
+                page.write("<h2>" + NebulaExportOptions.html(t("Фото профиля", "Profile photos")) + " · " + photos.size() + "</h2><div class=\"card\">");
+                for (String photo : photos) page.write("<a href=\"" + NebulaExportOptions.href(photo) + "\"><img src=\"" + NebulaExportOptions.href(photo) + "\" loading=\"lazy\"></a>");
+                page.write("</div>");
+            }
+            if (options.has(NebulaExportOptions.STORIES)) {
+                page.write("<h2>" + NebulaExportOptions.html(t("Истории", "Stories")) + " · " + stories.size() + "</h2>");
+                for (String[] s : stories) {
+                    page.write("<div class=\"m\"><div class=\"dim\">" + NebulaExportOptions.html(s[0].replace('T', ' ')) + "</div>");
+                    if (s[2].endsWith(".jpg")) page.write("<a href=\"" + NebulaExportOptions.href(s[2]) + "\"><img src=\"" + NebulaExportOptions.href(s[2]) + "\" loading=\"lazy\"></a>");
+                    else if (!s[2].isEmpty()) page.write("<div class=\"media\"><a href=\"" + NebulaExportOptions.href(s[2]) + "\">" + NebulaExportOptions.html(s[2].substring(s[2].lastIndexOf('/') + 1)) + "</a></div>");
+                    if (!s[1].isEmpty()) page.write("<div>" + NebulaExportOptions.html(s[1]) + "</div>");
+                    page.write("</div>");
+                }
+            }
+            if (options.has(NebulaExportOptions.STICKER_SETS)) {
+                page.write("<h2>" + NebulaExportOptions.html(t("Наборы стикеров", "Sticker sets")) + " · " + sets.size() + "</h2><div class=\"card\">");
+                for (String[] s : sets) page.write("<p><a href=\"https://t.me/addstickers/" + NebulaExportOptions.href(s[1]) + "\">" + NebulaExportOptions.html(s[0]) + "</a> <span class=\"dim\">" + s[2] + "</span></p>");
+                page.write("</div>");
+            }
+            page.write("</body></html>");
+            page.close();
+        }
+    }
+
+    /** A story's photo or video into stories/, within the size limit; "" when skipped. */
+    private String story(org.telegram.tgnet.tl.TL_stories.StoryItem story) {
+        try {
+            TLRPC.Photo photo = story.media == null ? null : story.media.photo;
+            TLRPC.Document document = story.media == null ? null : story.media.document;
+            TLObject attach;
+            long size;
+            String name = "story_" + story.id + "@" + NebulaExportOptions.isoDate(story.date, zone).replace(':', '-').replace('T', '_');
+            if (photo != null) {
+                TLRPC.PhotoSize best = FileLoader.getClosestPhotoSizeWithSize(photo.sizes, 2560);
+                if (best == null) return "";
+                attach = best; size = best.size; name += ".jpg";
+            } else if (document != null) {
+                attach = document; size = document.size; name += ".mp4";
+            } else return "";
+            if (size <= 0 || size > options.sizeLimit) return "";
+            File file = fetch(null, story, attach, document, photo, size, name);
+            if (file == null) return "";
+            String path = unique("stories", name);
+            copy(file, path, photo != null ? "image/jpeg" : "video/mp4");
+            return path;
+        } catch (InterruptedException stopped) {
+            return "";
+        } catch (Throwable error) {
+            FileLog.e(error);
+            return "";
+        }
+    }
+
+    private void copy(File file, String path, String mime) throws Exception {
+        try (InputStream in = new FileInputStream(file); OutputStream out = open(path, mime)) {
+            byte[] buffer = new byte[65536];
+            int n;
+            while ((n = in.read(buffer)) > 0) { if (stop) throw new InterruptedException(); out.write(buffer, 0, n); }
+        }
+    }
+
     /** Which chats the options ask for. */
     private boolean wanted(long dialogId) {
         if (dialogId > 0) {
@@ -348,6 +493,7 @@ public final class NebulaExport implements Runnable {
             Writer page = text("export_results.html", "text/html");
             page.write(head(t("Экспорт данных", "Exported data")));
             if (options.any(0)) page.write("<div class=\"card\"><a href=\"account.html\">" + NebulaExportOptions.html(t("Аккаунт", "Account")) + "</a></div>");
+            if (options.any(3)) page.write("<div class=\"card\"><a href=\"other.html\">" + NebulaExportOptions.html(t("Другое", "Other")) + "</a></div>");
             page.write("<h2>" + NebulaExportOptions.html(t("Чаты", "Chats")) + " · " + index.size() + "</h2>");
             for (String[] row : index) page.write("<div class=\"card\"><a href=\"" + NebulaExportOptions.href(row[0]) + "\">" + NebulaExportOptions.html(row[1]) + "</a> <span class=\"dim\">" + row[2] + "</span></div>");
             page.write("</body></html>");
@@ -477,7 +623,7 @@ public final class NebulaExport implements Runnable {
                 fileName = original == null || original.isEmpty() ? sub + "_" + m.id + extension(document.mime_type) : original;
             }
             if (size <= 0 || size > options.sizeLimit) return "";
-            File file = fetch(object, attach, document, photo, size, fileName);
+            File file = fetch(object.messageOwner, object, attach, document, photo, size, fileName);
             if (file == null) return "";
             String path = unique(dir + "/" + sub, NebulaExportOptions.safeName(fileName, sub + "_" + m.id));
             try (InputStream in = new FileInputStream(file); OutputStream out = open(path, document != null && document.mime_type != null ? document.mime_type : "image/jpeg")) {
@@ -507,9 +653,9 @@ public final class NebulaExport implements Runnable {
     }
 
     /** The local file of the media: already downloaded, or downloaded now through FileLoader. */
-    private File fetch(MessageObject object, TLObject attach, TLRPC.Document document, TLRPC.Photo photo, long size, String name) throws InterruptedException {
+    private File fetch(TLRPC.Message message, Object object, TLObject attach, TLRPC.Document document, TLRPC.Photo photo, long size, String name) throws InterruptedException {
         FileLoader loader = FileLoader.getInstance(account);
-        File existing = loader.getPathToMessage(object.messageOwner);
+        File existing = message == null ? null : loader.getPathToMessage(message);
         if (existing != null && existing.exists() && existing.length() >= size) return existing;
         File cached = loader.getPathToAttach(attach, true);
         if (cached != null && cached.exists() && cached.length() >= size) return cached;

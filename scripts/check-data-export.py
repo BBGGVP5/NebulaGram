@@ -17,7 +17,8 @@ public class Check {
   check(o.has(NebulaExportOptions.INFO)&&o.has(NebulaExportOptions.PERSONAL)&&o.has(NebulaExportOptions.PHOTOS)&&!o.has(NebulaExportOptions.CHANNELS),"Desktop-like defaults");
   check(o.selected(0)==2&&o.selected(1)==1&&o.selected(2)==1&&o.valid(),"counters");
   o.setAll(0,false);o.setAll(1,false);check(!o.valid(),"media alone is not an export");
-  o.setAll(2,true);check(o.selected(2)==7,"whole section");o.set(99,true);check(!o.has(99),"unknown item ignored");
+  o.setAll(2,true);check(o.selected(2)==7,"whole section");
+  check(o.selected(3)==0,"Other is off by default");o.set(NebulaExportOptions.STICKER_SETS,true);check(o.valid()&&o.selected(3)==1,"Other alone is an export");o.setAll(3,false);o.set(199,true);check(!o.has(199),"unknown item ignored");
   check(NebulaExportOptions.limit(0)==NebulaExportOptions.MIN_LIMIT&&NebulaExportOptions.limit(1)==NebulaExportOptions.MAX_LIMIT,"slider ends 1 MB and 4 GB");
   check(Math.abs(NebulaExportOptions.position(NebulaExportOptions.limit(.37f))-.37f)<1e-3,"slider round trip");
   check(NebulaExportOptions.limit(.5f)>60L<<20&&NebulaExportOptions.limit(.5f)<70L<<20,"log scale middle is ~64 MB: "+NebulaExportOptions.limit(.5f));
@@ -50,7 +51,7 @@ task = (ui / 'NebulaExport.java').read_text(encoding='utf-8')
 # result.json stays valid whatever is chosen: every section opens with a comma, none ends with one.
 writes = re.findall(r'json\.write\("((?:[^"\\]|\\.)*)"', task)
 assert not any(w.endswith(',\\n') for w in writes), [w for w in writes if w.endswith(',\\n')]
-for section in ['personal_information', 'contacts', 'sessions', 'chats']:
+for section in ['personal_information', 'contacts', 'sessions', 'chats', 'profile_pictures', 'sticker_sets', 'stories']:
     assert f'json.write(",\\n \\"{section}\\"' in task, section
 # Simulate the write order for every combination of sections and parse the result.
 for mask in range(16):
@@ -64,11 +65,12 @@ for mask in range(16):
 for part in ['MediaStore.Downloads.EXTERNAL_CONTENT_URI', 'MediaStore.MediaColumns.RELATIVE_PATH', 'Environment.DIRECTORY_DOWNLOADS + "/NebulaGram/"',
              'startsWith("FLOOD_WAIT_")', 'if (size <= 0 || size > options.sizeLimit) return "";', 'new TLRPC.TL_messages_getDialogs()', 'new TLRPC.TL_messages_getHistory()',
              'loader.cancelLoadFile(document)', 'running != null && !running.state.finished', 'java.util.Collections.reverse(messages);',
-             'NebulaExportOptions.html(body)', 'NebulaExportOptions.json(body)']:
+             'NebulaExportOptions.html(body)', 'NebulaExportOptions.json(body)', 'new TLRPC.TL_photos_getUserPhotos()', 'getStickerSets(org.telegram.messenger.MediaDataController.TYPE_IMAGE)',
+             'https://t.me/addstickers/', 'Writer page = text("other.html", "text/html");', 'new org.telegram.tgnet.tl.TL_stories.TL_stories_getPinnedStories()', 'unique("stories", name)']:
     assert part in task, part
 screen = (ui / 'NebulaExportFragment.java').read_text(encoding='utf-8')
 for part in ['t("Что экспортировать", "What to export")', 't("Лимит размера", "Size limit")', 't("Сохранение", "Saving")', 't("Продолжить в фоне", "Continue in Background")',
-             't("Остановить экспорт", "Stop Export")', 'Manifest.permission.WRITE_EXTERNAL_STORAGE', 'Build.VERSION.SDK_INT < 29', 'NebulaExport.start(currentAccount, copy(options))']:
+             't("Остановить экспорт", "Stop Export")', 't("Другое", "Other")', 't("Наборы стикеров", "Sticker sets")', 'Manifest.permission.WRITE_EXTERNAL_STORAGE', 'Build.VERSION.SDK_INT < 29', 'NebulaExport.start(currentAccount, copy(options))']:
     assert part in screen, part
 assert 'new NebulaExportFragment()' in (ui / 'NebulaSectionFragment.java').read_text(encoding='utf-8')
 assert 'NebulaExport' in (root / 'patches/android/HOOKS.md').read_text(encoding='utf-8')

@@ -13,13 +13,15 @@ public final class NebulaExportOptions {
     public static final int PERSONAL = 10, BOTS = 11, SAVED = 12, PRIVATE_GROUPS = 13, PUBLIC_GROUPS = 14, CHANNELS = 15;
     // Media
     public static final int PHOTOS = 20, VIDEOS = 21, VOICE = 22, ROUND = 23, STICKERS = 24, GIFS = 25, FILES = 26;
+    // Other
+    public static final int PROFILE_PHOTOS = 30, STICKER_SETS = 31, STORIES = 32;
     public static final int[][] SECTIONS = {{INFO, CONTACTS, SESSIONS}, {PERSONAL, BOTS, SAVED, PRIVATE_GROUPS, PUBLIC_GROUPS, CHANNELS},
-            {PHOTOS, VIDEOS, VOICE, ROUND, STICKERS, GIFS, FILES}};
+            {PHOTOS, VIDEOS, VOICE, ROUND, STICKERS, GIFS, FILES}, {PROFILE_PHOTOS, STICKER_SETS, STORIES}};
     public static final int FORMAT_HTML = 0, FORMAT_JSON = 1, FORMAT_BOTH = 2;
     public static final int PERIOD_ALL = 0, PERIOD_YEAR = 1, PERIOD_MONTH = 2, PERIOD_WEEK = 3;
     public static final long MIN_LIMIT = 1L << 20, MAX_LIMIT = 4L << 30;
 
-    private final boolean[] chosen = new boolean[32];
+    private final boolean[] chosen = new boolean[64];
     public long sizeLimit = 8L << 20;
     public int format = FORMAT_HTML;
     public int period = PERIOD_ALL;
@@ -34,8 +36,8 @@ public final class NebulaExportOptions {
     public int selected(int section) { int n = 0; for (int item : SECTIONS[section]) if (chosen[item]) n++; return n; }
     public boolean any(int section) { return selected(section) > 0; }
     public void setAll(int section, boolean value) { for (int item : SECTIONS[section]) chosen[item] = value; }
-    /** Something to export at all: account data or at least one kind of chat. */
-    public boolean valid() { return any(0) || any(1); }
+    /** Something to export at all: account data, a kind of chat or something from "Other". */
+    public boolean valid() { return any(0) || any(1) || any(3); }
 
     /** Slider 0..1 on a log scale between 1 MB and 4 GB. */
     public static long limit(float position) {
