@@ -30,6 +30,8 @@ import org.telegram.messenger.FileLog;
 import org.telegram.messenger.MediaController;
 import org.telegram.messenger.MessageObject;
 import org.telegram.messenger.SendMessagesHelper;
+import org.telegram.tgnet.SerializedData;
+import org.telegram.tgnet.TLRPC;
 import org.telegram.ui.ActionBar.BottomSheet;
 import org.telegram.ui.ActionBar.Theme;
 import org.telegram.ui.Cells.ChatMessageCell;
@@ -74,6 +76,54 @@ public final class NebulaMessageImage {
         return out;
     }
 
+    /** A detached copy of the message, so hiding its text never touches the chat. */
+    static TLRPC.Message detached(TLRPC.Message message) {
+        SerializedData out = null, in = null;
+        try {
+            out = new SerializedData(message.getObjectSize());
+            message.serializeToStream(out);
+            in = new SerializedData(out.toByteArray());
+            TLRPC.Message copy = TLRPC.Message.TLdeserialize(in, in.readInt32(false), false);
+            if (copy == null) return null;
+            copy.dialog_id = message.dialog_id;
+            copy.attachPath = message.attachPath;
+            copy.out = message.out;
+            return copy;
+        } catch (Throwable error) {
+            FileLog.e(error);
+            return null;
+        } finally {
+            if (out != null) out.cleanup();
+            if (in != null) in.cleanup();
+        }
+    }
+
+    /** "Hide text": the whole text or caption under Telegram's own spoiler. */
+    static void hideText(TLRPC.Message message) {
+        if (message == null || message.message == null || message.message.isEmpty()) return;
+        if (message.entities == null) message.entities = new ArrayList<>();
+        for (int i = message.entities.size() - 1; i >= 0; i--) if (message.entities.get(i) instanceof TLRPC.TL_messageEntitySpoiler) message.entities.remove(i);
+        TLRPC.TL_messageEntitySpoiler spoiler = new TLRPC.TL_messageEntitySpoiler();
+        spoiler.offset = 0;
+        spoiler.length = message.message.length();
+        message.entities.add(spoiler);
+    }
+
+    /** Messages left in the picture: excluded ones out, but never all of them. */
+    static List<Integer> kept(int count, java.util.Set<Integer> excluded) {
+        ArrayList<Integer> out = new ArrayList<>();
+        for (int i = 0; i < count; i++) if (!excluded.contains(i)) out.add(i);
+        if (out.isEmpty() && count > 0) out.add(0);
+        return out;
+    }
+
+    /** Sticker size: the longer side 512 px, as Telegram expects for webp stickers. */
+    static int[] stickerSize(int width, int height) {
+        if (width <= 0 || height <= 0) return new int[]{0, 0};
+        float scale = 512f / Math.max(width, height);
+        return new int[]{Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale))};
+    }
+
     public static void show(ChatActivity chat, MessageObject selected, MessageObject.GroupedMessages group) {
         Activity activity = chat == null ? null : chat.getParentActivity();
         List<MessageObject> messages = pick(selected, group);
@@ -89,7 +139,9 @@ public final class NebulaMessageImage {
         private final GradientDrawable background = new GradientDrawable(GradientDrawable.Orientation.TL_BR, new int[]{0, 0});
         private final ArrayList<View> swatches = new ArrayList<>();
         private int selected;
-        private boolean dark;
+        private boolean dark, hideText, hideTime;
+        private final java.util.HashSet<Integer> excluded = new java.util.HashSet<>();
+        private TextView textChip, timeChip;
 
         Sheet(ChatActivity chat, Activity activity, List<MessageObject> messages) {
             super(activity, false, chat.getResourceProvider());
@@ -155,6 +207,26 @@ public final class NebulaMessageImage {
             rowParams.topMargin = AndroidUtilities.dp(14);
             root.addView(scroller, rowParams);
 
+            LinearLayout chips = new LinearLayout(context);
+            chips.setOrientation(LinearLayout.HORIZONTAL);
+            textChip = action(context, theme, "", false, () -> { hideText = !hideText; rebuild(); });
+            timeChip = action(context, theme, "", false, () -> { hideTime = !hideTime; rebuild(); });
+            chips.addView(textChip, new LinearLayout.LayoutParams(0, AndroidUtilities.dp(40), 1));
+            View chipGap = new View(context);
+            chips.addView(chipGap, new LinearLayout.LayoutParams(AndroidUtilities.dp(8), 1));
+            chips.addView(timeChip, new LinearLayout.LayoutParams(0, AndroidUtilities.dp(40), 1));
+            LinearLayout.LayoutParams chipsParams = new LinearLayout.LayoutParams(-1, -2);
+            chipsParams.topMargin = AndroidUtilities.dp(12);
+            root.addView(chips, chipsParams);
+            if (messages.size() > 1) {
+                TextView hint = new TextView(context);
+                hint.setText(NebulaText.text("Нажмите на сообщение, чтобы убрать его с картинки", "Tap a message to leave it out of the picture"));
+                hint.setTextColor(theme.onSurfaceVariant());
+                hint.setTextSize(TypedValue.COMPLEX_UNIT_DIP, 13);
+                hint.setGravity(Gravity.CENTER);
+                root.addView(hint, new LinearLayout.LayoutParams(-1, -2));
+            }
+
             LinearLayout actions = new LinearLayout(context);
             actions.setOrientation(LinearLayout.HORIZONTAL);
             actions.addView(action(context, theme, NebulaText.text("Сохранить", "Save"), false, this::save), new LinearLayout.LayoutParams(0, AndroidUtilities.dp(48), 1));
@@ -164,6 +236,15 @@ public final class NebulaMessageImage {
             LinearLayout.LayoutParams actionsParams = new LinearLayout.LayoutParams(-1, -2);
             actionsParams.topMargin = AndroidUtilities.dp(16);
             root.addView(actions, actionsParams);
+            LinearLayout as = new LinearLayout(context);
+            as.setOrientation(LinearLayout.HORIZONTAL);
+            as.addView(action(context, theme, NebulaText.text("Отправить файлом", "Send as file"), false, this::sendFile), new LinearLayout.LayoutParams(0, AndroidUtilities.dp(48), 1));
+            View asGap = new View(context);
+            as.addView(asGap, new LinearLayout.LayoutParams(AndroidUtilities.dp(8), 1));
+            as.addView(action(context, theme, NebulaText.text("Отправить стикером", "Send as sticker"), false, this::sendSticker), new LinearLayout.LayoutParams(0, AndroidUtilities.dp(48), 1));
+            LinearLayout.LayoutParams asParams = new LinearLayout.LayoutParams(-1, -2);
+            asParams.topMargin = AndroidUtilities.dp(8);
+            root.addView(as, asParams);
             LinearLayout.LayoutParams sendParams = new LinearLayout.LayoutParams(-1, AndroidUtilities.dp(50));
             sendParams.topMargin = AndroidUtilities.dp(8);
             root.addView(action(context, theme, NebulaText.text("Отправить в этот чат", "Send to this chat"), true, this::send), sendParams);
@@ -196,17 +277,33 @@ public final class NebulaMessageImage {
                 if (i == selected) swatch.setStroke(AndroidUtilities.dp(3), NebulaTheme.of(getContext()).primary());
                 swatches.get(i).setBackground(swatch);
             }
+            if (textChip != null) textChip.setText((hideText ? "✓ " : "") + NebulaText.text("Скрыть текст", "Hide text"));
+            if (timeChip != null) timeChip.setText((hideTime ? "✓ " : "") + NebulaText.text("Скрыть время", "Hide time"));
             bubbles.removeAllViews();
             Theme.ResourcesProvider provider = dark ? new DarkThemeResourceProvider() : null;
             int account = chat.getCurrentAccount();
             for (int i = 0; i < source.size(); i++) {
                 MessageObject original = source.get(i);
+                final int index = i;
                 // A fresh copy: the chat's own object keeps its layout and animation state.
-                MessageObject copy = new MessageObject(account, original.messageOwner, true, true);
+                TLRPC.Message owner = original.messageOwner;
+                if (hideText) {
+                    TLRPC.Message detached = detached(owner);
+                    if (detached != null) { hideText(detached); owner = detached; }
+                }
+                MessageObject copy = new MessageObject(account, owner, true, true);
                 ChatMessageCell cell = new ChatMessageCell(getContext(), account, false, null, provider);
                 cell.setDelegate(new ChatMessageCell.ChatMessageCellDelegate() { });
                 cell.setFullyDraw(true);
+                cell.nebulaHideTime = hideTime;
                 cell.setMessageObject(copy, null, i + 1 < source.size(), i > 0, false);
+                boolean out = excluded.contains(i);
+                cell.setAlpha(out ? .3f : 1f);
+                cell.setTag(out ? "excluded" : null);
+                if (source.size() > 1) cell.setOnClickListener(v -> {
+                    if (!excluded.remove(index)) { excluded.add(index); if (excluded.size() >= source.size()) excluded.remove(index); }
+                    rebuild();
+                });
                 bubbles.addView(cell, new LinearLayout.LayoutParams(-1, -2));
             }
             TextView mark = new TextView(getContext());
@@ -225,20 +322,37 @@ public final class NebulaMessageImage {
             bubbles.addView(mark, markParams);
         }
 
-        /** The framed preview at twice its size, as a PNG in the cache directory, or null. */
-        private File render() {
+        private File render() { return render(false); }
+
+        /**
+         * The framed preview at twice its size as a PNG, or for a sticker the bubbles alone on a
+         * transparent background as a 512 px webp. Excluded messages are hidden while drawing.
+         */
+        private File render(boolean sticker) {
             int width = frame.getWidth(), height = frame.getHeight();
             if (width <= 0 || height <= 0) return null;
-            float scale = Math.min(2f, 4096f / Math.max(width, height));
+            ArrayList<View> hidden = new ArrayList<>();
+            for (int i = 0; i < bubbles.getChildCount(); i++) {
+                View child = bubbles.getChildAt(i);
+                if ("excluded".equals(child.getTag()) || sticker && child instanceof TextView) { child.setVisibility(View.GONE); hidden.add(child); }
+            }
+            android.graphics.drawable.Drawable back = frame.getBackground();
+            if (sticker) frame.setBackground(null);
+            frame.measure(View.MeasureSpec.makeMeasureSpec(width, View.MeasureSpec.EXACTLY), View.MeasureSpec.makeMeasureSpec(0, View.MeasureSpec.UNSPECIFIED));
+            frame.layout(frame.getLeft(), frame.getTop(), frame.getLeft() + width, frame.getTop() + frame.getMeasuredHeight());
+            height = frame.getMeasuredHeight();
             Bitmap bitmap = null;
             try {
-                bitmap = Bitmap.createBitmap(Math.round(width * scale), Math.round(height * scale), Bitmap.Config.ARGB_8888);
+                int[] size = sticker ? stickerSize(width, height) : null;
+                float scale = sticker ? size[0] / (float) width : Math.min(2f, 4096f / Math.max(width, height));
+                bitmap = Bitmap.createBitmap(Math.max(1, Math.round(width * scale)), Math.max(1, Math.round(height * scale)), Bitmap.Config.ARGB_8888);
                 Canvas canvas = new Canvas(bitmap);
                 canvas.scale(scale, scale);
                 frame.draw(canvas);
-                File file = new File(AndroidUtilities.getCacheDir(), "nebula_share_" + System.currentTimeMillis() + ".png");
+                File file = new File(AndroidUtilities.getCacheDir(), "nebula_share_" + System.currentTimeMillis() + (sticker ? ".webp" : ".png"));
                 try (FileOutputStream out = new FileOutputStream(file)) {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+                    if (sticker) bitmap.compress(android.os.Build.VERSION.SDK_INT >= 30 ? Bitmap.CompressFormat.WEBP_LOSSY : Bitmap.CompressFormat.WEBP, 92, out);
+                    else bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
                 }
                 return file;
             } catch (Throwable error) {
@@ -246,8 +360,22 @@ public final class NebulaMessageImage {
                 return null;
             } finally {
                 if (bitmap != null) bitmap.recycle();
+                if (sticker) frame.setBackground(back);
+                for (View child : hidden) child.setVisibility(View.VISIBLE);
+                frame.requestLayout();
             }
         }
+
+        private void sendDocument(boolean sticker) {
+            File file = render(sticker);
+            if (file == null) { failed(); return; }
+            // A webp no larger than 512 px goes out as a sticker; a png document stays a file.
+            SendMessagesHelper.prepareSendingDocument(AccountInstance.getInstance(chat.getCurrentAccount()), file.getAbsolutePath(), file.getAbsolutePath(), null, null,
+                    sticker ? "image/webp" : "image/png", chat.getDialogId(), null, null, null, null, null, true, 0, null, null, false);
+            dismiss();
+        }
+        private void sendFile() { sendDocument(false); }
+        private void sendSticker() { sendDocument(true); }
 
         private void failed() {
             Toast.makeText(getContext(), NebulaText.text("Не удалось создать картинку", "Could not create the image"), Toast.LENGTH_SHORT).show();

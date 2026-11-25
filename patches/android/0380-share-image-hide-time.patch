@@ -1,0 +1,16 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+index c2a53cea..be61276c 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Cells/ChatMessageCell.java
+@@ -21458,7 +21458,11 @@ public class ChatMessageCell extends BaseCell implements SeekBar.SeekBarDelegate
+         return mediaBackground && (captionLayout == null || captionAbove) && (reactionsLayoutInBubble.isEmpty || reactionsLayoutInBubble.isSmall || currentMessageObject != null && (currentMessageObject.isAnyKindOfSticker() || currentMessageObject.isRoundVideo())) || currentMessageObject != null && currentMessageObject.type == MessageObject.TYPE_PAID_MEDIA/* || isMedia && drawCommentButton && !isRepliesChat*/;
+     }
+ 
++    /** NebulaGram "Share as image": the time, views and status are left out of the picture. */
++    public boolean nebulaHideTime;
++
+     public void drawTime(Canvas canvas, float alpha, boolean fromParent) {
++        if (nebulaHideTime) return;
+         if (currentMessageObject != null && currentMessageObject.isAnyKindOfSticker() && app.nebulagram.ui.NebulaChatPreferences.stickerTime() == 2) return;
+         if (!drawFromPinchToZoom && delegate != null && delegate.getPinchToZoomHelper() != null && delegate.getPinchToZoomHelper().isInOverlayModeFor(this) && shouldDrawTimeOnMedia()) {
+             return;
