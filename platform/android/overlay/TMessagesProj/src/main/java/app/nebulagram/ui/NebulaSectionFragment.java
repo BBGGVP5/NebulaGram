@@ -877,6 +877,22 @@ public class NebulaSectionFragment extends BaseFragment {
                 .trailing(NebulaRow.TRAIL_CHEVRON)
                 .withClick(v -> presentFragment(new NebulaSyncFragment())));
         content.addView(sync, cardParams());
+        NebulaCard tablet = new NebulaCard(context);
+        NebulaRow tabletMode = new NebulaRow(context).icon(R.drawable.msg_media)
+                .title(NebulaText.text("Раскладка планшета", "Tablet layout"))
+                .subtitle(NebulaTabletMode.titles()[NebulaTabletMode.mode()], true).trailing(NebulaRow.TRAIL_CHEVRON);
+        tabletMode.withClick(v -> showDialog(new NebulaDialog.Builder(context)
+                .setTitle(NebulaText.text("Раскладка планшета", "Tablet layout"))
+                .setSelectedIndex(NebulaTabletMode.mode())
+                .setItems(NebulaTabletMode.titles(), (dialog, which) -> {
+                    NebulaTabletMode.setMode(which);
+                    tabletMode.subtitle(NebulaTabletMode.titles()[NebulaTabletMode.mode()], true);
+                }).create()));
+        tablet.add(tabletMode);
+        content.addView(tablet, cardParams());
+        content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text(
+                "«В широких окнах» включает две панели, когда окно приложения не уже 640 dp: раскрытый складной телефон, режим рабочего стола (DeX) или большое свободное окно. Повёрнутый обычный телефон остаётся в телефонной раскладке. Применяется при возврате в приложение или изменении окна.",
+                "\"In wide windows\" switches to two panes when the app's window is at least 640 dp wide: an unfolded phone, a desktop mode such as DeX, or a large free-form window. A regular phone turned sideways keeps the phone layout. Applies when you return to the app or the window changes.")));
         content.addView(NebulaCard.header(context, NebulaText.text("Идентификаторы", "Identifiers")));
         NebulaCard ids = new NebulaCard(context);
         String[] formats = {NebulaText.text("Telegram", "Telegram"), NebulaText.text("Bot API", "Bot API")};

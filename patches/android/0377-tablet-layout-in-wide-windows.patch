@@ -1,0 +1,13 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+index c723feb2..fae6c034 100644
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -3081,7 +3081,7 @@ public class AndroidUtilities {
+     }
+ 
+     public static boolean isTabletForce() {
+-        return ApplicationLoader.applicationContext != null && ApplicationLoader.applicationContext.getResources().getBoolean(R.bool.isTablet);
++        return app.nebulagram.ui.NebulaTabletMode.tablet(ApplicationLoader.applicationContext != null && ApplicationLoader.applicationContext.getResources().getBoolean(R.bool.isTablet));
+     }
+ 
+     public static boolean isTabletInternal() {
