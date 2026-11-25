@@ -898,6 +898,10 @@ public class NebulaSectionFragment extends BaseFragment {
                 .title(NebulaText.text("Пилюли в поиске", "Pill Stack"))
                 .subtitle(NebulaText.text("Свои виджеты с данными из любого API в поле поиска", "Own widgets with data from any API in the search field"), false)
                 .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaPillsFragment())));
+        tablet.add(new NebulaRow(context).icon(R.drawable.msg_saved)
+                .title(NebulaText.text("Экспорт данных", "Export data"))
+                .subtitle(NebulaText.text("Чаты, медиа и аккаунт в HTML или JSON, как в Telegram Desktop", "Chats, media and account as HTML or JSON, like Telegram Desktop"), false)
+                .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> presentFragment(new NebulaExportFragment())));
         content.addView(tablet, cardParams());
         content.addView(NebulaMenuFragment.placeholder(context, NebulaText.text(
                 "«В широких окнах» включает две панели, когда окно приложения не уже 640 dp: раскрытый складной телефон, режим рабочего стола (DeX) или большое свободное окно. Повёрнутый обычный телефон остаётся в телефонной раскладке. Применяется при возврате в приложение или изменении окна.",
