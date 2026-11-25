@@ -461,6 +461,11 @@ public class NebulaSectionFragment extends BaseFragment {
         composer.add(toggle(context, R.drawable.msg_channel,
                 R.string.NebulaHideSendAs, R.string.NebulaHideSendAsSub,
                 NebulaAppearance.hideSendAs(), NebulaAppearance::setHideSendAs));
+        NebulaRow quickSend = preference(context, R.drawable.msg_sticker, NebulaQuickSend.KEY, false,
+                "Быстрая отправка удержанием", "Hold to quick-send");
+        quickSend.subtitle(NebulaText.text("Удержание скрепки — последние фото, кнопки эмодзи — недавние стикеры. Проведите пальцем и отпустите",
+                "Hold the attach button for recent photos, the emoji button for recent stickers. Slide and release"), false);
+        composer.add(quickSend);
         expandablePreview(context, "composer", R.string.NebulaComposerSection, composerPreview, composer);
 
         content.addView(NebulaCard.header(context,

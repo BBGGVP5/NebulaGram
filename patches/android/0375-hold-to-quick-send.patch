@@ -1,0 +1,28 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+index 7b4bfdde..94fe73df 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/Components/ChatActivityEnterView.java
+@@ -2945,6 +2945,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+         emojiButton.setPadding(padding, padding, padding, padding);
+         ThemeBind.colorFilter(emojiButton, Theme.key_glass_defaultIcon, resourcesProvider, PorterDuff.Mode.SRC_IN);
+         emojiButton.setBackground(Theme.createInsetRoundRectDrawable(getThemedColor(Theme.key_listSelector), dp(19), dp(1), dp(3)));
++        emojiButton.setOnLongClickListener(v -> !emojiButton.isFormatMode() && app.nebulagram.ui.NebulaQuickSend.stickers(v, currentAccount,
++                !emojiButtonRestricted && !isInScheduleMode() && slowModeTimer <= 0 && editingMessageObject == null
++                        && (parentFragment == null || parentFragment.getCurrentChat() == null || ChatObject.canSendStickers(parentFragment.getCurrentChat())),
++                sticker -> onStickerSelected(sticker, null, "recent", null, false, true, 0, 0)));
++        emojiButton.setOnTouchListener(app.nebulagram.ui.NebulaQuickSend::touch);
+         emojiButton.setOnClickListener(v -> {
+             if (adjustPanLayoutHelper != null && adjustPanLayoutHelper.animationInProgress()) {
+                 return;
+@@ -3069,6 +3074,11 @@ public class ChatActivityEnterView extends FrameLayout implements
+                 }
+                 delegate.didPressAttachButton();
+             });
++            attachButton.setOnLongClickListener(v -> app.nebulagram.ui.NebulaQuickSend.photos(v,
++                    parentFragment != null && !isInScheduleMode() && slowModeTimer <= 0 && editingMessageObject == null
++                            && (parentFragment.getCurrentChat() == null || ChatObject.canSendPhoto(parentFragment.getCurrentChat())),
++                    entry -> { if (parentFragment != null) parentFragment.sendMedia(entry, null, true, 0, 0, false, 0); }));
++            attachButton.setOnTouchListener(app.nebulagram.ui.NebulaQuickSend::touch);
+             attachButton.setContentDescription(getString(R.string.AccDescrAttachButton));
+             updateFieldRight(1);
+         }
