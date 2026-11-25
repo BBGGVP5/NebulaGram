@@ -1,0 +1,25 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index f73e596c..952b65d0 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -34980,6 +34980,9 @@ public class ChatActivity extends BaseFragment implements
+             case 7912:
+                 app.nebulagram.ui.NebulaMessageToolsFragment.show(this, new app.nebulagram.ui.NebulaMessageToolsFragment(selectedObject));
+                 break;
++            case app.nebulagram.ui.NebulaMessageImage.OPTION:
++                app.nebulagram.ui.NebulaMessageImage.show(this, selectedObject, selectedObjectGroup);
++                break;
+             case 7913: {
+                 ArrayList<MessageObject> saving = selectedObjectGroup != null
+                         ? new ArrayList<>(selectedObjectGroup.messages) : new ArrayList<>();
+@@ -47225,6 +47228,10 @@ public class ChatActivity extends BaseFragment implements
+             items.add(app.nebulagram.ui.NebulaText.text("Сохранить в выбранный чат", "Save to chosen chat"));
+             icons.add(R.drawable.msg_saved); options.add(7913);
+         }
++        if (!noforwards && !isEphemeral && message.type != MessageObject.TYPE_PAID_MEDIA && app.nebulagram.ui.NebulaMessageImage.enabled()) {
++            items.add(app.nebulagram.ui.NebulaText.text("Поделиться картинкой", "Share as image"));
++            icons.add(R.drawable.msg_photos); options.add(app.nebulagram.ui.NebulaMessageImage.OPTION);
++        }
+         if (!isEphemeral && app.nebulagram.ui.NebulaTranscription.eligible(message)) {
+             items.add(app.nebulagram.ui.NebulaText.text("Расшифровать Nebula", "Nebula transcription"));
+             icons.add(R.drawable.msg_voice_unmuted); options.add(7919);

@@ -477,6 +477,11 @@ public class NebulaSectionFragment extends BaseFragment {
         behaviour.add(toggle(context, R.drawable.msg_customize,
                 R.string.NebulaWidePosts, R.string.NebulaWidePostsSub,
                 NebulaWidePosts.enabled(), NebulaWidePosts::setEnabled));
+        NebulaRow shareImage = preference(context, R.drawable.msg_photos, NebulaMessageImage.KEY, false,
+                "Поделиться картинкой", "Share as image");
+        shareImage.subtitle(NebulaText.text("Пункт в меню сообщения: пузыри на градиенте, отправка фото, сохранение или «Поделиться»",
+                "A message menu item: bubbles on a gradient, sent as a photo, saved or shared"), false);
+        behaviour.add(shareImage);
         behaviour.add(link(context, R.drawable.msg_list, R.string.NebulaMenuActions, R.string.NebulaMenuActionsInfo, SECTION_CHAT_ACTIONS));
         content.addView(behaviour, cardParams());
 
