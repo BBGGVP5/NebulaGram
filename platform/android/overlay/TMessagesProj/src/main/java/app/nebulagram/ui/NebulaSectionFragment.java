@@ -739,6 +739,8 @@ public class NebulaSectionFragment extends BaseFragment {
                     defaultTab.subtitle(NebulaProfileTabs.title(), true);
                 }).create()));
         card.add(defaultTab);
+        card.add(preference(context, R.drawable.msg_photos, NebulaPhotoCounter.KEY, false,
+                "Стеклянный счётчик фото", "Glass photo counter"));
         content.addView(card, cardParams());
         content.addView(NebulaCard.header(context, NebulaText.text("Информация", "Info")));
         card = new NebulaCard(context);

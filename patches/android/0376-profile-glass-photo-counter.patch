@@ -1,0 +1,44 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+index 6b3728ed..0100e3e2 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ProfileActivity.java
+@@ -1895,6 +1895,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         private final float[] animatorValues = new float[]{0f, 1f};
+ 
+         private final PagerAdapter adapter = avatarsViewPager.getAdapter();
++        private final app.nebulagram.ui.NebulaPhotoCounter nebulaCounter = new app.nebulagram.ui.NebulaPhotoCounter(this);
+ 
+         private boolean isIndicatorVisible;
+ 
+@@ -2037,7 +2038,7 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+         }
+ 
+         public void refreshVisibility(float durationFactor) {
+-            setIndicatorVisible(isPulledDown && avatarsViewPager.getRealCount() > 20, durationFactor);
++            setIndicatorVisible(app.nebulagram.ui.NebulaPhotoCounter.visible(isPulledDown, avatarsViewPager.getRealCount(), isPulledDown && avatarsViewPager.getRealCount() > 20), durationFactor);
+         }
+ 
+         @Override
+@@ -2051,8 +2052,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+             }
+             overlaysView.invalidate();
+             final float textWidth = textPaint.measureText(getCurrentTitle());
++            final boolean nebulaGlass = app.nebulagram.ui.NebulaPhotoCounter.enabled();
++            if (nebulaGlass) nebulaCounter.setText(getCurrentTitle(), isIndicatorVisible);
+             indicatorRect.right = getMeasuredWidth() - dp(54f);
+-            indicatorRect.left = indicatorRect.right - (textWidth + dpf2(16f));
++            indicatorRect.left = indicatorRect.right - (nebulaGlass ? nebulaCounter.width(textWidth) : textWidth + dpf2(16f));
+             indicatorRect.top = (actionBar != null && actionBar.getOccupyStatusBar() ? AndroidUtilities.statusBarHeight : 0) + dp(15f);
+             indicatorRect.bottom = indicatorRect.top + dp(26);
+             setPivotX(indicatorRect.centerX());
+@@ -2062,6 +2065,10 @@ public class ProfileActivity extends BaseFragment implements NotificationCenter.
+ 
+         @Override
+         protected void onDraw(Canvas canvas) {
++            if (app.nebulagram.ui.NebulaPhotoCounter.enabled()) {
++                nebulaCounter.draw(canvas, indicatorRect);
++                return;
++            }
+             final float radius = AndroidUtilities.dpf2(12);
+             canvas.drawRoundRect(indicatorRect, radius, radius, backgroundPaint);
+             canvas.drawText(getCurrentTitle(), indicatorRect.centerX(), indicatorRect.top + AndroidUtilities.dpf2(18.5f), textPaint);
