@@ -194,14 +194,21 @@ public final class NebulaMenuStyle {
             child.setTranslationY(0); child.setAlpha(child.isEnabled() ? 1f : .5f);
         }
         content.nebulaReveal.begin();
+        final boolean cascade = NebulaMenuCascade.enabled();
+        if (cascade) NebulaMenuCascade.prepare(content);
         ValueAnimator frame = ValueAnimator.ofFloat(0f, 1f);
         frame.setInterpolator(new android.view.animation.LinearInterpolator());
-        frame.addUpdateListener(a -> content.nebulaReveal.setProgress((float) a.getAnimatedValue()));
+        frame.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            content.nebulaReveal.setProgress(t);
+            if (cascade) NebulaMenuCascade.step(content, t);
+        });
         AnimatorSet set = new AnimatorSet(); set.playTogether(frame); set.setDuration(NebulaMenuBubble.OPEN_DURATION_MS);
         set.addListener(new AnimatorListenerAdapter() {
             private boolean cancelled;
-            @Override public void onAnimationCancel(Animator animation) { cancelled = true; }
+            @Override public void onAnimationCancel(Animator animation) { cancelled = true; if (cascade) NebulaMenuCascade.settle(content); }
             @Override public void onAnimationEnd(Animator animation) {
+                if (cascade) NebulaMenuCascade.settle(content);
                 if (!cancelled) content.nebulaReveal.finish();
             }
         });
