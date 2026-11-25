@@ -16,6 +16,12 @@ public final class NebulaMediaPreferences {
     public static final int STYLE_EXPRESSIVE = 0, STYLE_APPLE = 1;
     public static int playerStyle() { return prefs().getInt("player_style", STYLE_EXPRESSIVE); }
     public static void setPlayerStyle(int value) { prefs().edit().putInt("player_style", value).apply(); }
+    /** Enhanced-LRC word highlight, background vocals and duet sides. */
+    public static boolean wordSync() { return prefs().getBoolean("player_word_sync", false); }
+    /** A Latin reading under lines in other scripts (Android 10+). */
+    public static boolean transliteration() { return prefs().getBoolean("player_transliteration", false); }
+    public static int lyricsSource() { return prefs().getInt("player_lyrics_source", NebulaLyricsSources.LRCLIB); }
+    public static void setLyricsSource(int value) { prefs().edit().putInt("player_lyrics_source", value).apply(); }
     public static boolean pdfViewer() { return prefs().getBoolean("pdf_viewer", true); }
     public static boolean svgViewer() { return prefs().getBoolean("svg_viewer", false); }
     public static void set(String key, boolean value) { prefs().edit().putBoolean(key, value).apply(); }

@@ -458,11 +458,26 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
     private void loadLyrics(String artist, String name, int length) {
         lyricsButton.setVisibility(NebulaMediaPreferences.lyrics() ? VISIBLE : GONE);
         if (!NebulaMediaPreferences.lyrics()) { if (showingLyrics) toggleLyrics(); return; }
+        lyricsView.setRich(NebulaMediaPreferences.wordSync(), NebulaMediaPreferences.transliteration());
         lyricsView.setLyrics(null, NebulaText.text("Ищем текст…", "Looking for lyrics…"));
         final String key = trackKey;
+        final int source = NebulaMediaPreferences.lyricsSource();
+        AudioInfo info = MediaController.getInstance().getAudioInfo();
+        final NebulaLrc fromFile = NebulaLyricsSources.usesFile(source)
+                ? NebulaLyricsSources.fromFile(info != null ? info.getLyrics() : null, NebulaMediaPreferences.wordSync()) : null;
+        final CharSequence missing = source == NebulaLyricsSources.LRCLIB
+                ? NebulaText.text("Текст для этого трека не найден на lrclib.net", "No lyrics for this track on lrclib.net")
+                : NebulaText.text("Текст для этого трека не найден", "No lyrics found for this track");
+        if (!NebulaLyricsSources.usesNetwork(source) || NebulaLyricsSources.fileFirst(source) && fromFile != null) {
+            NebulaLrc chosen = NebulaLyricsSources.choose(source, null, fromFile);
+            lyricsView.setLyrics(chosen, chosen == null ? missing : null);
+            progress();
+            return;
+        }
         NebulaMusicService.lyrics(artist, name, length, lrc -> {
             if (released || !key.equals(trackKey)) return;
-            lyricsView.setLyrics(lrc, lrc == null ? NebulaText.text("Текст для этого трека не найден на lrclib.net", "No lyrics for this track on lrclib.net") : null);
+            NebulaLrc chosen = NebulaLyricsSources.choose(source, lrc, fromFile);
+            lyricsView.setLyrics(chosen, chosen == null ? missing : null);
             progress();
         });
     }

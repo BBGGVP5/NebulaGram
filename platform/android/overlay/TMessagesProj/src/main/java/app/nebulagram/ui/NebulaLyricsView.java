@@ -4,8 +4,12 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Typeface;
 import android.text.Layout;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.StaticLayout;
 import android.text.TextPaint;
+import android.text.style.CharacterStyle;
+import android.text.style.RelativeSizeSpan;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,6 +23,11 @@ public final class NebulaLyricsView extends View {
     private final TextPaint paint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
     private final ArrayList<StaticLayout> layouts = new ArrayList<>();
     private final ArrayList<Integer> tops = new ArrayList<>();
+    /** Latin readings under lines ("Transliteration"), null where a line needs none. */
+    private final ArrayList<StaticLayout> readings = new ArrayList<>();
+    private final TextPaint readingPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
+    private boolean rich, transliterate;
+    private long position, positionAt;
     private final OverScroller scroller;
     private final GestureDetector gestures;
     private NebulaLrc lyrics;
@@ -69,21 +78,73 @@ public final class NebulaLyricsView extends View {
         requestLayout(); invalidate();
     }
     public boolean hasLyrics() { return lyrics != null; }
+    /** "Word-by-word sync" and "Transliteration" from the player settings. */
+    public void setRich(boolean words, boolean latin) {
+        if (rich == words && transliterate == latin) return;
+        rich = words; transliterate = latin && android.os.Build.VERSION.SDK_INT >= 29;
+        layoutWidth = -1; invalidate();
+    }
     public void setPosition(long millis) {
         if (lyrics == null) return;
+        boolean moved = millis != position;
+        position = millis; positionAt = System.currentTimeMillis();
         int index = lyrics.index(millis);
         if (index != current) { current = index; invalidate(); }
+        else if (moved && rich && current >= 0 && lyrics.lines.get(current).hasWords()) invalidate();
+    }
+    /** Playback position between two progress updates, so the word fill moves smoothly. */
+    private long now() {
+        long since = System.currentTimeMillis() - positionAt;
+        return since > 0 && since < 1000 ? position + since : position;
+    }
+    /** Dims background vocals: the paint's alpha is already set per line when this runs. */
+    private static final class Backing extends CharacterStyle {
+        @Override public void updateDrawState(TextPaint tp) { tp.setAlpha((int) (tp.getAlpha() * .62f)); }
+    }
+    private CharSequence styled(NebulaLrc.Line line) {
+        if (!rich || line.text.isEmpty()) return line.text;
+        int[] ranges = NebulaLrc.backgroundRanges(line.text);
+        if (ranges.length == 0) return line.text;
+        SpannableString text = new SpannableString(line.text);
+        for (int i = 0; i + 1 < ranges.length; i += 2) {
+            text.setSpan(new RelativeSizeSpan(.78f), ranges[i], ranges[i + 1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            text.setSpan(new Backing(), ranges[i], ranges[i + 1], Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        }
+        return text;
+    }
+    private static Object latin;
+    private static String transliterated(String text) {
+        if (android.os.Build.VERSION.SDK_INT < 29 || text.isEmpty() || !NebulaLyricsText.needsReading(text)) return null;
+        try {
+            if (latin == null) latin = android.icu.text.Transliterator.getInstance("Any-Latin; Latin-ASCII");
+            String out = ((android.icu.text.Transliterator) latin).transliterate(text).trim();
+            return out.isEmpty() || out.equals(text) ? null : out;
+        } catch (Throwable error) {
+            return null;
+        }
     }
 
     private void build() {
         int width = getWidth() - getPaddingLeft() - getPaddingRight();
         if (width <= 0 || width == layoutWidth) return;
-        layoutWidth = width; layouts.clear(); tops.clear();
+        layoutWidth = width; layouts.clear(); tops.clear(); readings.clear();
         int y = getHeight() / 3, spacing = AndroidUtilities.dp(18);
+        readingPaint.setTextSize(paint.getTextSize() * .55f);
+        readingPaint.setTypeface(Typeface.DEFAULT);
         if (lyrics != null) for (NebulaLrc.Line line : lyrics.lines) {
-            StaticLayout layout = StaticLayout.Builder.obtain(line.text.isEmpty() ? "♪" : line.text, 0, line.text.isEmpty() ? 1 : line.text.length(), paint, width)
-                .setAlignment(Layout.Alignment.ALIGN_NORMAL).setLineSpacing(0, 1.05f).build();
-            tops.add(y); layouts.add(layout); y += layout.getHeight() + spacing;
+            CharSequence text = line.text.isEmpty() ? "♪" : styled(line);
+            // A second duet voice sits on the opposite side, both voices together in the middle.
+            Layout.Alignment alignment = rich && line.voice == 1 ? Layout.Alignment.ALIGN_OPPOSITE
+                    : rich && line.voice == 2 ? Layout.Alignment.ALIGN_CENTER : Layout.Alignment.ALIGN_NORMAL;
+            StaticLayout layout = StaticLayout.Builder.obtain(text, 0, text.length(), paint, width)
+                .setAlignment(alignment).setLineSpacing(0, 1.05f).build();
+            tops.add(y); layouts.add(layout); y += layout.getHeight();
+            String reading = transliterate ? transliterated(line.text) : null;
+            StaticLayout readingLayout = reading == null ? null : StaticLayout.Builder.obtain(reading, 0, reading.length(), readingPaint, width)
+                .setAlignment(alignment).build();
+            readings.add(readingLayout);
+            if (readingLayout != null) y += AndroidUtilities.dp(4) + readingLayout.getHeight();
+            y += spacing;
         }
         contentHeight = y + getHeight() / 2;
     }
@@ -100,6 +161,31 @@ public final class NebulaLyricsView extends View {
     }
 
     @Override protected void onSizeChanged(int w, int h, int ow, int oh) { layoutWidth = -1; }
+
+    /** Draws characters [0, sung) of the layout: whole lines before, then the current line up to the fill point. */
+    private void drawSung(Canvas canvas, StaticLayout layout, float sung) {
+        int length = layout.getText().length();
+        if (length == 0) return;
+        int whole = (int) Math.min(length, Math.floor(sung));
+        int row = layout.getLineForOffset(Math.min(whole, length - 1));
+        for (int r = 0; r <= row; r++) {
+            int lineEnd = layout.getLineEnd(r);
+            float left = layout.getLineLeft(r), right = layout.getLineRight(r);
+            boolean rtl = layout.getParagraphDirection(r) == Layout.DIR_RIGHT_TO_LEFT;
+            canvas.save();
+            if (r < row || whole >= lineEnd) {
+                canvas.clipRect(left, layout.getLineTop(r), right, layout.getLineBottom(r));
+            } else {
+                float a = layout.getPrimaryHorizontal(whole);
+                float b = whole + 1 < lineEnd ? layout.getPrimaryHorizontal(whole + 1) : (rtl ? left : right);
+                float fill = a + (b - a) * (sung - whole);
+                if (rtl) canvas.clipRect(fill, layout.getLineTop(r), right, layout.getLineBottom(r));
+                else canvas.clipRect(left, layout.getLineTop(r), fill, layout.getLineBottom(r));
+            }
+            layout.draw(canvas);
+            canvas.restore();
+        }
+    }
 
     @Override protected void onDraw(Canvas canvas) {
         if (lyrics == null) {
@@ -133,9 +219,31 @@ public final class NebulaLyricsView extends View {
             int top = tops.get(i);
             if (top - scroll > getHeight() || top + layouts.get(i).getHeight() - scroll < 0) continue;
             float scale = apple ? 1f : 0.92f + 0.08f * emphasis[i];
-            paint.setColor(color); paint.setAlpha((int)(255 * ((apple ? 0.3f : 0.38f) + (apple ? 0.7f : 0.62f) * emphasis[i])));
+            StaticLayout layout = layouts.get(i);
+            NebulaLrc.Line line = lyrics.lines.get(i);
+            float dim = apple ? 0.3f : 0.38f;
+            boolean karaoke = rich && i == current && line.hasWords();
+            paint.setColor(color); paint.setAlpha((int)(255 * (karaoke ? dim + 0.2f : dim + (apple ? 0.7f : 0.62f) * emphasis[i])));
             canvas.save(); canvas.translate(0, top); canvas.scale(scale, scale, 0, 0);
-            layouts.get(i).draw(canvas); canvas.restore();
+            layout.draw(canvas);
+            if (karaoke) {
+                // The sung part of the line is drawn again at full strength, clipped to the voice.
+                long end = i + 1 < lyrics.lines.size() ? lyrics.lines.get(i + 1).time : Long.MAX_VALUE;
+                float sung = NebulaLrc.sung(line, now(), end);
+                if (sung > 0) {
+                    paint.setAlpha(255);
+                    drawSung(canvas, layout, sung);
+                }
+                animating = true;
+            }
+            StaticLayout reading = i < readings.size() ? readings.get(i) : null;
+            if (reading != null) {
+                readingPaint.setColor(color);
+                readingPaint.setAlpha((int)(255 * (0.3f + 0.4f * emphasis[i])));
+                canvas.translate(0, layout.getHeight() + AndroidUtilities.dp(4));
+                reading.draw(canvas);
+            }
+            canvas.restore();
         }
         canvas.restore();
         if (animating) postInvalidateOnAnimation();

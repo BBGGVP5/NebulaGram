@@ -54,7 +54,7 @@ public final class NebulaMusicService {
                     value = null;
                 }
             }
-            NebulaLrc lrc = value == null || value.isEmpty() ? null : value.charAt(0) == 'S' ? NebulaLrc.parse(value.substring(1)) : NebulaLrc.plain(value.substring(1));
+            NebulaLrc lrc = value == null || value.isEmpty() ? null : value.charAt(0) == 'S' ? NebulaLrc.parse(value.substring(1), NebulaMediaPreferences.wordSync()) : NebulaLrc.plain(value.substring(1));
             NebulaLrc answer = lrc == null || lrc.isEmpty() ? null : lrc;
             AndroidUtilities.runOnUIThread(() -> result.accept(answer));
         });

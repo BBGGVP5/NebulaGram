@@ -30,6 +30,22 @@ public final class NebulaMediaFeaturesFragment extends BaseFragment {
         player.add(toggle(c, t("Обложки Apple Music", "Apple Music covers"),
             t("Обложки высокого качества из iTunes", "High-resolution artwork from iTunes"),
             "player_apple_covers", NebulaMediaPreferences.appleCovers()));
+        player.add(toggle(c, t("Пословная синхронизация", "Word-by-word sync"),
+            t("Подсветка по словам, бэк-вокал в скобках и дуэты, если в тексте есть разметка", "Word highlight, background vocals in brackets and duets when the lyrics carry them"),
+            "player_word_sync", NebulaMediaPreferences.wordSync()));
+        if (android.os.Build.VERSION.SDK_INT >= 29) player.add(toggle(c, t("Транслитерация", "Transliteration"),
+            t("Латиница под строками на других алфавитах", "A Latin reading under lines in other scripts"),
+            "player_transliteration", NebulaMediaPreferences.transliteration()));
+        String[] sources = NebulaLyricsSources.titles();
+        NebulaRow source = new NebulaRow(c).title(t("Источники текстов", "Lyrics sources"))
+            .subtitle(sources[NebulaLyricsSources.clamp(NebulaMediaPreferences.lyricsSource())], true).trailing(NebulaRow.TRAIL_CHEVRON);
+        source.withClick(v -> showDialog(new NebulaDialog.Builder(c).setTitle(t("Источники текстов", "Lyrics sources"))
+            .setSelectedIndex(NebulaLyricsSources.clamp(NebulaMediaPreferences.lyricsSource()))
+            .setItems(sources, (dialog, which) -> {
+                NebulaMediaPreferences.setLyricsSource(which);
+                source.subtitle(sources[which], true);
+            }).create()));
+        player.add(source);
         player.add(new NebulaRow(c).title(t("Очистить кэш текстов и обложек", "Clear lyrics and cover cache"))
             .trailing(NebulaRow.TRAIL_CHEVRON).withClick(v -> {
                 NebulaMusicService.clearCache();
