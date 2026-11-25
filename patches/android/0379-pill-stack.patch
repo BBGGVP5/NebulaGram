@@ -1,0 +1,12 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+index 628ee97d..89fd0991 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/DialogsActivity.java
+@@ -3330,6 +3330,7 @@ public class DialogsActivity extends BaseFragment implements NotificationCenter.
+ 
+             fragmentSearchField.addAdditionalIcon(speedItem);
+             fragmentSearchField.updateColors();
++            app.nebulagram.ui.NebulaPills.attach(this, fragmentSearchField);
+         }
+ 
+         fragmentSearchField.setCloseButtonOnClickListener(() -> {
