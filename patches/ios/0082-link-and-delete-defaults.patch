@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 58ad149e72..ff2957feb8 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -3569,6 +3569,11 @@
+@@ -3649,6 +3649,11 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
              guard let self else {
                  return
              }
@@ -13,7 +14,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              let _ = (webpagePreviewWithProgress(account: self.context.account, urls: [instantPage.url], webpageId: instantPage.webpageId)
              |> deliverOnMainQueue).startStandalone(next: { [weak self] result in
                  Task { @MainActor in
-@@ -3732,6 +3737,10 @@
+@@ -3812,6 +3817,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
              }
          }, openInstantPage: { [weak self] message, associatedData in
              if let strongSelf = self, strongSelf.isNodeLoaded, let navigationController = strongSelf.effectiveNavigationController, let message = strongSelf.chatDisplayNode.historyNode.messageInCurrentHistoryView(message.id) {
@@ -24,7 +25,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                  let _ = strongSelf.presentVoiceMessageDiscardAlert(action: {
                      strongSelf.chatDisplayNode.dismissInput()
                      if let controller = strongSelf.context.sharedContext.makeInstantPageController(context: strongSelf.context, message: message, sourcePeerType: associatedData?.automaticDownloadPeerType) {
-@@ -10369,7 +10378,7 @@
+@@ -10549,7 +10558,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          
          if allowInlineWebpageResolution, let message, let webpage = message.media.first(where: { $0 is TelegramMediaWebpage }) as? TelegramMediaWebpage, case let .Loaded(content) = webpage.content, content.url == url {
              if content.instantPage != nil {
@@ -34,6 +35,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                      case .album:
                          break
 diff --git a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift b/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
+index c28e8e2d73..6505fe4438 100644
 --- a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
 +++ b/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift
 @@ -1,4 +1,5 @@
@@ -42,7 +44,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift b/s
  import UIKit
  import TelegramPresentationData
  import AccountContext
-@@ -596,11 +597,11 @@
+@@ -596,11 +597,11 @@ extension ChatControllerImpl {
                  }))
              }
              
@@ -57,6 +59,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerAdminBanUsers.swift b/s
                  }))
              } else if options.contains(.deleteGlobally) {
 diff --git a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift b/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
+index 7810bdb668..894335fe46 100644
 --- a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
 +++ b/submodules/TelegramUI/Sources/OpenResolvedUrl.swift
 @@ -1,4 +1,5 @@
@@ -65,7 +68,7 @@ diff --git a/submodules/TelegramUI/Sources/OpenResolvedUrl.swift b/submodules/Te
  import UIKit
  import AVFoundation
  import AsyncDisplayKit
-@@ -449,6 +450,10 @@
+@@ -447,6 +448,10 @@ func openResolvedUrlImpl(
              })
                  present(controller, nil)
          case let .instantView(webPage, anchor):

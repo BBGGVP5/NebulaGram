@@ -1,5 +1,5 @@
 diff --git a/submodules/Display/Source/Font.swift b/submodules/Display/Source/Font.swift
-index e53d8ae..7d8efa0 100644
+index e53d8ae64d..7d8efa0888 100644
 --- a/submodules/Display/Source/Font.swift
 +++ b/submodules/Display/Source/Font.swift
 @@ -160,6 +160,10 @@ public struct Font {

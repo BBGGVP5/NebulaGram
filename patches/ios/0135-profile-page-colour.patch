@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-index bf952b0..28c9444 100644
+index bbf7fc0f90..58fa29d4c2 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -91,6 +91,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -119,6 +119,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
      private let nebulaBannerFade = ASDisplayNode()
      private let nebulaBannerGradient = CAGradientLayer()
      private var nebulaBannerColor: UIColor?
@@ -12,7 +12,7 @@ index bf952b0..28c9444 100644
      let avatarClippingNode: SparseNode
      let avatarListNode: PeerInfoAvatarListNode
      
-@@ -2501,10 +2504,25 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -2545,10 +2548,25 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          
          transition.updateFrame(node: self.regularContentNode, frame: CGRect(origin: CGPoint(), size: CGSize(width: width, height: resolvedHeight)))
  
@@ -41,10 +41,10 @@ index bf952b0..28c9444 100644
          
          transition.updateFrameAdditive(node: self.buttonsContainerNode, frame: CGRect(origin: CGPoint(x: 0.0, y: apparentBackgroundHeight - backgroundHeight), size: CGSize(width: width, height: 1000.0)))
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
-index a1842eb..8888702 100644
+index ae80729045..89f7f72769 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
-@@ -598,6 +598,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+@@ -616,6 +616,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
      let isReady = Promise<Bool>()
      var didSetIsReady = false
      
@@ -53,7 +53,7 @@ index a1842eb..8888702 100644
      private var currentParams: (size: CGSize, sideInset: CGFloat, bottomInset: CGFloat, topInset: CGFloat, deviceMetrics: DeviceMetrics, visibleHeight: CGFloat, expansionFraction: CGFloat, presentationData: PresentationData, data: PeerInfoScreenData?, areTabsHidden: Bool, disableTabSwitching: Bool, navigationHeight: CGFloat)?
      
      private(set) var currentPaneKey: PeerInfoPaneKey?
-@@ -987,7 +989,7 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+@@ -1005,7 +1007,7 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
              }
          }
          
@@ -63,18 +63,18 @@ index a1842eb..8888702 100644
          let isScrollingLockedAtTop = expansionFraction < 1.0 - CGFloat.ulpOfOne
  
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-index ad5d16a..5788b6b 100644
+index 66b006f06d..15d7b00a29 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-@@ -240,6 +240,7 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+@@ -264,6 +264,7 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
      let cachedDataPromise = Promise<EngineCachedPeerData?>()
      
-     let scrollNode: ASScrollNode
+     let scrollNode: PeerInfoScrollNode
 +    private let nebulaPageGradient = CAGradientLayer()
      let edgeEffectView: EdgeEffectView
      
      let headerNode: PeerInfoHeaderNode
-@@ -1335,6 +1336,8 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+@@ -1368,6 +1369,8 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
          })
          
          self.backgroundColor = self.presentationData.theme.list.blocksBackgroundColor
@@ -83,7 +83,7 @@ index ad5d16a..5788b6b 100644
          
          self.scrollNode.view.showsVerticalScrollIndicator = false
          if #available(iOS 11.0, *) {
-@@ -5643,6 +5646,10 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+@@ -5711,6 +5714,10 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
          self.ignoreScrolling = true
          
          transition.updateFrame(node: self.scrollNode, frame: CGRect(origin: CGPoint(), size: layout.size))
@@ -94,7 +94,7 @@ index ad5d16a..5788b6b 100644
          
          if self.isSettings {
              let edgeEffectHeight: CGFloat = layout.intrinsicInsets.bottom
-@@ -6028,6 +6035,18 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
+@@ -6096,6 +6103,18 @@ final class PeerInfoScreenNode: ViewControllerTracingNode, PeerInfoScreenNodePro
          } else {
              color = self.presentationData.theme.list.blocksBackgroundColor.mixedWith(self.presentationData.theme.list.plainBackgroundColor, alpha: self.effectiveAreaExpansionFraction)
          }

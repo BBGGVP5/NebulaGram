@@ -1,7 +1,8 @@
 diff --git a/submodules/Camera/CameraLegacy/BUILD b/submodules/Camera/CameraLegacy/BUILD
+index 7e3fb5d20d..34ee40f413 100644
 --- a/submodules/Camera/CameraLegacy/BUILD
 +++ b/submodules/Camera/CameraLegacy/BUILD
-@@ -13,6 +13,7 @@
+@@ -13,6 +13,7 @@ swift_library(
          "//submodules/Camera:CameraBundle",
      ],
      deps = [
@@ -10,6 +11,7 @@ diff --git a/submodules/Camera/CameraLegacy/BUILD b/submodules/Camera/CameraLega
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
          "//submodules/Display:Display",
 diff --git a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift b/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
+index 7dcc15e84b..450ec699f1 100644
 --- a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
 +++ b/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift
 @@ -1,3 +1,4 @@
@@ -17,7 +19,7 @@ diff --git a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift b/submodu
  import Foundation
  import AVFoundation
  import SwiftSignalKit
-@@ -301,6 +302,21 @@
+@@ -265,6 +266,21 @@ final class CameraDevice {
          }
      }
      
@@ -40,6 +42,7 @@ diff --git a/submodules/Camera/CameraLegacy/Sources/CameraDevice.swift b/submodu
          guard let device = self.videoDevice else {
              return
 diff --git a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift b/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
+index d10ee65718..9ef75b6e6c 100644
 --- a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
 +++ b/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift
 @@ -1,3 +1,4 @@
@@ -47,18 +50,7 @@ diff --git a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift b/submodu
  import Foundation
  import UIKit
  import SwiftSignalKit
-@@ -13,8 +14,8 @@
-     
-     let hasMultiCam: Bool
-         
--    init(forRoundVideo: Bool) {
--        if #available(iOS 13.0, *), legacyIsDualCameraSupported(forRoundVideo: forRoundVideo) {
-+    init(forRoundVideo: Bool, allowDual: Bool = true) {
-+        if #available(iOS 13.0, *), allowDual && legacyIsDualCameraSupported(forRoundVideo: forRoundVideo) {
-             self.multiSession = AVCaptureMultiCamSession()
-             self.singleSession = nil
-             self.hasMultiCam = true
-@@ -513,6 +514,27 @@
+@@ -605,6 +606,27 @@ private final class CameraContext {
          self._flashMode = mode
      }
      
@@ -86,16 +78,16 @@ diff --git a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift b/submodu
      func setZoomLevel(_ zoomLevel: CGFloat) {
          if self.initialConfiguration.isRoundVideo {
              if self.positionValue == .front {
-@@ -736,7 +758,7 @@
+@@ -839,7 +861,7 @@ final class LegacyCamera: CameraProtocol {
          
          self.metrics = Camera.Metrics(model: DeviceModel.current)
          
--        let session = CameraSession(forRoundVideo: configuration.isRoundVideo)
-+        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowDual: !configuration.isRoundVideo || configuration.isDualEnabled)
+-        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowsMultiCam: configuration.captureMode == nil)
++        let session = CameraSession(forRoundVideo: configuration.isRoundVideo, allowsMultiCam: configuration.captureMode == nil && (!configuration.isRoundVideo || configuration.isDualEnabled))
          session.session.automaticallyConfiguresApplicationAudioSession = false
          session.session.automaticallyConfiguresCaptureDeviceForWideColor = false
          session.session.usesApplicationAudioSession = true
-@@ -905,6 +927,36 @@
+@@ -1081,6 +1103,36 @@ final class LegacyCamera: CameraProtocol {
          }
      }
      
@@ -133,9 +125,10 @@ diff --git a/submodules/Camera/CameraLegacy/Sources/LegacyCamera.swift b/submodu
          self.queue.async {
              if let context = self.contextRef?.takeUnretainedValue() {
 diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/Camera.swift
+index fdadada7b8..c5893ac84b 100644
 --- a/submodules/Camera/Sources/Camera.swift
 +++ b/submodules/Camera/Sources/Camera.swift
-@@ -5,6 +5,16 @@
+@@ -5,6 +5,16 @@ import CoreMedia
  import SwiftSignalKit
  
  public enum Camera {
@@ -152,7 +145,7 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
      public typealias Preset = AVCaptureSession.Preset
      public typealias Position = AVCaptureDevice.Position
      public typealias FocusMode = AVCaptureDevice.FocusMode
-@@ -93,6 +103,8 @@
+@@ -99,6 +109,8 @@ public protocol CameraProtocol: AnyObject {
      func focus(at point: CGPoint, autoFocus: Bool)
      func setFps(_ fps: Double)
      func setFlashMode(_ flashMode: Camera.FlashMode)
@@ -160,8 +153,8 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
 +    func setNebulaZoom(_ value: CGFloat, front: Bool, animated: Bool)
      func setZoomLevel(_ zoomLevel: CGFloat)
      func setZoomDelta(_ zoomDelta: CGFloat)
-     func rampZoom(_ zoomLevel: CGFloat, rate: CGFloat)
-@@ -113,6 +125,8 @@
+     func setZoomScale(_ zoomScale: CGFloat)
+@@ -123,6 +135,8 @@ public protocol CameraProtocol: AnyObject {
  }
  
  public extension CameraProtocol {
@@ -171,9 +164,10 @@ diff --git a/submodules/Camera/Sources/Camera.swift b/submodules/Camera/Sources/
          self.stopCapture(invalidate: false)
      }
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
+index 31279fe8a4..77e918bb50 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -182,6 +176,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/BUIL
          "//submodules/Display",
          "//submodules/TelegramCore",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
+index 490443fc48..344aec5e03 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sources/ChatMessageReplyInfoNode.swift
 @@ -1,3 +1,4 @@
@@ -189,7 +184,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -226,7 +227,7 @@
+@@ -243,7 +244,7 @@ public class ChatMessageReplyInfoNode: ASDisplayNode {
              }
              
              var giftEmojiFileId: Int64?
@@ -198,7 +193,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
              case let .preset(nameColor):
                  let colors = arguments.context.peerNameColors.get(nameColor, dark: arguments.presentationData.theme.theme.overallDarkAppearance)
                  authorNameColor = colors.main
-@@ -902,7 +903,7 @@
+@@ -948,7 +949,7 @@ public class ChatMessageReplyInfoNode: ASDisplayNode {
                  node.backgroundView.frame = backgroundFrame
                  
                  var pattern: MessageInlineBlockBackgroundView.Pattern?
@@ -207,7 +202,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
                      pattern = MessageInlineBlockBackgroundView.Pattern(
                          context: arguments.context,
                          fileId: backgroundEmojiId,
-@@ -913,7 +914,7 @@
+@@ -959,7 +960,7 @@ public class ChatMessageReplyInfoNode: ASDisplayNode {
                          emptyCorner: giftEmojiFileId != nil
                      )
                  }
@@ -217,9 +212,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageReplyInfoNode/Sour
                      isTransparent = true
                  }
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+index 77b39c288e..138c92749d 100644
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -958,8 +958,13 @@
+@@ -1000,8 +1000,13 @@ public class GlassBackgroundView: UIView {
              nebulaFallback.isHidden = true
              nebulaMaterial.frame = CGRect(origin: .zero, size: size)
              nebulaMaterialClip.update(shape: shape, size: size, transition: transition)
@@ -235,9 +231,10 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
              if nebulaMaterialState != state {
                  nebulaMaterialState = state
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
+index 2138f7c7e0..570765906f 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -246,6 +243,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/BU
          "//submodules/Display",
          "//submodules/TelegramCore",
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
+index ca78432470..86a357ca83 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/Sources/PeerInfoCoverComponent.swift
 @@ -1,3 +1,4 @@
@@ -253,7 +251,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/So
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -108,6 +109,7 @@
+@@ -108,6 +109,7 @@ public final class PeerInfoCoverComponent: Component {
          }
          
          var fileId: Int64? {
@@ -261,7 +259,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/So
              switch self {
              case let .peer(peer):
                  return peer.profileBackgroundEmojiId
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ public final class PeerInfoCoverComponent: Component {
              }
          }
      }
@@ -269,7 +267,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/So
      public let context: AccountContext
      public let subject: Subject?
      public let files: [Int64: TelegramMediaFile]
-@@ -171,6 +174,7 @@
+@@ -171,6 +174,7 @@ public final class PeerInfoCoverComponent: Component {
      }
      
      public static func ==(lhs: PeerInfoCoverComponent, rhs: PeerInfoCoverComponent) -> Bool {
@@ -278,9 +276,10 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoCoverComponent/So
              return false
          }
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 0164d55256..f342251bb2 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -265,7 +265,7 @@
+@@ -293,7 +293,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
      init(context: AccountContext, controller: PeerInfoScreenImpl, avatarInitiallyExpanded: Bool, isOpenedFromChat: Bool, isMediaOnly: Bool, isSettings: Bool, isMyProfile: Bool, forumTopicThreadId: Int64?, chatLocation: ChatLocation) {
          self.context = context
          self.controller = controller
@@ -289,7 +288,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          self.isOpenedFromChat = isOpenedFromChat
          self.isSettings = isSettings
          self.isMyProfile = isMyProfile
-@@ -494,7 +494,7 @@
+@@ -541,7 +541,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
              self.requestOpenAvatarForEditing?(false)
              return
          }
@@ -298,7 +297,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              if let currentEntry = self.avatarListNode.listContainerNode.currentEntry, let firstEntry = self.avatarListNode.listContainerNode.galleryEntries.first {
                  let entry = first ? firstEntry : currentEntry
                  self.requestAvatarExpansion?(true, self.avatarListNode.listContainerNode.galleryEntries, entry, self.avatarTransitionArguments(entry: currentEntry))
-@@ -735,7 +735,7 @@
+@@ -782,7 +782,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          var backgroundCoverAnimateIn = false
          var backgroundDefaultHeight: CGFloat = 254.0
          var hasBackground = false
@@ -307,7 +306,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              backgroundCoverSubject = .status(status)
              if !self.didSetupBackgroundCover {
                  if !self.isSettings {
-@@ -750,7 +750,7 @@
+@@ -797,7 +797,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                  }
              }
              hasBackground = true
@@ -316,7 +315,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              backgroundCoverSubject = .peer(peer)
              if peer.effectiveProfileColor != nil {
                  hasBackground = true
-@@ -819,11 +819,11 @@
+@@ -866,11 +866,11 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          
          let avatarFrame = CGRect(origin: CGPoint(x: hasStrip ? bandCenteredOrigin(width: avatarSize, margin: 16.0) : floor((width - avatarSize) / 2.0), y: statusBarHeight + 22.0), size: CGSize(width: avatarSize, height: avatarSize))
          
@@ -330,7 +329,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          let collapsedHeaderNavigationContentsPrimaryColor = presentationData.theme.list.itemPrimaryTextColor
          let expandedAvatarNavigationContentsPrimaryColor: UIColor = .white
          
-@@ -835,13 +835,13 @@
+@@ -882,13 +882,13 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          let collapsedHeaderButtonBackgroundColor: UIColor = .clear
          let expandedAvatarHeaderButtonBackgroundColor: UIColor = UIColor(white: 0.0, alpha: 0.5)
          
@@ -346,7 +345,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let mainColor = UIColor(rgb: UInt32(bitPattern: innerColor))
              let secondaryColor = UIColor(rgb: UInt32(bitPattern: outerColor))
              regularNavigationContentsSecondaryColor = UIColor(white: 1.0, alpha: 0.6).blitOver(mainColor.withMultiplied(hue: 1.0, saturation: 2.2, brightness: 1.5), alpha: 1.0)
-@@ -857,7 +857,7 @@
+@@ -904,7 +904,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
              regularHeaderButtonBackgroundColor = baseButtonBackgroundColor.blendOver(background: secondaryColor.mixedWith(mainColor, alpha: 0.1))
              
              hasCoverColor = true
@@ -355,7 +354,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let backgroundColors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
              regularNavigationContentsSecondaryColor = UIColor(white: 1.0, alpha: 0.6).blitOver(backgroundColors.main.withMultiplied(hue: 1.0, saturation: 2.2, brightness: 1.5), alpha: 1.0)
              
-@@ -1038,7 +1038,7 @@
+@@ -1085,7 +1085,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
              
              headerButtonBackgroundColor = regularHeaderButtonBackgroundColor.mixedWith(collapsedHeaderButtonBackgroundColor, alpha: effectiveTransitionFraction)
              
@@ -364,7 +363,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  let _ = innerColor
                  ratingBackgroundColor = UIColor(white: 1.0, alpha: 1.0).mixedWith(accentRatingBackgroundColor, alpha: effectiveTransitionFraction)
                  
-@@ -1049,7 +1049,7 @@
+@@ -1096,7 +1096,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                  let patternColor = UIColor(rgb: UInt32(bitPattern: patternColorValue))
                  ratingBorderColor = patternColor.withAlphaComponent(0.1).blendOver(background: backgroundColor).mixedWith(.clear, alpha: effectiveTransitionFraction)
                  ratingForegroundColor = ratingBorderColor.mixedWith(presentationData.theme.list.itemCheckColors.foregroundColor, alpha: effectiveTransitionFraction)
@@ -373,7 +372,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  ratingBackgroundColor = UIColor(white: 1.0, alpha: 1.0).mixedWith(presentationData.theme.list.itemCheckColors.fillColor, alpha: effectiveTransitionFraction)
                  
                  let backgroundColors = self.context.peerNameColors.getProfile(profileColor, dark: presentationData.theme.overallDarkAppearance)
-@@ -3060,7 +3060,7 @@
+@@ -3113,7 +3113,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
      
      func updateIsAvatarExpanded(_ isAvatarExpanded: Bool, transition: ContainedViewLayoutTransition) {
          if self.isAvatarExpanded != isAvatarExpanded {
@@ -383,6 +382,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  self.avatarListNode.listContainerNode.selectFirstItem()
              }
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index 08e627e3f9..28eaa0f186 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
 @@ -1,3 +1,4 @@
@@ -390,7 +390,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import Foundation
  import UIKit
  import Display
-@@ -137,7 +138,7 @@
+@@ -141,7 +142,7 @@ func infoItems(
              items[.calls]!.append(PeerInfoScreenCallListItem(id: ItemCallList, messages: callMessages))
          }
          
@@ -399,7 +399,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let peerId = personalChannel.peer.peerId
              var label: String?
              if let subscriberCount = personalChannel.subscriberCount {
-@@ -224,7 +225,7 @@
+@@ -228,7 +229,7 @@ func infoItems(
          }
          
          if let cachedData = data.cachedData as? CachedUserData {
@@ -408,7 +408,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  let isBirthdayToday = hasBirthdayToday(birthday: birthday)
                  
                  var birthdayAction: ((ASDisplayNode, Promise<Bool>?) -> Void)?
-@@ -368,13 +369,13 @@
+@@ -409,13 +410,13 @@ func infoItems(
                  }
              }
              
@@ -424,7 +424,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  if let coordinates = businessLocation.coordinates {
                      let imageSignal = chatMapSnapshotImage(engine: context.engine, resource: MapSnapshotMediaResource(latitude: coordinates.latitude, longitude: coordinates.longitude, width: 90, height: 90))
                      items[currentPeerInfoSection]!.append(PeerInfoScreenAddressItem(
-@@ -1285,7 +1286,7 @@
+@@ -1338,7 +1339,7 @@ func editingItems(data: PeerInfoScreenData?, boostStatus: ChannelBoostStatus?, s
                          interaction.editingOpenPostSuggestionsSetup()
                      }))
                      
@@ -434,9 +434,10 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                          items[.linkedMonoforum]?.append(PeerInfoScreenPersonalChannelItem(id: 1, context: context, data: personalChannel, controller: { [weak interaction] in
                              guard let interaction else {
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+index 14cd09b279..fb241ce1c7 100644
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -934,7 +934,7 @@
+@@ -951,7 +951,7 @@ public class VideoMessageCameraScreen: ViewController {
          var cameraState: CameraState {
              didSet {
                  if self.cameraState.position != oldValue.position {
@@ -445,7 +446,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  }
                  self.nebulaZoomSlider.isHidden = self.cameraState.recording == .none || self.previewState != nil
                  if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
-@@ -1000,7 +1000,6 @@
+@@ -1017,7 +1017,6 @@ public class VideoMessageCameraScreen: ViewController {
              self.previewContainerContentView.clipsToBounds = true
              self.previewContainerView.addSubview(self.previewContainerContentView)
                          
@@ -453,7 +454,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              let isFrontPosition = controller.initialFrontCamera
              
              self.mainPreviewView = cameraImpl.makeCameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
-@@ -1011,16 +1010,12 @@
+@@ -1028,16 +1027,12 @@ public class VideoMessageCameraScreen: ViewController {
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
              self.nebulaZoomSlider = NebulaVideoZoomSlider()
              self.nebulaZoomSlider.tintColor = self.presentationData.theme.list.itemAccentColor
@@ -472,7 +473,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.cameraState = CameraState(
                  position: isFrontPosition ? .front : .back,
-@@ -1030,7 +1025,7 @@
+@@ -1047,7 +1042,7 @@ public class VideoMessageCameraScreen: ViewController {
                  flashTintSize: 1.0,
                  recording: .none,
                  duration: 0.0,
@@ -481,7 +482,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  isViewOnceEnabled: false
              )
              
-@@ -1043,17 +1038,14 @@
+@@ -1060,17 +1055,14 @@ public class VideoMessageCameraScreen: ViewController {
              self.view.addSubview(self.containerView)
              self.view.addSubview(self.nebulaZoomSlider)
              self.nebulaZoomSlider.isHidden = true
@@ -502,7 +503,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              self.previewContainerContentView.addSubview(self.progressView)
              self.previewContainerContentView.addSubview(self.previewBlurView)
              self.previewContainerContentView.addSubview(self.loadingView)
-@@ -1063,16 +1055,11 @@
+@@ -1080,16 +1072,11 @@ public class VideoMessageCameraScreen: ViewController {
                      self.addCaptureResult(result)
                  }
              }
@@ -520,7 +521,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  self.loadingView.alpha = 0.0
                  self.additionalPreviewView.removePlaceholder(delay: 0.0)
              })
-@@ -1163,13 +1150,24 @@
+@@ -1180,13 +1167,24 @@ public class VideoMessageCameraScreen: ViewController {
              camera.startCapture()
              
              self.camera = camera
@@ -545,7 +546,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              switch gestureRecognizer.state {
              case .began:
                  self.pinchStartTimestamp = CACurrentMediaTime()
-@@ -1178,23 +1176,10 @@
+@@ -1195,23 +1193,10 @@ public class VideoMessageCameraScreen: ViewController {
                      return
                  }
                  let scale = gestureRecognizer.scale
@@ -571,7 +572,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              default:
                  break
              }
-@@ -1583,7 +1568,7 @@
+@@ -1611,7 +1596,7 @@ public class VideoMessageCameraScreen: ViewController {
                  backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
              }
                          
@@ -581,9 +582,10 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              transition.setPosition(view: self.backgroundView, position: actualBackgroundFrame.center)
              transition.setBounds(view: self.backgroundView, bounds: CGRect(origin: .zero, size: actualBackgroundFrame.size))
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+index ab6b5ad813..e225baf19a 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -149,28 +149,11 @@
+@@ -149,28 +149,11 @@ extension ChatControllerImpl {
      func requestVideoRecorder(initialFrontCamera: Bool? = nil) {
          if self.videoRecorderValue == nil && initialFrontCamera == nil {
              let presentationData = self.presentationData
@@ -618,9 +620,10 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swi
          }
          if self.videoRecorderValue == nil {
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 5a2965c579..0913df7d87 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -244,6 +244,7 @@
+@@ -247,6 +247,7 @@ struct ScrolledToMessageId: Equatable {
  public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
      var validLayout: ContainerViewLayout?
      private var nebulaNextChannelObservation: SettingsObservation?
@@ -628,7 +631,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
      
      public weak var parentController: ViewController?
-@@ -796,7 +797,9 @@
+@@ -808,7 +809,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          self.nebulaNextChannelObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              let seconds = NebulaSettingsStore.shared.secondsInTime
@@ -639,7 +642,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              self.nebulaLastSecondsInTime = seconds
              guard self.isViewLoaded else { return }
              self.updateNextChannelToReadVisibility()
-@@ -6212,7 +6215,7 @@
+@@ -6308,7 +6311,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                                              $0.withUpdatedEffectiveInputState(ChatTextInputState(inputText: NSAttributedString(string: value)))
                                          }
                                      })
@@ -649,9 +652,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                              })))
                          }
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index 4d7a9dceb4..bccb9b30a1 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1475,7 +1475,7 @@
+@@ -1484,7 +1484,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                              let selectedText = messageText
                              let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
                              c?.dismiss(completion: {
@@ -660,7 +664,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                              })
                              if c == nil { f(.default) }
                              return
-@@ -1492,17 +1492,14 @@
+@@ -1501,17 +1501,14 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      })))
                  }
                  
@@ -680,7 +684,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          })
                          if c == nil { f(.default) }
                      })))
-@@ -1510,7 +1507,7 @@
+@@ -1519,7 +1516,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
@@ -690,9 +694,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          if c == nil { f(.default) }
                      })))
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index 8c77ff39a4..b35e050735 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -305,7 +305,7 @@
+@@ -302,7 +302,7 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          guard let host = notification.object as? UIViewController, host === self,
                NebulaAiSettings.shared.homeShortcut else { return }
          let russian = self.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")

@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
-index e159e64..79c806b 100644
+index 0560634413..3fa2c2fbc1 100644
 --- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
 +++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerExtractedPresentationNode.swift
-@@ -1693,15 +1693,22 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
+@@ -1776,15 +1776,22 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
                      self?.additionalActionsStackNode.alpha = 1.0
                  })
              } else {
@@ -28,7 +28,7 @@ index e159e64..79c806b 100644
                      additive: false
                  )
                  
-@@ -1728,9 +1735,9 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
+@@ -1811,9 +1818,9 @@ final class ContextControllerExtractedPresentationNode: ASDisplayNode, ContextCo
                          actionsVerticalTransitionDirection = 1.0
                      }
                  }
@@ -41,10 +41,10 @@ index e159e64..79c806b 100644
                      keyPath: "position",
                      duration: duration,
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-index 8c83ea5..286f453 100644
+index 64c7d1aed7..bbf7fc0f90 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -612,49 +612,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
+@@ -659,49 +659,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
      @objc private func nebulaBadgeTapped() {
          guard let badge = self.nebulaBadge, let controller = self.controller,
                let presentationData = self.presentationData else { return }
@@ -96,10 +96,10 @@ index 8c83ea5..286f453 100644
  
      private var currentPanelStatusData: PeerInfoStatusData?
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-index d45135f..0d82117 100644
+index 1d114bc582..06c9f4eb65 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1697,7 +1697,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -1706,7 +1706,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          }
          
          if data.canEdit && !isPinnedMessages && !isMigrated {
@@ -108,7 +108,7 @@ index d45135f..0d82117 100644
                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Edit"), color: theme.actionSheet.primaryTextColor)
              }, action: { c, f in
                  if let _ = activeTodo {
-@@ -2473,7 +2473,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
+@@ -2522,7 +2522,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                  
                  if message.id.namespace == Namespaces.Message.QuickReplyCloud || message.id.namespace == Namespaces.Message.WelcomeMessageCloud {
                      if data.canEdit {
@@ -118,10 +118,10 @@ index d45135f..0d82117 100644
                          }, action: { c, f in
                              interfaceInteraction.setupEditMessage(messages[0].id, { transition in
 diff --git a/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift b/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
-index 85c72cd..4521eda 100644
+index 53ff04ca5f..c4b9cc8131 100644
 --- a/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
 +++ b/submodules/WallpaperBackgroundNode/Sources/WallpaperBackgroundNode.swift
-@@ -692,7 +692,19 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+@@ -691,7 +691,19 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
                  let graphics = PresentationResourcesChat.principalGraphics(theme: bubbleTheme, wallpaper: wallpaper, bubbleCorners: bubbleCorners)
                  
                  var needsCleanBackground = false
@@ -141,7 +141,7 @@ index 85c72cd..4521eda 100644
                  case .incoming:
                      self.contentNode.image = graphics.incomingBubbleGradientImage
                      if graphics.incomingBubbleGradientImage == nil {
-@@ -761,7 +773,7 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+@@ -760,7 +772,7 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
  
                  var gradientBackgroundSource: GradientBackgroundNode? = backgroundNode.gradientBackgroundNode
  
@@ -150,7 +150,7 @@ index 85c72cd..4521eda 100644
                      if let outgoingBubbleGradientBackgroundNode = backgroundNode.outgoingBubbleGradientBackgroundNode {
                          gradientBackgroundSource = outgoingBubbleGradientBackgroundNode
                          needsWallpaperBackground = false
-@@ -1965,6 +1977,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+@@ -1964,6 +1976,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
          let graphics = PresentationResourcesChat.principalGraphics(theme: bubbleTheme, wallpaper: graphicsWallpaper, bubbleCorners: bubbleCorners)
          switch type {
          case .incoming:
@@ -160,7 +160,7 @@ index 85c72cd..4521eda 100644
              if graphics.incomingBubbleGradientImage != nil {
                  return true
              }
-@@ -1972,6 +1987,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
+@@ -1971,6 +1986,9 @@ public final class WallpaperBackgroundNodeImpl: ASDisplayNode, WallpaperBackgrou
                  return !hasPlainWallpaper
              }
          case .outgoing:
@@ -170,7 +170,7 @@ index 85c72cd..4521eda 100644
              if graphics.outgoingBubbleGradientImage != nil {
                  return true
              }
-@@ -2083,3 +2101,18 @@ private extension StarGift {
+@@ -2082,3 +2100,18 @@ private extension StarGift {
          }
      }
  }

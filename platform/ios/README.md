@@ -3,7 +3,7 @@
 ## Current scope
 
 Official Telegram iOS is pinned by the `vendor/telegram-ios` gitlink to
-`fb0e62ba8a147f0821da6aa63c09da7d79a10111` (13.1.1). Its `versions.json`
+`24638bc69bd083981b178dd1e7f921eebbf7fc46` (13.2). Its `versions.json`
 specifies Xcode 27.1 (deployment Xcode 27.1), Bazel 9.2.0 and macOS 27, which
 GitHub provides only on the `xcode-27` runner image (preview since 2026-10-28). Full native CI and unsigned
 IPA 117 succeeded at NebulaGram source `9747336`; physical iPhone acceptance

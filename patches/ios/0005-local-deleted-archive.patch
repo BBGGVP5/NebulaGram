@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
+index 23e4e285e7..81b2ec093d 100644
 --- a/submodules/TelegramCore/BUILD
 +++ b/submodules/TelegramCore/BUILD
-@@ -12,6 +12,7 @@
+@@ -12,6 +12,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -9,22 +10,23 @@ diff --git a/submodules/TelegramCore/BUILD b/submodules/TelegramCore/BUILD
          "//submodules/TelegramApi:TelegramApi",
          "//submodules/MtProtoKit:MtProtoKit",
          "//submodules/MediaPreuploadRegistry:MediaPreuploadRegistry",
-diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
---- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-+++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-@@ -4622,6 +4622,7 @@
-             case let .DeleteEphemeralMessages(peerId, ids):
-                 deleteEphemeralMessages(transaction: transaction, peerId: peerId, ids: ids)
-             case let .DeleteMessagesWithGlobalIds(ids):
-+                NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: transaction.messageIdsForGlobalIds(ids))
-                 var resourceIds: [MediaResourceId] = []
-                 transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
-                     addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
-@@ -4631,6 +4632,7 @@
-                 }
-                 deletedMessageIds.append(contentsOf: ids.map { .global($0) })
-             case let .DeleteMessages(ids):
-+                NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: ids)
-                 _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: ids, manualAddMessageThreadStatsDifference: { id, add, remove in
-                     addMessageThreadStatsDifference(threadKey: id, remove: remove, addedMessagePeer: nil, addedMessageId: nil, isOutgoing: false)
-                 })
+diff --git a/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift b/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
+index cf1ab15d9c..5cb395c9bc 100644
+--- a/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
++++ b/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
+@@ -274,6 +274,7 @@ extension ReplayContext {
+     }
+     
+     func applyDeleteMessagesWithGlobalIds(_ ids: [Int32]) {
++        NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: transaction.messageIdsForGlobalIds(ids))
+         var resourceIds: [MediaResourceId] = []
+         transaction.deleteMessagesWithGlobalIds(ids, forEachMedia: { media in
+             addMessageMediaResourceIdsToRemove(media: media, resourceIds: &resourceIds)
+@@ -285,6 +286,7 @@ extension ReplayContext {
+     }
+     
+     func applyDeleteMessages(_ ids: [MessageId]) {
++        NebulaDeletedCapture.capture(transaction: transaction, accountPeerId: accountPeerId, ids: ids)
+         _internal_deleteMessages(transaction: transaction, mediaBox: mediaBox, ids: ids, manualAddMessageThreadStatsDifference: { id, add, remove in
+             self.addMessageThreadStatsDifference(threadKey: id, remove: remove, addedMessagePeer: nil, addedMessageId: nil, isOutgoing: false)
+         })

@@ -1,7 +1,8 @@
 diff --git a/submodules/AccountContext/Sources/PeerSelectionController.swift b/submodules/AccountContext/Sources/PeerSelectionController.swift
+index 4829952d2e..9f1d6bc6ee 100644
 --- a/submodules/AccountContext/Sources/PeerSelectionController.swift
 +++ b/submodules/AccountContext/Sources/PeerSelectionController.swift
-@@ -84,6 +84,7 @@
+@@ -86,6 +86,7 @@ public final class PeerSelectionControllerParams {
      public let pretendPresentedInModal: Bool
      public let multipleSelection: Bool
      public let multipleSelectionLimit: Int32?
@@ -10,9 +11,10 @@ diff --git a/submodules/AccountContext/Sources/PeerSelectionController.swift b/s
      public let hasTypeHeaders: Bool
      public let selectForumThreads: Bool
 diff --git a/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift b/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
+index 4e16383a05..5f83cd9c59 100644
 --- a/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
 +++ b/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfaceInteraction.swift
-@@ -79,6 +79,7 @@
+@@ -79,6 +79,7 @@ public final class ChatPanelInterfaceInteraction {
      public let reportMessages: ([EngineRawMessage], ContextControllerProtocol?) -> Void
      public let blockMessageAuthor: (EngineRawMessage, ContextControllerProtocol?) -> Void
      public let deleteMessages: ([EngineRawMessage], ContextControllerProtocol?, @escaping (ContextMenuActionResult) -> Void) -> Void
@@ -21,9 +23,10 @@ diff --git a/submodules/ChatPresentationInterfaceState/Sources/ChatPanelInterfac
      public let forwardCurrentForwardMessages: () -> Void
      public let forwardMessages: ([EngineRawMessage]) -> Void
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/BUILD
+index f05b8b8b4e..8440be0e00 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -32,6 +35,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
          "//submodules/Display",
          "//submodules/TelegramCore",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/Sources/ChatMessageSelectionInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/Sources/ChatMessageSelectionInputPanelNode.swift
+index a0baaec7ab..d0702343c7 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/Sources/ChatMessageSelectionInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPanelNode/Sources/ChatMessageSelectionInputPanelNode.swift
 @@ -1,3 +1,4 @@
@@ -39,7 +43,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
  import Foundation
  import UIKit
  import AsyncDisplayKit
-@@ -113,7 +114,7 @@
+@@ -113,7 +114,7 @@ private final class GlassButtonView: UIView {
                  return
              }
              if let icon = self.icon {
@@ -48,7 +52,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
              } else {
                  self.iconView.image = nil
              }
-@@ -178,6 +179,7 @@
+@@ -184,6 +185,7 @@ private final class GlassButtonView: UIView {
  }
  
  public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
@@ -56,7 +60,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
      private let deleteButton: GlassButtonView
      private let reportButton: GlassButtonView
      private let forwardButton: GlassButtonView
-@@ -244,6 +246,12 @@
+@@ -250,6 +252,12 @@ public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
          
          super.init()
          
@@ -69,7 +73,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
          self.view.addSubview(self.deleteButton)
          self.view.addSubview(self.reportButton)
          self.view.addSubview(self.forwardButton)
-@@ -304,6 +312,14 @@
+@@ -310,6 +318,14 @@ public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
          self.interfaceInteraction?.reportSelectedMessages()
      }
      
@@ -84,7 +88,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
      @objc private func forwardButtonPressed() {
          if let _ = self.presentationInterfaceState?.renderedPeer?.peer as? TelegramSecretChat {
              return
-@@ -526,7 +542,7 @@
+@@ -532,7 +548,7 @@ public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
              tagButton = self.tagEditButton
          }
          
@@ -93,7 +97,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
          if self.reportButton.isHidden {
              if let tagButton {
                  buttons = [
-@@ -578,6 +594,14 @@
+@@ -584,6 +600,14 @@ public final class ChatMessageSelectionInputPanelNode: ChatInputPanelNode {
              }
          }
          
@@ -109,9 +113,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSelectionInputPane
          
          let availableWidth = width - leftInset - rightInset
 diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionController.swift b/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionController.swift
+index ec5218282c..18815910fd 100644
 --- a/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionController.swift
 +++ b/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionController.swift
-@@ -64,6 +64,7 @@
+@@ -64,6 +64,7 @@ public final class PeerSelectionControllerImpl: ViewController, PeerSelectionCon
      private let hasFilters: Bool
      private let hasGlobalSearch: Bool
      private let pretendPresentedInModal: Bool
@@ -119,7 +124,7 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
      private let forwardedMessageIds: [EngineMessage.Id]
      private let hasTypeHeaders: Bool
      private let requestPeerType: [ReplyMarkupButtonRequestPeerType]?
-@@ -109,6 +110,7 @@
+@@ -109,6 +110,7 @@ public final class PeerSelectionControllerImpl: ViewController, PeerSelectionCon
          self.createNewGroup = params.createNewGroup
          self.pretendPresentedInModal = params.pretendPresentedInModal
          self.forwardedMessageIds = params.forwardedMessageIds
@@ -127,7 +132,7 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
          self.hasTypeHeaders = params.hasTypeHeaders
          self.selectForumThreads = params.selectForumThreads
          self.requestPeerType = params.requestPeerType
-@@ -364,6 +366,7 @@
+@@ -364,6 +366,7 @@ public final class PeerSelectionControllerImpl: ViewController, PeerSelectionCon
              hasContactSelector: self.hasContactSelector,
              hasGlobalSearch: self.hasGlobalSearch,
              forwardedMessageIds: self.forwardedMessageIds,
@@ -136,9 +141,10 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
              requestPeerType: self.requestPeerType,
              showPeerTypeRequirements: self.showPeerTypeRequirements,
 diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionControllerNode.swift b/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionControllerNode.swift
+index 9049a36ce2..bd6068d2f7 100644
 --- a/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionControllerNode.swift
 +++ b/submodules/TelegramUI/Components/PeerSelectionController/Sources/PeerSelectionControllerNode.swift
-@@ -129,6 +129,7 @@
+@@ -131,6 +131,7 @@ final class PeerSelectionControllerNode: ASDisplayNode {
          hasContactSelector: Bool,
          hasGlobalSearch: Bool,
          forwardedMessageIds: [EngineMessage.Id],
@@ -146,7 +152,7 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
          hasTypeHeaders: Bool,
          requestPeerType: [ReplyMarkupButtonRequestPeerType]?,
          showPeerTypeRequirements: Bool = true,
-@@ -161,7 +162,7 @@
+@@ -163,7 +164,7 @@ final class PeerSelectionControllerNode: ASDisplayNode {
  
          self.presentationInterfaceState = ChatPresentationInterfaceState(chatWallpaper: .builtin(WallpaperSettings()), theme: self.presentationData.theme, preferredGlassType: .default, strings: self.presentationData.strings, dateTimeFormat: self.presentationData.dateTimeFormat, nameDisplayOrder: self.presentationData.nameDisplayOrder, limitsConfiguration: self.context.currentLimitsConfiguration.with { $0 }, fontSize: self.presentationData.chatFontSize, bubbleCorners: self.presentationData.chatBubbleCorners, accountPeerId: self.context.account.peerId, mode: .standard(.default), chatLocation: .peer(id: EnginePeer.Id(0)), subject: nil, greetingData: nil, pendingUnpinnedAllMessages: false, activeGroupCallInfo: nil, hasActiveGroupCall: false, threadData: nil, isGeneralThreadClosed: nil, replyMessage: nil, accountPeerColor: nil, businessIntro: nil)
  
@@ -156,9 +162,10 @@ diff --git a/submodules/TelegramUI/Components/PeerSelectionController/Sources/Pe
  
          if let _ = self.requestPeerType, showPeerTypeRequirements {
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
+index c620b51c75..0ad733cd1d 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.swift
-@@ -4811,6 +4811,9 @@
+@@ -4812,6 +4812,9 @@ extension ChatControllerImpl {
              return self
          }, statuses: ChatPanelInterfaceInteractionStatuses(editingMessage: self.editingMessage.get(), startingBot: self.startingBot.get(), unblockingPeer: self.unblockingPeer.get(), searching: self.searching.get(), loadingMessage: self.loadingMessage.get(), inlineSearch: self.performingInlineSearch.get()))
          
@@ -169,25 +176,26 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerLoadDisplayNode.sw
          
          if let search = self.focusOnSearchAfterAppearance {
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
+index 28a6e7e21f..dcfe8179d3 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
-@@ -270,6 +270,12 @@
-                     if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
+@@ -276,6 +276,11 @@ extension ChatControllerImpl {
                      } else {
+                         // NebulaGram: очистить сохранённые удалённые сообщения этого чата.
                          let ru = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
 +                        if strongSelf.presentationInterfaceState.subject == nil && peerId.namespace != Namespaces.Peer.SecretChat {
-+                            items.append(ActionSheetButtonItem(title: ru ? "В начало" : "Go to beginning", color: .accent, action: { [weak self, weak actionSheet] in
-+                                actionSheet?.dismissAnimated()
++                            actions.append(AlertScreen.Action(title: ru ? "В начало" : "Go to beginning", action: { [weak self] in
 +                                self?.scrollToStartOfHistory()
 +                            }))
 +                        }
-                         items.append(ActionSheetButtonItem(title: ru ? "Очистить удаленки" : "Clear deleted messages", color: .accent, action: { [weak self, weak actionSheet] in
-                             actionSheet?.dismissAnimated()
+                         actions.append(AlertScreen.Action(title: ru ? "Очистить удаленки" : "Clear deleted messages", action: { [weak self] in
                              self?.nebulaConfirmClearRetained(peerId: peerId)
+                         }))
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
+index 1445c10a61..79ee672783 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
-@@ -349,15 +349,6 @@
+@@ -349,15 +349,6 @@ extension ChatControllerImpl {
          let strings = self.presentationData.strings
          
          var items: [ContextMenuItem] = []
@@ -203,7 +211,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/s
          if let _ = self.chatLocation.threadId {
          } else {
              items.append(.action(ContextMenuActionItem(text: strings.Conversation_ContextMenuOpenProfile, icon: { theme in
-@@ -471,6 +462,12 @@
+@@ -471,6 +462,12 @@ extension ChatControllerImpl {
              }
          }
  
@@ -217,14 +225,20 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/s
          
          let contextController = makeContextController(presentationData: presentationData, source: .reference(HeaderContextReferenceContentSource(controller: self, sourceView: sourceView)), items: .single(ContextController.Items(content: .list(items))), gesture: gesture)
 diff --git a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift b/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
+index bcf5cb00da..4b9afb7d3c 100644
 --- a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
 +++ b/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceState.swift
-@@ -45,7 +45,11 @@
-             self.secondaryRightNavigationButton = nil
+@@ -50,12 +50,16 @@ extension ChatControllerImpl {
          }
  
--        let rightBarButtons = [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem }
-+        var rightBarButtons: [UIBarButtonItem] = [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem }
+         // The sidebar button stays outermost, with Saved Messages' search before it.
+-        let rightBarButtons: [UIBarButtonItem]
++        var rightBarButtons: [UIBarButtonItem]
+         if self.rightNavigationButton?.action == .toggleSideList {
+             rightBarButtons = [self.secondaryRightNavigationButton, self.rightNavigationButton].compactMap { $0?.buttonItem }
+         } else {
+             rightBarButtons = [self.rightNavigationButton, self.secondaryRightNavigationButton].compactMap { $0?.buttonItem }
+         }
 +        if let selectionButtons = self.nebulaSelectionButtons(state: presentationInterfaceState) {
 +            rightBarButtons = selectionButtons
 +            buttonsAnimated = buttonsAnimated && !UIAccessibility.isReduceMotionEnabled
@@ -233,9 +247,10 @@ diff --git a/submodules/TelegramUI/Sources/Chat/UpdateChatPresentationInterfaceS
          let currentRightBarButtons = self.navigationItem.rightBarButtonItems ?? []
          if rightBarButtons.count != currentRightBarButtons.count {
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index ff2957feb8..ceba728009 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -444,6 +444,12 @@
+@@ -456,6 +456,12 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
  
      let chatBackgroundNode: WallpaperBackgroundNode
      public private(set) var controllerInteraction: ChatControllerInteraction?
@@ -248,7 +263,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      var interfaceInteraction: ChatPanelInterfaceInteraction?
      
      let messageContextDisposable = MetaDisposable()
-@@ -6371,6 +6377,12 @@
+@@ -6467,6 +6473,12 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                              })))
                          }
  
@@ -261,7 +276,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          return items
                      }
                  case let .replyThread(message):
-@@ -7331,6 +7343,7 @@
+@@ -7445,6 +7457,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
      }
  
      deinit {
@@ -270,9 +285,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          nebulaTranslationTimer?.invalidate()
          for observer in nebulaTranslationObservers { NotificationCenter.default.removeObserver(observer) }
 diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift
+index bf5fa52153..a40d49dafb 100644
 --- a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift
 +++ b/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift
-@@ -76,9 +76,11 @@
+@@ -76,9 +76,11 @@ extension ChatControllerImpl {
                  }
              }
              var attemptSelectionImpl: ((EnginePeer, ChatListDisabledPeerReason) -> Void)?
@@ -286,7 +302,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
              let context = self.context
              attemptSelectionImpl = { [weak self, weak controller] peer, reason in
                  guard let strongSelf = self, let controller = controller else {
-@@ -400,7 +402,7 @@
+@@ -400,7 +402,7 @@ extension ChatControllerImpl {
                  }
                  
                  if case .peer(peerId) = strongSelf.chatLocation, strongSelf.parentController == nil, !isPinnedMessages {
@@ -295,7 +311,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
                      strongSelf.updateItemNodesSearchTextHighlightStates()
                      strongSelf.searchResultsController = nil
                      strongController.dismiss()
-@@ -420,7 +422,8 @@
+@@ -420,7 +422,8 @@ extension ChatControllerImpl {
                      let mappedMessages = messages.map { message -> EnqueueMessage in
                          let correlationId = Int64.random(in: Int64.min ... Int64.max)
                          correlationIds.append(correlationId)
@@ -305,7 +321,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
                      }
                      
                      let _ = (reactionItems
-@@ -493,7 +496,7 @@
+@@ -493,7 +496,7 @@ extension ChatControllerImpl {
                      }
  
                      let _ = (ChatInterfaceState.update(engine: strongSelf.context.engine, peerId: peerId, threadId: threadId, { currentState in
@@ -315,9 +331,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatControllerForwardMessages.swift b
                      |> deliverOnMainQueue).startStandalone(completed: {
                          if let strongSelf = self {
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
+index b4d8e3f970..fa13aad76a 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateNavigationButtons.swift
-@@ -15,6 +15,12 @@
+@@ -16,6 +16,12 @@ func leftNavigationButtonForChatInterfaceState(_ presentationInterfaceState: Cha
          if let _ = presentationInterfaceState.reportReason {
              return ChatNavigationButton(action: .spacer, buttonItem: UIBarButtonItem(title: " ", style: .plain, target: nil, action: nil))
          }

@@ -1,4 +1,3 @@
-import LottieSettings
 import UIKit
 import AccountContext
 import TelegramCore
@@ -74,7 +73,7 @@ final class NebulaAnimatedSettingsEmoji: UIView {
         guard fileId != file.fileId else { return }
         fileId = file.fileId; sticker?.visibility = false; sticker?.pause()
         sticker?.view.removeFromSuperview(); fallback.isHidden = false
-        let node = DefaultAnimatedStickerNodeImpl(lottieSettings: .noAccountFallback)
+        let node = DefaultAnimatedStickerNodeImpl()
         node.automaticallyLoadFirstFrame = true
         node.started = { [weak self, weak node] in
             guard let self, self.sticker === node else { return }

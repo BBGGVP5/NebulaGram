@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-index a1d6cc5..9637510 100644
+index 4471a401f0..eedc8ec5f0 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -344,20 +344,14 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -383,20 +383,14 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
          return 44
      }
@@ -25,16 +25,16 @@ index a1d6cc5..9637510 100644
      @objc private func nebulaFormatTogglePressed() {
          self.nebulaFormattingExpanded = !self.nebulaFormattingExpanded
          self.hapticFeedback.impact(.light)
-@@ -1310,7 +1304,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
-             self.textInputBackgroundNode.view.removeGestureRecognizer(textInputBackgroundTapRecognizer)
-         }
-         
+@@ -1371,7 +1365,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         richTextInputNode.mediaItemViewFactory = self.mediaItemViewFactory
+         richTextInputNode.formulaRenderer = self.formulaRenderer
+ 
 -        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth + self.nebulaFormatToggleWidth
 +        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth
          var firstButton = true
          for (_, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -1449,7 +1443,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -1515,7 +1509,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          let textFieldInsets = self.textFieldInsets(metrics: metrics, bottomInset: bottomInset)
          let fieldMaxHeight = self.textFieldMaxHeight(maxHeight, metrics: metrics, bottomInset: bottomInset)
          
@@ -43,7 +43,7 @@ index a1d6cc5..9637510 100644
          var firstButton = true
          for (item, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -2661,7 +2655,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -2829,7 +2823,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          if !self.isFocused || !NebulaSettingsStore.shared.formattingToolbar {
              self.nebulaFormattingExpanded = false
          }
@@ -54,7 +54,7 @@ index a1d6cc5..9637510 100644
              && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 50 : 0
  
          let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
-@@ -3395,21 +3391,6 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -3556,21 +3552,6 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              transition.updateAlpha(layer: button.layer, alpha: audioRecordingItemsAlpha)
              nextButtonTopRight.x -= self.nebulaToolsWidth
          }
@@ -76,9 +76,9 @@ index a1d6cc5..9637510 100644
  
          self.currentTextInputBackgroundWidthOffset = textInputBackgroundWidthOffset
          
-@@ -3997,24 +3978,36 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
-         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
-         
+@@ -4229,24 +4210,36 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             return contentHeight + self.agentContainerExtraBottomInset
+         }
          self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
 -        if formattingHeight > 0 {
 +        // The "A" is centred over the round voice button, or the send button while there is text.

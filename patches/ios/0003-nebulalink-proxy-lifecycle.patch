@@ -1,19 +1,21 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index 879ebb7beb..e05fe14dd0 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -12,6 +12,7 @@
+@@ -12,6 +12,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/AsyncDisplayKit:AsyncDisplayKit",
 diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+index 116004c3e5..6546792585 100644
 --- a/submodules/TelegramUI/BUILD
 +++ b/submodules/TelegramUI/BUILD
-@@ -65,6 +65,7 @@
-     ],
+@@ -66,6 +66,7 @@ swift_library(
+     }),
      deps = [
          "//submodules/CrashReporting:CrashReporting",
 +        "//submodules/NebulaLinkUI:NebulaLinkUI",
@@ -21,15 +23,16 @@ diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
          "//submodules/SSignalKit/SSignalKit:SSignalKit",
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index be2822e736..4b1c6ea61e 100644
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
 @@ -1,4 +1,5 @@
  import Foundation
 +import NebulaLinkUI
  import UIKit
+ import UserNotifications
  import AsyncDisplayKit
- import TelegramCore
-@@ -329,6 +330,7 @@
+@@ -340,6 +341,7 @@ public final class SharedAccountContextImpl: SharedAccountContext {
          self.basePath = basePath
          self.networkArguments = networkArguments
          self.accountManager = accountManager

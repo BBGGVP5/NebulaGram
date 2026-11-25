@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules/TelegramUI/Sources/ApplicationContext.swift
+index e3172b2843..a7ec3c7a13 100644
 --- a/submodules/TelegramUI/Sources/ApplicationContext.swift
 +++ b/submodules/TelegramUI/Sources/ApplicationContext.swift
-@@ -852,6 +852,7 @@
+@@ -852,6 +852,7 @@ final class AuthorizedApplicationContext {
              self.rootController.updateRootControllers(showCallsTab: self.showCallsTab, showNewsTab: value)
          })
          
@@ -9,7 +10,7 @@ diff --git a/submodules/TelegramUI/Sources/ApplicationContext.swift b/submodules
          self.rootController.setForceInCallStatusBar((self.context.sharedContext as! SharedAccountContextImpl).currentCallStatusBarNode)
          if let groupCallController = self.context.sharedContext.currentGroupCallController as? VoiceChatController {
              if let overlayController = groupCallController.currentOverlayController {
-@@ -862,6 +863,7 @@
+@@ -862,6 +863,7 @@ final class AuthorizedApplicationContext {
      }
      
      deinit {

@@ -1,5 +1,5 @@
 diff --git a/submodules/Postbox/BUILD b/submodules/Postbox/BUILD
-index c619c0c..a0e445f 100644
+index c619c0ccef..a0e445f36e 100644
 --- a/submodules/Postbox/BUILD
 +++ b/submodules/Postbox/BUILD
 @@ -10,6 +10,8 @@ package_group(

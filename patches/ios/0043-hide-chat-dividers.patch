@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
+index 6ef509ece1..92a6f5c3a5 100644
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-@@ -29,6 +29,7 @@
+@@ -29,6 +29,7 @@ import MultilineTextComponent
  import MultilineTextWithEntitiesComponent
  import ShimmerEffect
  import GlassBackgroundComponent
@@ -9,7 +10,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
  
  public enum ChatListItemContent {
      public final class ThreadInfo: Equatable {
-@@ -1420,6 +1421,8 @@
+@@ -1502,6 +1503,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
      var dateStatusIconNode: ASImageNode?
      var dateDisclosureIconView: UIImageView?
      public let separatorNode: ASDisplayNode
@@ -18,7 +19,7 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
      let statusNode: ChatListStatusNode
      let badgeNode: ChatListBadgeNode
      let mentionBadgeNode: ChatListBadgeNode
-@@ -1755,6 +1758,10 @@
+@@ -1883,6 +1886,10 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
          
          self.addSubnode(self.backgroundNode)
          self.addSubnode(self.separatorNode)
@@ -29,12 +30,12 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/
          
          self.addSubnode(self.contextContainer)
          self.contextContainer.addSubnode(self.mainContentContainerNode)
-@@ -5404,6 +5411,8 @@
-                             strongSelf.separatorNode.isHidden = true
-                         }
+@@ -5645,6 +5652,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                         // The side list ends without a closing separator.
+                         strongSelf.separatorNode.isHidden = true
                      }
 +                    strongSelf.nebulaSeparatorBaseHidden = strongSelf.separatorNode.isHidden
 +                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
+                     strongSelf.separatorBaseIsHidden = strongSelf.separatorNode.isHidden
+                     strongSelf.updateSideListSeparatorVisibility()
                      
-                     transition.updateFrame(node: strongSelf.backgroundNode, frame: CGRect(origin: CGPoint(x: 0.0, y: 0.0), size: CGSize(width: layout.contentSize.width, height: itemHeight)))
-                     let backgroundColor: UIColor

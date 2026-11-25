@@ -1,7 +1,8 @@
 diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/AccountUtils/Sources/AccountUtils.swift
+index 44d09f560f..0185a18651 100644
 --- a/submodules/AccountUtils/Sources/AccountUtils.swift
 +++ b/submodules/AccountUtils/Sources/AccountUtils.swift
-@@ -4,8 +4,8 @@
+@@ -4,8 +4,8 @@ import TelegramCore
  import TelegramUIPreferences
  import AccountContext
  
@@ -13,9 +14,10 @@ diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/Acc
  public func activeAccountsAndPeers(context: AccountContext, includePrimary: Bool = false) -> Signal<((AccountContext, EnginePeer)?, [(AccountContext, EnginePeer, Int32)]), NoError> {
      let sharedContext = context.sharedContext
 diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+index 94b80d888c..b00f5458a8 100644
 --- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
 +++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
-@@ -39,7 +39,8 @@
+@@ -39,7 +39,8 @@ static NSInteger NebulaSelectedIconPack(void) {
          if ([document isKindOfClass:NSDictionary.class] && [document[@"settings"] isKindOfClass:NSDictionary.class]) {
              id raw = document[@"settings"][@"icon_pack"];
              if ([raw isKindOfClass:NSNumber.class]) {
@@ -26,9 +28,10 @@ diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/App
                  id legacy = document[@"settings"][@"ios_icons"];
                  if ([legacy isKindOfClass:NSNumber.class]) pack = [legacy boolValue] ? 1 : 0;
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+index 22bb333063..ee20d8d2c0 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
-@@ -226,33 +226,15 @@
+@@ -229,33 +229,15 @@ extension PeerInfoScreenNode {
                  guard let strongSelf = self else {
                      return
                  }

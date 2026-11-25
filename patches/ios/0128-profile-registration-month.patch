@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
-index 4b09bc0..7da5591 100644
+index 7fe0c35078..e9ed2a682b 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
-@@ -230,6 +230,11 @@ func infoItems(
+@@ -234,6 +234,11 @@ func infoItems(
          }
          
          if let cachedData = data.cachedData as? CachedUserData {

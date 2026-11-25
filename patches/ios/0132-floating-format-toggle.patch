@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-index 7a76480..a1d6cc5 100644
+index c4fd97510a..4471a401f0 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -344,6 +344,25 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -383,6 +383,25 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              state.editMessageState == nil, state.chatLocation.peerId?.namespace != Namespaces.Peer.SecretChat else { return 0 }
          return 44
      }
@@ -28,16 +28,16 @@ index 7a76480..a1d6cc5 100644
      public var isAIEnabled: Bool = false
      
      public var inputTextState: ChatTextInputState {
-@@ -1291,7 +1310,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
-             self.textInputBackgroundNode.view.removeGestureRecognizer(textInputBackgroundTapRecognizer)
-         }
-         
+@@ -1352,7 +1371,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         richTextInputNode.mediaItemViewFactory = self.mediaItemViewFactory
+         richTextInputNode.formulaRenderer = self.formulaRenderer
+ 
 -        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth
 +        var accessoryButtonsWidth: CGFloat = self.nebulaToolsWidth + self.nebulaFormatToggleWidth
          var firstButton = true
          for (_, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -1430,7 +1449,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -1496,7 +1515,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          let textFieldInsets = self.textFieldInsets(metrics: metrics, bottomInset: bottomInset)
          let fieldMaxHeight = self.textFieldMaxHeight(maxHeight, metrics: metrics, bottomInset: bottomInset)
          
@@ -46,7 +46,7 @@ index 7a76480..a1d6cc5 100644
          var firstButton = true
          for (item, button) in self.accessoryItemButtons {
              if firstButton {
-@@ -2639,7 +2658,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -2807,7 +2826,10 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          
          var nebulaTextMode = false
          if case .text = interfaceState.inputMode { nebulaTextMode = true }
@@ -58,7 +58,7 @@ index 7a76480..a1d6cc5 100644
              && mediaRecordingState == nil && !hasMediaDraft && !isEditingMedia && !displayBotStartButton && !self.sendingTextDisabled ? 50 : 0
  
          let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
-@@ -3373,6 +3395,21 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -3534,6 +3556,21 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              transition.updateAlpha(layer: button.layer, alpha: audioRecordingItemsAlpha)
              nextButtonTopRight.x -= self.nebulaToolsWidth
          }
@@ -80,7 +80,7 @@ index 7a76480..a1d6cc5 100644
  
          self.currentTextInputBackgroundWidthOffset = textInputBackgroundWidthOffset
          
-@@ -3968,7 +4005,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+@@ -4200,7 +4237,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
                  self.nebulaFormattingToolbar = toolbar
                  self.view.addSubview(toolbar)
              }

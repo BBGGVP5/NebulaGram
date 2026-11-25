@@ -1,33 +1,34 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD
+index ab3187b8e4..1d2f03480c 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/BUILD
-@@ -19,6 +19,7 @@
+@@ -19,6 +19,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/Display",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/AsyncDisplayKit",
+         "//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 668bc78f72..5c75b2da6f 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UniformTypeIdentifiers
  import UIKit
  import Display
-@@ -313,6 +314,7 @@
-     private var sendingTextDisabled: Bool = false
+@@ -352,6 +353,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+     private var isAgentMenuOpenWaiting = false
      
      private var presentationInterfaceState: ChatPresentationInterfaceState?
 +    private var nebulaAppearanceObservation: SettingsObservation?
      private var initializedPlaceholder = false
      
      private var keepSendButtonEnabled = false
-@@ -771,6 +773,9 @@
+@@ -815,6 +817,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          self.recordMoreButton = ChatRecordingViewOnceButtonNode(icon: .recordMore)
          
          super.init()
@@ -37,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          
          self.view.addSubview(self.glassBackgroundContainer)
          
-@@ -1439,7 +1444,7 @@
+@@ -1509,7 +1514,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          }
          
          var hasSendAsButton = false
@@ -46,7 +47,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              hasSendAsButton = true
          }
          
-@@ -1824,7 +1829,7 @@
+@@ -1966,7 +1971,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          
          var displaySendAsAvatarButton = false
          let mediaRecordingState = interfaceState.inputTextPanelState.mediaRecordingState
@@ -55,7 +56,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              menuButtonExpanded = false
              displaySendAsAvatarButton = true
              
-@@ -3189,7 +3194,7 @@
+@@ -3375,7 +3380,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          }
          
          var hasSendAsButton = false

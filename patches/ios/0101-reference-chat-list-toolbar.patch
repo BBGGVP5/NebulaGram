@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 027dc10e5f..e4e1fe8edd 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7312,7 +7312,7 @@
+@@ -7389,7 +7389,7 @@ private final class ChatListLocationContext {
                  // Resolve the committed id from the filter model. The previous
                  // item node may survive during a swipe; do not flash the default
                  // title while waiting for that node to be replaced.
@@ -11,9 +12,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                     let filter = self.containerNode?.availableFilters.compactMap({ $0.filter }).first(where: { $0.id == selectedId }),
                     case let .filter(_, folderTitle, _, _) = filter,
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
+index 7e94d0fcb5..d7bda44429 100644
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
-@@ -242,7 +242,6 @@
+@@ -242,7 +242,6 @@ public final class ChatListNavigationBar: Component {
          public var edgeEffectBackgroundView: UIView {
              return self.edgeEffectView
          }
@@ -21,7 +23,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
          private var nebulaHeaderObservation: SettingsObservation?
          
          private var headerBackgroundContainer: UIView
-@@ -320,9 +319,6 @@
+@@ -322,9 +321,6 @@ public final class ChatListNavigationBar: Component {
              
              self.addSubview(self.contentView)
              self.contentView.addSubview(self.edgeEffectView)
@@ -31,7 +33,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
                  guard let self else { return }
                  self.state?.updated(transition: .immediate)
-@@ -602,20 +598,7 @@
+@@ -604,20 +600,7 @@ public final class ChatListNavigationBar: Component {
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
              self.edgeEffectView.update(content: nil, blur: true, alpha: ChatListNavigationBar.View.edgeEffectTintAlpha, rect: edgeEffectFrame, edge: .top, edgeSize: min(ChatListNavigationBar.View.edgeEffectEdgeLength, edgeEffectHeight), transition: transition)
              
@@ -53,7 +55,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  
              let headerTransition = transition
              
-@@ -1065,7 +1048,7 @@
+@@ -1069,7 +1052,7 @@ public final class ChatListNavigationBar: Component {
              
              self.updateEdgeEffectColor(transition: transition)
              

@@ -1,7 +1,8 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+index b6d2c19987..dcf2bbb829 100644
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1419,6 +1419,7 @@
+@@ -1482,6 +1482,7 @@ public final class ChatMessageFeedItemActions {
  }
  
  public protocol SharedAccountContext: AnyObject {
@@ -10,9 +11,10 @@ diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules
      var basePath: String { get }
      var networkArguments: NetworkInitializationArguments { get }
 diff --git a/submodules/AttachmentTextInputPanelNode/BUILD b/submodules/AttachmentTextInputPanelNode/BUILD
+index 095e118ae6..12d4c2dd01 100644
 --- a/submodules/AttachmentTextInputPanelNode/BUILD
 +++ b/submodules/AttachmentTextInputPanelNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -21,6 +23,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/BUILD b/submodules/Attachme
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
          "//submodules/Display:Display",
 diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
+index a17eb53fe7..d71681e1cf 100644
 --- a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
 +++ b/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInputPanelNode.swift
 @@ -1,5 +1,6 @@
@@ -30,7 +33,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
  import Display
  import AsyncDisplayKit
  import SwiftSignalKit
-@@ -279,6 +280,7 @@
+@@ -279,6 +280,7 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
  
      private var aiButton: (button: HighlightTrackingButton, icon: UIImageView)?
      private var heightDependentAiButtonAlpha: CGFloat = 0.0
@@ -38,7 +41,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
      public var isAIEnabled: Bool = false
  
      public var opaqueActionButtons: ASDisplayNode {
-@@ -808,7 +810,7 @@
+@@ -808,7 +810,7 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
  
          let textFieldHeight: CGFloat
          if let textInputNode = self.textInputNode {
@@ -47,7 +50,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
  
              let measuredHeight = textInputNode.textHeightForWidth(maxTextWidth, rightInset: textFieldRealInsets.right)
              let unboundTextFieldHeight = max(textFieldMinHeight, ceil(measuredHeight))
-@@ -1358,7 +1360,7 @@
+@@ -1358,7 +1360,7 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
          transition.updateFrame(layer: self.textInputBackgroundNode.layer, frame: CGRect(x: leftInset + textFieldInsets.left, y: panelOriginY + textFieldInsets.top, width: baseWidth - textFieldInsets.left - textFieldInsets.right + composeButtonsOffset - textBackgroundInset, height: panelHeight - textFieldInsets.top - textFieldInsets.bottom))
          transition.updateFrame(layer: self.textInputBackgroundImageNode.layer, frame: CGRect(x: 0.0, y: 0.0, width: baseWidth - textFieldInsets.left - textFieldInsets.right + composeButtonsOffset - textBackgroundInset, height: panelHeight - textFieldInsets.top - textFieldInsets.bottom))
  
@@ -56,7 +59,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
              let aiButton: (button: HighlightTrackingButton, icon: UIImageView)
              if let current = self.aiButton {
                  aiButton = current
-@@ -1386,14 +1388,19 @@
+@@ -1386,14 +1388,19 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
              if let presentationInterfaceState = self.presentationInterfaceState {
                  aiButton.icon.tintColor = presentationInterfaceState.theme.chat.inputPanel.inputControlColor
              }
@@ -79,7 +82,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
              self.heightDependentAiButtonAlpha = aiButtonAlpha
              if !inputHasText {
                  aiButtonAlpha = 0.0
-@@ -1458,7 +1465,7 @@
+@@ -1458,7 +1465,7 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
          }
          transition.updateFrame(node: self.textPlaceholderNode, frame: placeholderFrame)
  
@@ -88,7 +91,7 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
      }
  
      private var skipUpdate = false
-@@ -2341,6 +2348,14 @@
+@@ -2341,6 +2348,14 @@ public class AttachmentTextInputPanelNode: ASDisplayNode, TGCaptionPanelView, AS
      }
  
      @objc private func aiButtonPressed() {
@@ -104,9 +107,10 @@ diff --git a/submodules/AttachmentTextInputPanelNode/Sources/AttachmentTextInput
      }
  
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index a87bb9e21b..443bf2db7b 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7304,13 +7304,12 @@
+@@ -7381,13 +7381,12 @@ private final class ChatListLocationContext {
          switch location {
          case let .chatList(groupId):
              if groupId == .root {
@@ -125,9 +129,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                     !folderTitle.text.isEmpty {
                      defaultTitle = folderTitle.text
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
+index 2430f54497..2ad1e26953 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
-@@ -4387,6 +4387,25 @@
+@@ -4400,6 +4400,25 @@ func settingsSearchableItems(
                  present(.push, crashReportsController(sharedContext: context.sharedContext, context: context))
              }
          ))
@@ -154,27 +159,28 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift 
          let profileItems = profileSearchableItems(context: context, canAddAccount: canAddAccount)
          allItems.append(contentsOf: profileItems)
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
+index c0c2f2abaa..fb9628704e 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/Display",
+         "//submodules/TelegramCore",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
+index 8652b352c5..d932b405f1 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentNode/Sources/ChatMessageTextBubbleContentNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -423,7 +424,12 @@
+@@ -410,7 +411,12 @@ public class ChatMessageTextBubbleContentNode: ChatMessageBubbleContentNode {
                          if translateToLanguage != nil || isSummarized {
                              isTranslating = true
                          }
@@ -189,9 +195,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageTextBubbleContentN
                                  rawText = summary.text
                                  messageEntities = summary.entities
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 227ca5952a..c210263c9b 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3601,7 +3601,7 @@
+@@ -3825,7 +3825,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          var isAIButtonVisible = false
          var attachmentPillHeight: CGFloat = 40.0
          let inputHasNonWhitespaceText = !(self.richTextInputNode?.inputContentIsEmptyWhitespaceTrimmed ?? true)
@@ -201,9 +208,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              if textInputHeight >= threeLineHeight - 0.5 {
                  isAIButtonVisible = true
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+index c7e3d2a6ff..4277006b09 100644
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -317,10 +317,12 @@
+@@ -317,10 +317,12 @@ public final class StoryPeerListComponent: Component {
      private struct TitleState: Equatable {
          var text: String
          var color: UIColor
@@ -218,7 +226,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
          }
      }
      
-@@ -1665,6 +1667,16 @@
+@@ -1735,6 +1737,16 @@ public final class StoryPeerListComponent: Component {
                  self.animationState = nil
              }
              
@@ -235,7 +243,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              let timestamp = CACurrentMediaTime()
              if let previousComponent = self.component, useAnimation {
                  let duration: Double
-@@ -1753,7 +1765,10 @@
+@@ -1823,7 +1835,10 @@ public final class StoryPeerListComponent: Component {
              self.component = component
              self.state = state
              
@@ -247,7 +255,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              if self.titleState != updatedTitleState {
                  self.titleState = updatedTitleState
                  
-@@ -1762,7 +1777,7 @@
+@@ -1832,7 +1847,7 @@ public final class StoryPeerListComponent: Component {
                      NSAttributedString.Key.foregroundColor: component.theme.rootController.navigationBar.primaryTextColor
                  ])
                  
@@ -257,9 +265,10 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                  let renderer = UIGraphicsImageRenderer(bounds: CGRect(origin: CGPoint(), size: cachedLayout.size))
                  let image = renderer.image { context in
 diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+index 35a112ab9f..8aa1d94829 100644
 --- a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
 +++ b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
-@@ -146,7 +146,12 @@
+@@ -146,7 +146,12 @@ final class ChatTranslationPanelNode: ASDisplayNode {
                  translateTitle = strings.Conversation_Translation_TranslateToOther(toLanguage).string
              }
              
@@ -274,9 +283,10 @@ diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sour
                  textUpdated = true
              }
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 1d9a10c6a2..ab59e71216 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -281,6 +281,13 @@
+@@ -284,6 +284,13 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
              nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: options.draft ? 0.25 : 1, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
          }
          if nebulaTranslationObservers.isEmpty {
@@ -290,7 +300,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationPreferences.changed, object: nil, queue: .main) { [weak self] _ in
                  self?.chatDisplayNode.textInputPanelNode?.nebulaToolsButton = nil
                  self?.nebulaConfigureChatAI()
-@@ -329,14 +336,14 @@
+@@ -332,14 +339,14 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          if incoming {
              if !nebulaHadAiTranslation { nebulaPreviousTranslationState = presentationInterfaceState.translationState; nebulaHadAiTranslation = true }
              if presentationInterfaceState.translationState?.isEnabled != true || presentationInterfaceState.translationState?.toLang != options.incomingLanguage || presentationInterfaceState.translationState?.fromLang != "nebula-ai" {
@@ -308,9 +318,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          if !incoming || Date().timeIntervalSince(nebulaIncomingTick) >= 1 {
              nebulaIncomingTick = Date()
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index 4b1c6ea61e..b21e6916a0 100644
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -160,6 +160,19 @@
+@@ -166,6 +166,19 @@ private enum AddedAccountsResult {
  private var testHasInstance = false
  
  public final class SharedAccountContextImpl: SharedAccountContext {

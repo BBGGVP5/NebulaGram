@@ -34,9 +34,11 @@ def check(temp, vendor, revision):
         assert 'private let nebulaStyleEnabled = NebulaSettingsStore.shared.loginStyle' in new
         assert 'AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode,' in new
         assert 'self.nebulaBackdrop.isHidden = !self.nebulaStyleEnabled' in new
-        assert 'self.animationNode.isHidden = self.nebulaStyleEnabled' in new
-        assert 'self.animationNode.visibility = !self.nebulaStyleEnabled' in new
-        assert 'self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled' in new
+        # 13.2 decides the illustration's visibility after the fit check (items.first); NebulaGram gates it by style.
+        assert 'if self.nebulaStyleEnabled {' in new, step
+        assert 'self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork' in new, step
+        assert 'let animationShown = items.first?.node === self.animationNode' in new, step
+        assert 'self.animationNode.visibility = animationShown' in new, step
         assert 'transition.updateFrame(node: self.nebulaBackdrop' in new
         assert 'self.nebulaBackdrop.setFieldFrame(' in new
         assert 'self.nebulaArtwork.isHidden = true' in new  # compact/keyboard constraints retained

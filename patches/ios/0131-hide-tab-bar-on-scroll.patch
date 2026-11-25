@@ -1,8 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-index 66fc3db..59a4cfd 100644
+index 618f6dfbc9..46edaf303f 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -2263,10 +2263,51 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
+@@ -2313,10 +2313,51 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
          }
      }
      

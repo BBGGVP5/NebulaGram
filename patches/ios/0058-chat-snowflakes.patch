@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index dafd51ce2e..5a2965c579 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -369,6 +369,38 @@
+@@ -381,6 +381,38 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
      
      var selectMessagePollOptionDisposables: DisposableDict<MessageId>?
      var selectPollOptionFeedback: HapticFeedback?
@@ -40,16 +41,16 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      
      var updateMessageTodoDisposables: DisposableDict<MessageId>?
  
-@@ -7946,6 +7978,7 @@
- 
+@@ -8062,6 +8094,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
      override public func viewDidAppear(_ animated: Bool) {
          super.viewDidAppear(animated)
+         self.forwardSideListAppearance(.didAppear, animated: animated)
 +        self.nebulaUpdateSnow()
          
          self.didAppear = true
          
-@@ -8394,6 +8427,8 @@
-         super.viewWillDisappear(animated)
+@@ -8516,6 +8549,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         self.forwardSideListAppearance(.willDisappear, animated: animated)
  
          self.walletTransferAnimationsVisible = false
 +        self.nebulaSnowLayer?.removeFromSuperlayer()
@@ -57,8 +58,8 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          NebulaChatLockGate.seal(host: self)
          
          if #available(iOS 18.0, *) {
-@@ -8534,6 +8569,9 @@
-     override public func containerLayoutUpdated(_ layout: ContainerViewLayout, transition: ContainedViewLayoutTransition) {
+@@ -8664,6 +8699,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+     private func chatContainerLayoutUpdated(_ layout: ContainerViewLayout, transition: ContainedViewLayoutTransition) {
          self.suspendNavigationBarLayout = true
          super.containerLayoutUpdated(layout, transition: transition)
 +        self.nebulaSnowLayer?.frame = CGRect(origin: .zero, size: layout.size)

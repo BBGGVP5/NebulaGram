@@ -1,8 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListItem.swift b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-index 0c9efa2..f04981d 100644
+index ee0b2a116a..d22dc08312 100644
 --- a/submodules/ChatListUI/Sources/Node/ChatListItem.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListItem.swift
-@@ -1385,6 +1385,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+@@ -1467,6 +1467,8 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
      public private(set) var item: ChatListItem?
      
      private let backgroundNode: ASDisplayNode
@@ -11,7 +11,7 @@ index 0c9efa2..f04981d 100644
      private let highlightedBackgroundNode: ASDisplayNode
      
      let contextContainer: ContextControllerSourceNode
-@@ -1765,6 +1767,10 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+@@ -1893,6 +1895,10 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
          self.isAccessibilityElement = true
          
          self.addSubnode(self.backgroundNode)
@@ -22,7 +22,7 @@ index 0c9efa2..f04981d 100644
          self.addSubnode(self.separatorNode)
          self.nebulaBehaviorObservation = NotificationCenter.default.addObserver(forName: NebulaBehaviorPreferences.changed, object: nil, queue: .main) { [weak self] _ in
              guard let self, let layoutParams = self.layoutParams else { return }
-@@ -1773,7 +1779,7 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+@@ -1901,7 +1907,7 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
          }
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
@@ -31,8 +31,8 @@ index 0c9efa2..f04981d 100644
              let hidePremiumStatus = NebulaSettingsStore.shared.hidePremiumStatus
              if self.nebulaHidePremiumStatus != hidePremiumStatus {
                  self.nebulaHidePremiumStatus = hidePremiumStatus
-@@ -5437,9 +5443,16 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
-                         }
+@@ -5678,11 +5684,18 @@ public class ChatListItemNode: ItemListRevealOptionsItemNode {
+                         strongSelf.separatorNode.isHidden = true
                      }
                      strongSelf.nebulaSeparatorBaseHidden = strongSelf.separatorNode.isHidden
 -                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers
@@ -41,6 +41,8 @@ index 0c9efa2..f04981d 100644
 +                        nebulaCards = false
 +                    }
 +                    strongSelf.separatorNode.isHidden = strongSelf.nebulaSeparatorBaseHidden || NebulaSettingsStore.shared.hideDividers || nebulaCards
+                     strongSelf.separatorBaseIsHidden = strongSelf.separatorNode.isHidden
+                     strongSelf.updateSideListSeparatorVisibility()
                      
                      transition.updateFrame(node: strongSelf.backgroundNode, frame: CGRect(origin: CGPoint(x: 0.0, y: 0.0), size: CGSize(width: layout.contentSize.width, height: itemHeight)))
 +                    strongSelf.nebulaCardNode.isHidden = !nebulaCards

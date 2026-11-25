@@ -1,7 +1,8 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
+index 37c35d1577..6882696cae 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -1716,7 +1716,7 @@
+@@ -1716,7 +1716,7 @@ plist_fragment(
      <key>CFBundleDevelopmentRegion</key>
      <string>en</string>
      <key>CFBundleDisplayName</key>

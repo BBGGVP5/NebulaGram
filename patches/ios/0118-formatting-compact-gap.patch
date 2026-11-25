@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 20e857ef9a..80373da6d5 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -2640,7 +2640,7 @@
+@@ -2808,7 +2808,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          var nebulaTextMode = false
          if case .text = interfaceState.inputMode { nebulaTextMode = true }
          let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode

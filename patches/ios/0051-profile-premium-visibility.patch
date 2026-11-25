@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 7c554332c1..0164d55256 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -107,6 +107,7 @@
+@@ -135,6 +135,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
      private let nebulaBadgeView = UIImageView()
      private let nebulaExpandedBadgeView = UIImageView()
      private var nebulaBadgeUserId: Int64?
@@ -9,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
      private var nebulaBadge: NebulaBadge?
      
      let titleCredibilityIconView: ComponentHostView<Empty>
-@@ -366,6 +367,9 @@
+@@ -396,6 +397,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          self.animationRenderer = context.animationRenderer
          
          super.init()
@@ -19,7 +20,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
              view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.nebulaBadgeTapped)))
          }
-@@ -782,9 +786,9 @@
+@@ -829,9 +833,9 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                  credibilityIcon = .fake
              } else if peer.isScam {
                  credibilityIcon = .scam

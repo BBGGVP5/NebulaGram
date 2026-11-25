@@ -1,7 +1,8 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index ce3b0c4b0c..5333fea211 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -71,6 +71,7 @@
+@@ -70,6 +70,7 @@ swift_library(
          "//submodules/TelegramNotices:TelegramNotices",
          "//submodules/TelegramCallsUI:TelegramCallsUI",
          "//submodules/TextFormat:TextFormat",

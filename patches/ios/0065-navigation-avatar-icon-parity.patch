@@ -1,4 +1,5 @@
 diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
+index e93a19a70d..94b80d888c 100644
 --- a/submodules/AppBundle/Sources/AppBundle/AppBundle.m
 +++ b/submodules/AppBundle/Sources/AppBundle/AppBundle.m
 @@ -1,4 +1,6 @@
@@ -8,7 +9,7 @@ diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/App
  
  NSBundle * _Nonnull getAppBundle() {
      static NSBundle *appBundle = nil;
-@@ -18,10 +20,64 @@
+@@ -18,10 +20,64 @@ NSBundle * _Nonnull getAppBundle() {
      return appBundle;
  }
  
@@ -75,9 +76,10 @@ diff --git a/submodules/AppBundle/Sources/AppBundle/AppBundle.m b/submodules/App
  
  @end
 diff --git a/submodules/AvatarNode/BUILD b/submodules/AvatarNode/BUILD
+index 3aad72c509..a7cca647d6 100644
 --- a/submodules/AvatarNode/BUILD
 +++ b/submodules/AvatarNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -86,6 +88,7 @@ diff --git a/submodules/AvatarNode/BUILD b/submodules/AvatarNode/BUILD
          "//submodules/Display:Display",
          "//submodules/TelegramCore:TelegramCore",
 diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarNode/Sources/AvatarNode.swift
+index 01d65fb6d6..d676957f15 100644
 --- a/submodules/AvatarNode/Sources/AvatarNode.swift
 +++ b/submodules/AvatarNode/Sources/AvatarNode.swift
 @@ -1,4 +1,5 @@
@@ -94,7 +97,26 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -263,11 +264,6 @@
+@@ -298,16 +299,8 @@ public func drawAvatarNodeContent(bounds: CGRect, parameters: Any?, isRasterizin
+     if let parameters = parameters as? AvatarNodeParameters {
+         colors = parameters.colors
+         
+-        if case .round = parameters.clipStyle {
+-            context.beginPath()
+-            context.addEllipse(in: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height:
+-                bounds.size.height))
+-            context.clip()
+-        } else if case .roundedRect = parameters.clipStyle {
+-            context.beginPath()
+-            context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height), cornerRadius: floor(bounds.size.width * 0.25)).cgPath)
+-            context.clip()
+-        } else if case .bubble = parameters.clipStyle {
++        // NebulaGram: круг и скругление задаёт форма аватарок (nebulaUpdateAvatarShape), здесь только «пузырь».
++        if case .bubble = parameters.clipStyle {
+             context.beginPath()
+             AvatarNode.addAvatarBubblePath(context: context, rect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height))
+             context.clip()
+@@ -541,11 +534,6 @@ public final class AvatarEditOverlayNode: ASDisplayNode {
              context.fill(bounds)
          }
          
@@ -106,7 +128,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          context.setFillColor(UIColor(rgb: 0x000000, alpha: 0.4).cgColor)
          context.fill(bounds)
          
-@@ -392,6 +388,29 @@
+@@ -670,6 +658,29 @@ public final class AvatarNode: ASDisplayNode {
          private var currentImage: UIImage?
          
          private var params: Params?
@@ -136,7 +158,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          private var loadDisposable = MetaDisposable()
          
          var clipStyle: AvatarNodeClipStyle {
-@@ -446,6 +465,9 @@
+@@ -724,6 +735,9 @@ public final class AvatarNode: ASDisplayNode {
              self.isOpaque = false
              self.displaysAsynchronously = true
              self.disableClearContentsOnHide = true
@@ -146,7 +168,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              
              self.imageNode.isUserInteractionEnabled = false
              self.addSubnode(self.imageNode)
-@@ -480,6 +502,7 @@
+@@ -758,6 +772,7 @@ public final class AvatarNode: ASDisplayNode {
          }
          
          public func updateSize(size: CGSize) {
@@ -154,7 +176,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              self.imageNode.frame = CGRect(origin: CGPoint(), size: size)
              self.editOverlayNode?.frame = self.imageNode.frame
              if let imageNodeMask = self.imageNodeMask {
-@@ -643,6 +666,8 @@
+@@ -921,6 +936,8 @@ public final class AvatarNode: ASDisplayNode {
                  representation = peer?.smallProfileImage
              }
              
@@ -163,7 +185,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              let updatedState: AvatarNodeState = .peerAvatar(peer?.id ?? EnginePeer.Id(0), peer?.nameColor, peer?.displayLetters ?? [], representation, clipStyle, cutoutRect)
              if updatedState != self.state || overrideImage != self.overrideImage || theme !== self.theme {
                  self.state = updatedState
-@@ -651,7 +676,7 @@
+@@ -929,7 +946,7 @@ public final class AvatarNode: ASDisplayNode {
                  
                  let parameters: AvatarNodeParameters
                  
@@ -172,7 +194,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                      self.contents = nil
                      self.displaySuspended = true
                      self.imageReady.set(self.imageNode.contentReady)
-@@ -730,6 +755,8 @@
+@@ -1008,6 +1025,8 @@ public final class AvatarNode: ASDisplayNode {
                  displayDimensions: displayDimensions,
                  clipStyle: clipStyle
              )
@@ -181,7 +203,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              if self.params == params {
                  return
              }
-@@ -741,11 +768,11 @@
+@@ -1019,11 +1038,11 @@ public final class AvatarNode: ASDisplayNode {
                  self.imageNode.clipsToBounds = false
                  self.imageNode.cornerRadius = 0.0
              case .round:
@@ -197,16 +219,16 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              case .bubble:
                  break
              }
-@@ -850,6 +877,8 @@
-                 representation = peer?.smallProfileImage
-             }
+@@ -1085,6 +1104,8 @@ public final class AvatarNode: ASDisplayNode {
+             let representation = resolved.representation
+             let icon = resolved.icon
              
 +            self.nebulaAvatarClipStyle = clipStyle
 +            self.nebulaUpdateAvatarShape()
-             let updatedState: AvatarNodeState = .peerAvatar(peer?.id ?? EnginePeer.Id(0), peer?.nameColor, peer?.displayLetters ?? [], representation, clipStyle, cutoutRect)
+             let updatedState: AvatarNodeState = avatarNodePeerState(peer: peer, representation: representation, clipStyle: clipStyle, cutoutRect: cutoutRect)
              if updatedState != self.state || overrideImage != self.overrideImage || theme !== self.theme {
                  self.state = updatedState
-@@ -860,7 +889,7 @@
+@@ -1095,7 +1116,7 @@ public final class AvatarNode: ASDisplayNode {
                  
                  let account = account ?? genericContext.account
                  
@@ -215,7 +237,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                      self.contents = nil
                      self.displaySuspended = true
                      self.imageReady.set(self.imageNode.contentReady)
-@@ -920,6 +949,8 @@
+@@ -1155,6 +1176,8 @@ public final class AvatarNode: ASDisplayNode {
          }
          
          public func setCustomLetters(_ letters: [String], explicitColor: AvatarNodeColorOverride? = nil, icon: AvatarNodeExplicitIcon? = nil, cutoutRect: CGRect? = nil) {
@@ -224,25 +246,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
              var explicitIndex: Int?
              if let explicitColor = explicitColor {
                  switch explicitColor {
-@@ -972,16 +1003,7 @@
-             if let parameters = parameters as? AvatarNodeParameters {
-                 colors = parameters.colors
-                 
--                if case .round = parameters.clipStyle {
--                    context.beginPath()
--                    context.addEllipse(in: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height:
--                        bounds.size.height))
--                    context.clip()
--                } else if case .roundedRect = parameters.clipStyle {
--                    context.beginPath()
--                    context.addPath(UIBezierPath(roundedRect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height), cornerRadius: floor(bounds.size.width * 0.25)).cgPath)
--                    context.clip()
--                } else if case .bubble = parameters.clipStyle {
-+                if case .bubble = parameters.clipStyle {
-                     context.beginPath()
-                     AvatarNode.addAvatarBubblePath(context: context, rect: CGRect(x: 0.0, y: 0.0, width: bounds.size.width, height: bounds.size.height))
-                     context.clip()
-@@ -1191,6 +1213,7 @@
+@@ -1224,6 +1247,7 @@ public final class AvatarNode: ASDisplayNode {
      }
      
      public private(set) var storyStats: StoryStats?
@@ -250,7 +254,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
      
      public var font: UIFont {
          get {
-@@ -1234,8 +1257,11 @@
+@@ -1267,8 +1291,11 @@ public final class AvatarNode: ASDisplayNode {
      
      public init(font: UIFont) {
          self.contentNode = ContentNode(font: font)
@@ -263,7 +267,7 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
          
          self.onDidLoad { [weak self] _ in
              guard let self else {
-@@ -1483,7 +1509,8 @@
+@@ -1516,7 +1543,8 @@ public final class AvatarNode: ASDisplayNode {
                          unseenCount: storyStats.unseenCount
                      ),
                      progress: mappedProgress,
@@ -274,9 +278,10 @@ diff --git a/submodules/AvatarNode/Sources/AvatarNode.swift b/submodules/AvatarN
                  environment: {},
                  containerSize: indicatorSize
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 2a1101483e..a87bb9e21b 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -319,6 +319,10 @@
+@@ -365,6 +365,10 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
          )
                  
          super.init(context: context, navigationBarPresentationData: nil)
@@ -287,7 +292,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          self.nebulaStoryArchiveObserver = NotificationCenter.default.addObserver(forName: Notification.Name("NebulaStoryArchiveSettingsChanged"), object: nil, queue: .main) { [weak self] _ in
              self?.nebulaArchiveStoriesIfNeeded()
          }
-@@ -4058,6 +4062,7 @@
+@@ -4133,6 +4137,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
          self.presentInGlobalOverlay(contextController)
      }
      
@@ -295,7 +300,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
      private var initializedFilters = false
      private func reloadFilters(firstUpdate: (() -> Void)? = nil) {
          let filterItems = chatListFilterItems(context: self.context)
-@@ -4075,7 +4080,11 @@
+@@ -4150,7 +4155,11 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
              let isPremium = peerView.peers[peerView.peerId]?.isPremium
              strongSelf.isPremium = isPremium ?? false
              
@@ -308,7 +313,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              var filterItems: [ChatListFilterTabEntry] = []
              
              for (filter, unreadCount, hasUnmutedUnread) in items {
-@@ -4097,7 +4106,7 @@
+@@ -4172,7 +4181,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                  resolvedItems = []
              }
              
@@ -317,7 +322,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              let firstItemEntryId: ChatListFilterTabEntryId
              switch firstItem {
                  case .allChats:
-@@ -4113,7 +4122,7 @@
+@@ -4188,7 +4197,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                  if let tabContainerData = strongSelf.tabContainerData {
                      var found = false
                      if let index = tabContainerData.0.firstIndex(where: { $0.id == selectedEntryId }) {
@@ -326,7 +331,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                              if resolvedItems.contains(where: { $0.id == tabContainerData.0[i].id }) {
                                  selectedEntryId = tabContainerData.0[i].id
                                  found = true
-@@ -4122,12 +4131,13 @@
+@@ -4197,12 +4206,13 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                          }
                      }
                      if !found {
@@ -342,7 +347,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              let filtersLimit = isPremium == false ? limits.maxFoldersCount : nil
              strongSelf.tabContainerData = (resolvedItems, false, filtersLimit)
              var availableFilters: [ChatListContainerNodeFilter] = []
-@@ -4145,7 +4155,7 @@
+@@ -4220,7 +4230,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                          availableFilters.append(.filter(item.0))
                  }
              }
@@ -352,9 +357,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
              }
              strongSelf.chatListDisplayNode.mainContainerNode.updateAvailableFilters(availableFilters, limit: filtersLimit)
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index 9d1f574402..ee72987be8 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -884,9 +884,15 @@
+@@ -911,9 +911,15 @@ public final class ChatListContainerNode: ASDisplayNode, ASGestureRecognizerDele
                  }
              }
              if !availableFilters.contains(where: { $0.id == self.selectedId }) {
@@ -374,9 +380,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
                  apply()
              }
 diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
+index f66ae139fa..0c071a674b 100644
 --- a/submodules/TabBarUI/Sources/TabBarContollerNode.swift
 +++ b/submodules/TabBarUI/Sources/TabBarContollerNode.swift
-@@ -62,6 +62,8 @@
+@@ -62,6 +62,8 @@ final class TabBarControllerNode: ASDisplayNode {
      private let contextAction: (Int, ContextExtractedContentContainingView, ContextGesture) -> Void
      
      private let tabBarView = ComponentView<Empty>()
@@ -385,7 +392,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
      
      private let disabledOverlayNode: ASDisplayNode
      private var toolbar: ComponentView<Empty>?
-@@ -145,7 +147,9 @@
+@@ -145,7 +147,9 @@ final class TabBarControllerNode: ASDisplayNode {
              if self.isUpdateRequested {
                  self.isUpdateRequested = false
                  if let layoutResult = self.layoutResult {
@@ -396,7 +403,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
                  }
              }
          }
-@@ -168,6 +172,23 @@
+@@ -168,6 +172,23 @@ final class TabBarControllerNode: ASDisplayNode {
          }
      }
      
@@ -420,7 +427,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
      func updateTheme(_ theme: PresentationTheme) {
          self.theme = theme
          self.backgroundColor = theme.list.plainBackgroundColor
-@@ -196,7 +217,7 @@
+@@ -196,7 +217,7 @@ final class TabBarControllerNode: ASDisplayNode {
      
      /// The bottom inset the current tab gets, or nil to leave the tab's own.
      func containerLayoutUpdated(_ layout: ContainerViewLayout, toolbar: Toolbar?, transition: ContainedViewLayoutTransition) -> CGFloat? {
@@ -429,24 +436,30 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
          if let layoutResult = self.layoutResult, layoutResult.params == params {
              return layoutResult.bottomInset
          } else {
-@@ -236,7 +257,7 @@
-         
-         let sidePlacement = self.sidePlacement(for: params.layout)
+@@ -251,7 +272,7 @@ final class TabBarControllerNode: ASDisplayNode {
+         }
+ 
          let previousAppliedPlacement = self.tabBarView.view == nil ? nil : self.appliedPlacement
 -        let appliedPlacement = TabBarAppliedPlacement(placement: sidePlacement, containerSize: params.layout.size, isHidden: self.tabBarHidden)
 +        let appliedPlacement = TabBarAppliedPlacement(placement: sidePlacement, containerSize: params.layout.size, isHidden: params.isTabBarHidden)
          self.appliedPlacement = appliedPlacement
          // Folding or unfolding switches the axis without animation. A rotation that moves the vertical bar
          // fades it from its old place to its new one instead of moving it across the screen.
-@@ -333,16 +354,16 @@
+@@ -349,7 +370,7 @@ final class TabBarControllerNode: ASDisplayNode {
          )
          let tabBarFrame: CGRect
          if let sidePlacement {
 -            tabBarFrame = self.tabBarHidden ? sidePlacement.hiddenFrame(containerWidth: params.layout.size.width) : sidePlacement.frame
 +            tabBarFrame = params.isTabBarHidden ? sidePlacement.hiddenFrame(containerWidth: params.layout.size.width) : sidePlacement.frame
          } else {
--            tabBarFrame = CGRect(origin: CGPoint(x: floor((params.layout.size.width - tabBarSize.width) * 0.5), y: params.layout.size.height - (self.tabBarHidden ? 0.0 : (tabBarSize.height + tabBarBottomInset))), size: tabBarSize)
-+            tabBarFrame = CGRect(origin: CGPoint(x: floor((params.layout.size.width - tabBarSize.width) * 0.5), y: params.layout.size.height - (params.isTabBarHidden ? 0.0 : (tabBarSize.height + tabBarBottomInset))), size: tabBarSize)
+             let centeredX: CGFloat
+             if isSystemLayout {
+@@ -358,14 +379,14 @@ final class TabBarControllerNode: ASDisplayNode {
+             } else {
+                 centeredX = floor((params.layout.size.width - tabBarSize.width) * 0.5)
+             }
+-            tabBarFrame = CGRect(origin: CGPoint(x: centeredX, y: params.layout.size.height - (self.tabBarHidden ? 0.0 : (tabBarSize.height + tabBarBottomInset))), size: tabBarSize)
++            tabBarFrame = CGRect(origin: CGPoint(x: centeredX, y: params.layout.size.height - (params.isTabBarHidden ? 0.0 : (tabBarSize.height + tabBarBottomInset))), size: tabBarSize)
          }
          
          if let tabBarComponentView = self.tabBarView.view {
@@ -458,7 +471,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
              if let crossfadeDuration, let previousAppliedPlacement, let previousPlacement = previousAppliedPlacement.placement {
                  if !previousAppliedPlacement.isHidden && tabBarComponentView.alpha > 0.0, let snapshotView = tabBarComponentView.snapshotView(afterScreenUpdates: false) {
                      snapshotView.frame = previousPlacement.movedFrame(from: previousAppliedPlacement.containerSize, to: params.layout.size)
-@@ -351,7 +372,7 @@
+@@ -374,7 +395,7 @@ final class TabBarControllerNode: ASDisplayNode {
                          snapshotView?.removeFromSuperview()
                      })
                  }
@@ -467,8 +480,8 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
                      tabBarComponentView.layer.animateAlpha(from: 0.0, to: tabBarAlpha, duration: crossfadeDuration * 0.5, delay: crossfadeDuration * 0.5)
                  }
              }
-@@ -359,6 +380,49 @@
-             transition.updateAlpha(layer: tabBarComponentView.layer, alpha: tabBarAlpha)
+@@ -384,6 +405,49 @@ final class TabBarControllerNode: ASDisplayNode {
+             tabBarComponentView.accessibilityElementsHidden = self.tabBarHidden
          }
          
 +
@@ -517,7 +530,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
          tabBarFrameTransition.updateFrame(node: self.disabledOverlayNode, frame: tabBarFrame)
          
          let toolbarHeight = 44.0
-@@ -457,7 +521,7 @@
+@@ -485,7 +549,7 @@ final class TabBarControllerNode: ASDisplayNode {
              // toolbar at the bottom needs an inset.
              return params.toolbar != nil ? panelsBottomInset + toolbarHeight : nil
          }
@@ -527,9 +540,10 @@ diff --git a/submodules/TabBarUI/Sources/TabBarContollerNode.swift b/submodules/
      
      func frameForControllerTab(at index: Int) -> CGRect? {
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/BUILD b/submodules/TelegramUI/Components/ChatListHeaderComponent/BUILD
+index 4f07a69ca2..075ff76941 100644
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/BUILD
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -538,6 +552,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/BUILD b/su
          "//submodules/Display",
          "//submodules/ComponentFlow",
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
+index b88653aad4..f04e1b1a39 100644
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListHeaderComponent.swift
 @@ -1,4 +1,5 @@
@@ -547,9 +562,10 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  import Display
  import ComponentFlow
 diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorComponent/Sources/AvatarStoryIndicatorComponent.swift b/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorComponent/Sources/AvatarStoryIndicatorComponent.swift
+index e83aae1c76..f3b68d1353 100644
 --- a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorComponent/Sources/AvatarStoryIndicatorComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorComponent/Sources/AvatarStoryIndicatorComponent.swift
-@@ -427,6 +427,7 @@
+@@ -427,6 +427,7 @@ public final class AvatarStoryIndicatorComponent: Component {
      public let counters: Counters?
      public let progress: Progress?
      public let isRoundedRect: Bool
@@ -557,7 +573,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
      
      public init(
          hasUnseen: Bool,
-@@ -437,7 +438,8 @@
+@@ -437,7 +438,8 @@ public final class AvatarStoryIndicatorComponent: Component {
          inactiveLineWidth: CGFloat,
          counters: Counters?,
          progress: Progress? = nil,
@@ -567,7 +583,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
      ) {
          self.hasUnseen = hasUnseen
          self.hasUnseenCloseFriendsItems = hasUnseenCloseFriendsItems
-@@ -447,7 +449,8 @@
+@@ -447,7 +449,8 @@ public final class AvatarStoryIndicatorComponent: Component {
          self.inactiveLineWidth = inactiveLineWidth
          self.counters = counters
          self.progress = progress
@@ -577,7 +593,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
      }
      
      public static func ==(lhs: AvatarStoryIndicatorComponent, rhs: AvatarStoryIndicatorComponent) -> Bool {
-@@ -475,6 +478,7 @@
+@@ -475,6 +478,7 @@ public final class AvatarStoryIndicatorComponent: Component {
          if lhs.progress != rhs.progress {
              return false
          }
@@ -585,7 +601,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
          if lhs.isRoundedRect != rhs.isRoundedRect {
              return false
          }
-@@ -693,7 +697,7 @@
+@@ -693,7 +697,7 @@ public final class AvatarStoryIndicatorComponent: Component {
                      if component.isRoundedRect {
                          let lineWidth: CGFloat = (component.hasUnseen || component.hasLiveItems) ? component.activeLineWidth : component.inactiveLineWidth
                          context.setLineWidth(lineWidth)
@@ -594,7 +610,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
                          
                          var startPoint: CGPoint?
                          var vertices: [CurveVertex] = []
-@@ -837,7 +841,7 @@
+@@ -837,7 +841,7 @@ public final class AvatarStoryIndicatorComponent: Component {
                      let lineWidth: CGFloat = (component.hasUnseen || component.hasLiveItems) ? component.activeLineWidth : component.inactiveLineWidth
                      context.setLineWidth(lineWidth)
                      if component.isRoundedRect {
@@ -604,9 +620,10 @@ diff --git a/submodules/TelegramUI/Components/Stories/AvatarStoryIndicatorCompon
                      } else {
                          context.addEllipse(in: CGRect(origin: CGPoint(x: size.width * 0.5 - diameter * 0.5, y: size.height * 0.5 - diameter * 0.5), size: size).insetBy(dx: lineWidth * 0.5, dy: lineWidth * 0.5))
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index b35e050735..d4f734c813 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -299,6 +299,7 @@
+@@ -296,6 +296,7 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
              let old = rootTabController.controllers.indices.contains(rootTabController.selectedIndex) ? rootTabController.controllers[rootTabController.selectedIndex] : nil
              rootTabController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === old }) ?? controllers.firstIndex(where: { $0 is ChatListController }) ?? 0)
          }
@@ -614,7 +631,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      }
  
      @objc private func nebulaOpenAiChat(_ notification: Notification) {
-@@ -314,13 +315,13 @@
+@@ -311,13 +312,13 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          for key in store.bottomTabOrder {
              switch key {
              case "contacts":

@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+index 6abbd0c3a5..14cd09b279 100644
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -1001,7 +1001,7 @@
+@@ -1018,7 +1018,7 @@ public class VideoMessageCameraScreen: ViewController {
              self.previewContainerView.addSubview(self.previewContainerContentView)
                          
              let isDualCameraEnabled = cameraImpl.isDualCameraSupported(forRoundVideo: true)
@@ -10,7 +11,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.mainPreviewView = cameraImpl.makeCameraSimplePreviewView(frame: .zero, main: true, roundVideo: true)
              self.additionalPreviewView = cameraImpl.makeCameraSimplePreviewView(frame: .zero, main: false, roundVideo: true)
-@@ -1741,6 +1741,7 @@
+@@ -1774,6 +1774,7 @@ public class VideoMessageCameraScreen: ViewController {
      private let context: AccountContext
      private let updatedPresentationData: (initial: PresentationData, signal: Signal<PresentationData, NoError>)?
      private let inputPanelFrame: (CGRect, Bool)
@@ -18,7 +19,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
      fileprivate var allowLiveUpload: Bool
      fileprivate var viewOnceAvailable: Bool
      
-@@ -1897,6 +1898,7 @@
+@@ -1930,6 +1931,7 @@ public class VideoMessageCameraScreen: ViewController {
          viewOnceAvailable: Bool,
          inputPanelFrame: (CGRect, Bool),
          chatNode: ASDisplayNode?,
@@ -26,7 +27,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
          completion: @escaping (EnqueueMessage?, Bool?, Int32?, Int32?) -> Void
      ) {
          self.context = context
-@@ -1905,6 +1907,7 @@
+@@ -1938,6 +1940,7 @@ public class VideoMessageCameraScreen: ViewController {
          self.viewOnceAvailable = viewOnceAvailable
          self.inputPanelFrame = inputPanelFrame
          self.chatNode = chatNode
@@ -35,9 +36,10 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
          
          self.recordingStatus = RecordingStatus(micLevel: self.micLevelValue.get(), duration: self.durationValue.get())
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+index 89e8d45b9e..ab6b5ad813 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -146,7 +146,33 @@
+@@ -146,7 +146,33 @@ extension ChatControllerImpl {
          }
      }
      
@@ -72,7 +74,7 @@ diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swi
          if self.videoRecorderValue == nil {
              if let currentInputPanelFrame = self.chatDisplayNode.currentInputPanelFrame() {
                  if self.recorderFeedback == nil {
-@@ -181,6 +207,7 @@
+@@ -181,6 +207,7 @@ extension ChatControllerImpl {
                      viewOnceAvailable: viewOnceAvailable,
                      inputPanelFrame: (currentInputPanelFrame, self.chatDisplayNode.inputNode != nil),
                      chatNode: self.chatDisplayNode.historyNode,

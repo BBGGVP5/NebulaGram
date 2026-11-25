@@ -1,8 +1,9 @@
 diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
+index 6546792585..44aa37881d 100644
 --- a/submodules/TelegramUI/BUILD
 +++ b/submodules/TelegramUI/BUILD
-@@ -65,6 +65,7 @@
-     ],
+@@ -66,6 +66,7 @@ swift_library(
+     }),
      deps = [
          "//submodules/CrashReporting:CrashReporting",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
@@ -10,6 +11,7 @@ diff --git a/submodules/TelegramUI/BUILD b/submodules/TelegramUI/BUILD
          "//third-party/recaptcha:RecaptchaEnterprise",
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index 6a07129170..b357bf7435 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
 @@ -1,5 +1,6 @@
@@ -19,7 +21,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
  import Display
  import AsyncDisplayKit
  import TelegramCore
-@@ -74,6 +75,9 @@
+@@ -77,6 +78,9 @@ private class DetailsChatPlaceholderNode: ASDisplayNode, NavigationDetailsPlaceh
  public final class TelegramRootController: NavigationController, TelegramRootControllerInterface {
      private let context: AccountContext
      
@@ -28,8 +30,8 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +    private var nebulaShowNews = false
      public var rootTabController: TabBarController?
      
-     public var contactsController: ContactsController?
-@@ -197,6 +201,8 @@
+     /// The Contacts screen `openContacts()` pushed; `getContactsController()` returns it while it is open.
+@@ -201,6 +205,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
      }
      
      public func addRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
@@ -38,7 +40,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
          tabBarController.navigationPresentation = .master
          let chatListController = self.context.sharedContext.makeChatListController(context: self.context, location: .chatList(groupId: .root), controlsHistoryPreload: true, hideNetworkActivityStatus: false, previewing: false, enableDebugActions: !GlobalExperimentalSettings.isAppStoreBuild)
-@@ -242,8 +248,9 @@
+@@ -241,8 +247,9 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          accountSettingsController.parentController = self
          controllers.append(accountSettingsController)
                  
@@ -48,9 +50,9 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
 +        let initial: ViewController = restoreSettignsController != nil ? accountSettingsController : chatListController
 +        tabBarController.setControllers(controllers, selectedIndex: controllers.firstIndex(where: { $0 === initial }) ?? 0)
          
-         self.contactsController = contactsController
          self.callListController = callListController
-@@ -252,9 +259,15 @@
+         self.newsController = newsController
+@@ -250,9 +257,15 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          self.accountSettingsController = accountSettingsController
          self.rootTabController = tabBarController
          self.pushViewController(tabBarController, animated: false)
@@ -66,11 +68,11 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          guard let rootTabController = self.rootTabController as? TabBarControllerImpl else {
              return
          }
-@@ -269,14 +282,33 @@
-         }
+@@ -266,14 +279,33 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
+         controllers.append(self.chatListController!)
          controllers.append(self.accountSettingsController!)
  
--        // A removed selected tab would otherwise fall back to index 0 (Contacts): select Chats instead.
+-        // A removed selected tab would otherwise fall back to index 0: select Chats instead.
 -        var selectedIndex: Int?
 -        if let currentController = rootTabController.currentController, !controllers.contains(where: { $0 === currentController }) {
 -            selectedIndex = controllers.firstIndex(where: { $0 === self.chatListController })
@@ -106,12 +108,12 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public func openChatsController(activateSearch: Bool, filter: ChatListSearchFilter = .chats, query: String? = nil) {
          guard let rootTabController = self.rootTabController else {
              return
-@@ -825,6 +857,8 @@
+@@ -916,6 +948,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
      
-         if let index = rootTabController.controllers.firstIndex(where: { $0 is ContactsController }) {
+         if let index = rootTabController.controllers.firstIndex(where: { $0 is PeerInfoScreenImpl }) {
              rootTabController.selectedIndex = index
 +        } else {
 +            self.pushViewController(ContactsController(context: self.context), animated: true)
          }
-     }
          
+         let contactsController = ContactsController(context: self.context)

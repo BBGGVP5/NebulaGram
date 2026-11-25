@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index fc182ed833..c7f03d9fd1 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1363,7 +1363,7 @@
+@@ -1372,7 +1372,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
          if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled, !isCopyProtected, !isExpired,
             !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,

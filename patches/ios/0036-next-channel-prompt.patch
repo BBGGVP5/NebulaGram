@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 5e567047ae..7a121c4ace 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -243,6 +243,8 @@
+@@ -246,6 +246,8 @@ struct ScrolledToMessageId: Equatable {
  
  public final class ChatControllerImpl: TelegramBaseController, ChatController, GalleryHiddenMediaTarget, UIDropInteractionDelegate {    
      var validLayout: ContainerViewLayout?
@@ -10,7 +11,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
      
      public weak var parentController: ViewController?
      public weak var customNavigationController: NavigationController?
-@@ -759,6 +761,17 @@
+@@ -771,6 +773,17 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          self.moreBarButton.isUserInteractionEnabled = true
          
          super.init(context: context, navigationBarPresentationData: navigationBarPresentationData)
@@ -28,7 +29,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          
          self._hasGlassStyle = true
          
-@@ -11244,7 +11257,7 @@
+@@ -11430,7 +11443,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          guard let contentData = self.contentData else {
              return
          }

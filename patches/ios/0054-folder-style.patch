@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+index e829836a3e..2137c84364 100644
 --- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
 +++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
-@@ -11,6 +11,37 @@
+@@ -11,6 +11,37 @@ import GlassBackgroundComponent
  import ComponentFlow
  import ComponentDisplayAdapters
  
@@ -39,7 +40,7 @@ diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContaine
  private final class ItemNodeDeleteButtonNode: HighlightableButtonNode {
      private let pressed: () -> Void
      
-@@ -206,7 +237,7 @@
+@@ -206,7 +237,7 @@ private final class ItemNode: ASDisplayNode {
          self.pressed(self.isDisabled)
      }
      
@@ -48,7 +49,7 @@ diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContaine
          self.badgeContainerNode.isHidden = NebulaSettingsStore.shared.hideTabCounters
          self.isEditing = isEditing
          self.isDisabled = isDisabled
-@@ -234,7 +265,7 @@
+@@ -234,7 +265,7 @@ private final class ItemNode: ASDisplayNode {
              self.unreadCount = unreadCount
          }
          
@@ -57,7 +58,7 @@ diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContaine
          if unreadCount > 0 {
              if self.buttonNode.accessibilityValue == nil || unreadCountUpdated {
                  self.buttonNode.accessibilityValue = strings.VoiceOver_Chat_UnreadMessages(Int32(unreadCount))
-@@ -850,7 +881,18 @@
+@@ -850,7 +881,18 @@ public final class ChatListFilterTabContainerNode: ASDisplayNode {
                  selectionFraction = 0.0
              }
              

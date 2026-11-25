@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/BUILD b/submodules/TelegramUI/Components/ChatTitleView/BUILD
+index 939b7f07e4..a26aecdc4b 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/BUILD
 +++ b/submodules/TelegramUI/Components/ChatTitleView/BUILD
-@@ -10,6 +10,7 @@
+@@ -12,6 +12,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -10,6 +11,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/BUILD b/submodules/T
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
          "//submodules/Display:Display",
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+index 50950c5f37..c7ff011517 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 @@ -1,4 +1,5 @@
@@ -18,7 +20,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -213,6 +214,8 @@
+@@ -217,6 +218,8 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
      
      var manualLayout: Bool = false
      private var validLayout: CGSize?
@@ -27,7 +29,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
      
      public var requestUpdate: ((ContainedViewLayoutTransition) -> Void)?
      
-@@ -798,6 +801,14 @@
+@@ -828,6 +831,14 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
          self.button = HighlightTrackingButtonNode()
          
          super.init(frame: CGRect())
@@ -42,7 +44,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
          
          self.isAccessibilityElement = true
          self.accessibilityTraits = .header
-@@ -1048,10 +1059,14 @@
+@@ -1078,10 +1089,14 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
          let titleInfoSpacing: CGFloat = 0.0
          
          var activityFrame = CGRect()
@@ -58,7 +60,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
                  titleFrame.origin.x = floor((size.width - titleFrame.width) / 2.0)
              }
              titleTransition.updateFrameAdditive(view: self.titleContainerView, frame: titleFrame)
-@@ -1064,12 +1079,16 @@
+@@ -1094,12 +1109,16 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
              contentX = max(contentX, 20.0)
              
              titleFrame = CGRect(origin: CGPoint(x: contentX + floor((contentWidth - titleSize.width) / 2.0), y: floor((size.height - combinedHeight) / 2.0)), size: titleSize)

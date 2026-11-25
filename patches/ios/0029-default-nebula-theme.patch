@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
+index d86948e3af..389c6d38a9 100644
 --- a/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
 +++ b/submodules/TelegramUIPreferences/Sources/PresentationThemeSettings.swift
-@@ -652,7 +652,13 @@
+@@ -715,7 +715,13 @@ public struct PresentationThemeSettings: Codable {
      }
      
      public static var defaultSettings: PresentationThemeSettings {

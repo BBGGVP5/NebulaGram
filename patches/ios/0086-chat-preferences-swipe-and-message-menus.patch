@@ -1,4 +1,5 @@
 diff --git a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift b/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
+index 9a8726c86d..3e25e0cc00 100644
 --- a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
 +++ b/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift
 @@ -1,4 +1,5 @@
@@ -7,7 +8,7 @@ diff --git a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift 
  import UIKit
  import Display
  import SwiftSignalKit
-@@ -9,6 +10,13 @@
+@@ -9,6 +10,13 @@ import TelegramUIPreferences
  import TelegramCore
  
  public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> {
@@ -21,29 +22,29 @@ diff --git a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift 
      // A folder never names a secret chat. ChatListFilterPredicate resolves a secret chat's identity
      // to its associated cloud user, so including or excluding the user silently does the same to the
      // secret chat; and a folder can pin one, which ChatListFilterIncludePeers deliberately keeps out
-@@ -17,7 +25,7 @@
+@@ -17,7 +25,7 @@ public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatL
      //
-     // The association is sampled once per filter change rather than observed: a secret chat created
-     // afterwards is not reflected in the badge until the filters change again or the app restarts.
+     // The folder users' secret chats are observed (`associatedPeerIds`), so one created later is picked up in
+     // the transaction that stores it. A secret chat a folder names keeps the user it was created with.
 -    return context.engine.peers.updatedChatListFilters()
 +    let resolvedFilters = context.engine.peers.updatedChatListFilters()
      |> distinctUntilChanged
-     |> mapToSignal { filters -> Signal<([ChatListFilter], [EnginePeer.Id: [EnginePeer.Id]], [EnginePeer.Id: EnginePeer.Id]), NoError> in
-         var folderPeerIds = Set<EnginePeer.Id>()
-@@ -47,7 +55,9 @@
-             return (filters, secretChatsByUserId, userIdBySecretChatId)
+     |> mapToSignal { filters -> Signal<([ChatListFilter], ChatListFilterBadgeSecretChats), NoError> in
+         var folderUserIds = Set<EnginePeer.Id>()
+@@ -51,7 +59,9 @@ public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatL
+             return (filters, ChatListFilterBadgeSecretChats(userIds: folderUserIds, associatedPeerIds: associatedPeerIds, userIdsOfFolderSecretChats: userIdsOfFolderSecretChats))
          }
      }
--    |> mapToSignal { filters, secretChatsByUserId, userIdBySecretChatId -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> in
+-    |> mapToSignal { filters, secretChats -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> in
 +    return combineLatest(resolvedFilters, unmutedOnly)
 +    |> mapToSignal { resolved, unmutedOnly -> Signal<(Int, [(ChatListFilter, Int, Bool)]), NoError> in
-+        let (filters, secretChatsByUserId, userIdBySecretChatId) = resolved
-         // Each folder peer followed by the secret chats it carries. A no-op, and allocation-free,
-         // for an account with no secret chats in any folder.
-         func expand(_ peerIds: [EnginePeer.Id]) -> [EnginePeer.Id] {
-@@ -307,7 +317,7 @@
-                         }
-                     }
++        let (filters, secretChats) = resolved
+         let secretChatsByUserId = secretChats.secretChatsByUserId
+         let userIdBySecretChatId = secretChats.userIdBySecretChatId
+         
+@@ -214,7 +224,7 @@ public func chatListFilterItems(context: AccountContext) -> Signal<(Int, [(ChatL
+                     count += correction.count
+                     unmutedUnreadCount += correction.unmuted
                  }
 -                result.append((filter, max(0, count), unmutedUnreadCount > 0))
 +                result.append((filter, max(0, unmutedOnly ? unmutedUnreadCount : count), unmutedUnreadCount > 0))
@@ -51,9 +52,10 @@ diff --git a/submodules/ChatListUI/Sources/TabBarChatListFilterController.swift 
              
              return (totalBadge, result)
 diff --git a/submodules/ContextUI/Sources/ContextController.swift b/submodules/ContextUI/Sources/ContextController.swift
+index 1c8c84f039..aa8a4334bf 100644
 --- a/submodules/ContextUI/Sources/ContextController.swift
 +++ b/submodules/ContextUI/Sources/ContextController.swift
-@@ -122,6 +122,7 @@
+@@ -122,6 +122,7 @@ public final class ContextMenuActionItem {
      }
  
      public let id: AnyHashable?
@@ -62,9 +64,10 @@ diff --git a/submodules/ContextUI/Sources/ContextController.swift b/submodules/C
      public let entities: [MessageTextEntity]
      public let entityFiles: [Int64: TelegramMediaFile]
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index 817ed28451..e76b816fdf 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -337,11 +337,11 @@
+@@ -383,11 +383,11 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -81,7 +84,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
              }
              return false
          }
-@@ -1696,7 +1696,13 @@
+@@ -1860,7 +1860,13 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                          strongSelf.shareButtonNode = nil
                      }
                      
@@ -96,7 +99,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                      animation.animator.updateFrame(layer: strongSelf.dateAndStatusNode.layer, frame: dateAndStatusFrame, completion: nil)
                      dateAndStatusApply(animation)
                      if case .customChatContents = item.associatedData.subject {
-@@ -2640,6 +2646,8 @@
+@@ -2811,6 +2817,8 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
          }
      }
      
@@ -105,7 +108,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -2665,6 +2673,7 @@
+@@ -2837,6 +2845,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
@@ -113,7 +116,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -2714,6 +2723,7 @@
+@@ -2886,6 +2895,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -121,7 +124,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -2735,7 +2745,9 @@
+@@ -2907,7 +2917,9 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
              
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -133,9 +136,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
                              case .none:
                                  break
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index a8c9fc44d1..7dde79c1b3 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -1515,11 +1515,11 @@
+@@ -1652,11 +1652,11 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -152,24 +156,24 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
              }
              return false
          }
-@@ -7294,6 +7294,8 @@
+@@ -8102,6 +8102,8 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
          item.controllerInteraction.openRankInfo(EnginePeer(peer), role, rank)
      }
      
 +    private var nebulaSwipeOrder: [NebulaSwipeAction] = [.reply]
 +    private var nebulaSwipeAction: NebulaSwipeAction = .reply
      private var playedSwipeToReplyHaptic = false
-     @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
-         var offset: CGFloat = 0.0
-@@ -7319,6 +7321,7 @@
-                 self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
+     /// A secondary click at `point`: the bubble's own recognizer's, or one a content node took itself
+     /// (`ChatMessageBubbleContentNode.secondaryTap`).
+@@ -8150,6 +8152,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+                 self.mainContainerNode.cancelGesture()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
 +                self.nebulaSwipeAction = NebulaSwipeActions.action(order: self.nebulaSwipeOrder, verticalOffset: Double(translation.y))
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -7370,6 +7373,7 @@
+@@ -8201,6 +8204,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -177,7 +181,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -7389,7 +7393,9 @@
+@@ -8220,7 +8224,9 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -189,9 +193,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sou
                              case .none:
                                  break
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+index f9e94f5d8c..e2fd1291a0 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
-@@ -253,5 +253,14 @@
+@@ -260,5 +260,14 @@ public func stringForMessageTimestampStatus(
          }
      }
      
@@ -207,9 +212,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/
      return NebulaDeletedMessages.isRetained(message._asMessage()) ? "\(NebulaDeletedMessages.icon) \(dateText)" : dateText
  }
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+index 36eef5c645..89b8db1240 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
-@@ -227,11 +227,11 @@
+@@ -227,11 +227,11 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -226,7 +232,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
              }
              return false
          }
-@@ -1068,6 +1068,8 @@
+@@ -1087,6 +1087,8 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
          }
      }
          
@@ -235,7 +241,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -1103,6 +1105,7 @@
+@@ -1122,6 +1124,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
                  }
              
                  var translation = recognizer.translation(in: self.view)
@@ -243,7 +249,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
                  if translation.x < 0.0 {
                      translation.x = max(-80.0, min(0.0, -rubberBandingOffset(offset: abs(translation.x), bandingStart: swipeOffset)))
                  } else {
-@@ -1142,6 +1145,7 @@
+@@ -1161,6 +1164,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -251,7 +257,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -1161,7 +1165,9 @@
+@@ -1180,7 +1184,9 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -263,9 +269,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
                              case .none:
                                  break
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+index 497ce878e6..e00e520e9f 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
-@@ -270,11 +270,11 @@
+@@ -317,11 +317,11 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
                  
                  let action = item.controllerInteraction.canSetupReply(item.message)
                  strongSelf.currentSwipeAction = action
@@ -282,7 +289,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
              }
              return false
          }
-@@ -957,6 +957,12 @@
+@@ -1046,6 +1046,12 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
                  }
              }
              var dateAndStatusFrame = CGRect(origin: CGPoint(x: min(layoutSize.width - dateAndStatusSize.width - 14.0, max(displayLeftInset, updatedImageFrame.maxX - dateOffset.x)), y: updatedImageFrame.maxY - dateOffset.y), size: dateAndStatusSize)
@@ -295,7 +302,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
              
              let baseShareButtonSize = CGSize(width: 30.0, height: 60.0)
              var baseShareButtonFrame = CGRect(origin: CGPoint(x: !incoming ? updatedImageFrame.minX - baseShareButtonSize.width - 6.0 : updatedImageFrame.maxX + 6.0, y: updatedImageFrame.maxY - 10.0 - baseShareButtonSize.height - 4.0), size: baseShareButtonSize)
-@@ -1619,6 +1625,8 @@
+@@ -1780,6 +1786,8 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
          }
      }
      
@@ -304,7 +311,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
      private var playedSwipeToReplyHaptic = false
      @objc private func swipeToReplyGesture(_ recognizer: ChatSwipeToReplyRecognizer) {
          var offset: CGFloat = 0.0
-@@ -1644,6 +1652,7 @@
+@@ -1806,6 +1814,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
                  self.item?.controllerInteraction.cancelInteractiveKeyboardGestures()
              case .changed:
                  var translation = recognizer.translation(in: self.view)
@@ -312,7 +319,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
                  func rubberBandingOffset(offset: CGFloat, bandingStart: CGFloat) -> CGFloat {
                      let bandedOffset = offset - bandingStart
                      if offset < bandingStart {
-@@ -1693,6 +1702,7 @@
+@@ -1855,6 +1864,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
                      }
                      
                      let progress = abs(translation.x) / swipeOffset
@@ -320,7 +327,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
                      swipeToReplyNode.updateProgress(progress)
                      
                      if progress > 1.0 - .ulpOfOne && !self.playedSwipeToReplyHaptic {
-@@ -1712,7 +1722,9 @@
+@@ -1874,7 +1884,9 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
                  }
                  if case .ended = recognizer.state, gestureRecognized {
                      if let item = self.item {
@@ -332,9 +339,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
                              case .none:
                                  break
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
+index f57eab10f6..6735074d01 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/Sources/ChatMessageSwipeToReplyNode.swift
-@@ -25,6 +25,17 @@
+@@ -25,6 +25,17 @@ public final class ChatMessageSwipeToReplyNode: ASDisplayNode {
      private let fillLayer: SimpleShapeLayer
      private let semiFillLayer: SimpleShapeLayer
      
@@ -352,7 +360,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/S
      private var absolutePosition: (CGRect, CGSize)?
      
      public init(fillColor: UIColor, enableBlur: Bool, foregroundColor: UIColor, backgroundNode: WallpaperBackgroundNode?, action: ChatMessageSwipeToReplyNode.Action) {
-@@ -74,6 +85,7 @@
+@@ -74,6 +85,7 @@ public final class ChatMessageSwipeToReplyNode: ASDisplayNode {
          self.semiFillLayer = SimpleShapeLayer()
      
          super.init()
@@ -361,28 +369,30 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageSwipeToReplyNode/S
          self.allowsGroupOpacity = true
          
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index c210263c9b..448c4d17b6 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -314,6 +314,7 @@
-     private var sendingTextDisabled: Bool = false
+@@ -353,6 +353,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+     private var isAgentMenuOpenWaiting = false
      
      private var presentationInterfaceState: ChatPresentationInterfaceState?
 +    private let nebulaArithmeticHint = NebulaArithmeticHint()
      private var nebulaAppearanceObservation: SettingsObservation?
      private var initializedPlaceholder = false
      
-@@ -3948,6 +3949,7 @@
-         transition.updateFrame(view: self.glassBackgroundContainer, frame: containerFrame)
-         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
-         
+@@ -4180,6 +4181,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+         if isAgentLayout {
+             return contentHeight + self.agentContainerExtraBottomInset
+         }
 +        self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
          return contentHeight
      }
      
 diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
+index 9b47f441d3..9eebe0fbe2 100644
 --- a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
 +++ b/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/ChatControllerInteraction.swift
-@@ -251,6 +251,8 @@
+@@ -260,6 +260,8 @@ public final class ChatControllerInteraction: ChatControllerInteractionProtocol
      public let pollOptionLongTap: (Data, LongTapParams?) -> Void
      public let openCheckoutOrReceipt: (EngineMessage.Id, OpenMessageParams?) -> Void
      public let openSearch: () -> Void
@@ -392,9 +402,10 @@ diff --git a/submodules/TelegramUI/Components/ChatControllerInteraction/Sources/
      public let canSetupReply: (EngineRawMessage) -> ChatControllerInteractionSwipeAction
      public let canSendMessages: () -> Bool
 diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
+index 8d7d9e7584..32d82453fb 100644
 --- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
 +++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextActionNode.swift
-@@ -237,7 +237,7 @@
+@@ -240,7 +240,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
      public func updateLayout(constrainedWidth: CGFloat, previous: ContextActionSibling, next: ContextActionSibling) -> (CGSize, (CGSize, ContainedViewLayoutTransition) -> Void) {
          let sideInset: CGFloat = 16.0
          let iconSideInset: CGFloat = 12.0
@@ -403,7 +414,7 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
          
          let iconSize: CGSize
          if let iconSource = self.action.iconSource {
-@@ -275,7 +275,7 @@
+@@ -278,7 +278,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
          if !statusSize.width.isZero, let statusNode = self.statusNode {
              let verticalSpacing: CGFloat = 2.0
              let combinedTextHeight = textSize.height + verticalSpacing + statusSize.height
@@ -412,7 +423,7 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
                  let verticalOrigin = floor((size.height - combinedTextHeight) / 2.0)
                  let textFrame = CGRect(origin: CGPoint(x: sideInset, y: verticalOrigin), size: textSize)
                  transition.updateFrameAdditive(node: self.textNode, frame: textFrame)
-@@ -298,7 +298,7 @@
+@@ -301,7 +301,7 @@ public final class ContextActionNode: ASDisplayNode, ContextActionNodeProtocol {
                  }
              })
          } else {
@@ -422,9 +433,10 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
                  let textFrame = CGRect(origin: CGPoint(x: sideInset, y: verticalOrigin), size: textSize)
                  transition.updateFrameAdditive(node: self.textNode, frame: textFrame)
 diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
+index cb7fdc241c..1bca2e4d11 100644
 --- a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
 +++ b/submodules/TelegramUI/Components/ContextControllerImpl/Sources/ContextControllerActionsStackNode.swift
-@@ -211,7 +211,7 @@
+@@ -211,7 +211,7 @@ public final class ContextControllerActionsListActionItemNode: HighlightTracking
      
      public func update(presentationData: PresentationData, constrainedSize: CGSize) -> (minSize: CGSize, apply: (_ size: CGSize, _ transition: ContainedViewLayoutTransition) -> Void) {
          let sideInset: CGFloat = 18.0
@@ -433,7 +445,7 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
          let titleSubtitleSpacing: CGFloat = 1.0
          let iconSideInset: CGFloat = 20.0
          let standardIconWidth: CGFloat = 32.0
-@@ -566,7 +566,7 @@
+@@ -567,7 +567,7 @@ public final class ContextControllerActionsListActionItemNode: HighlightTracking
          if let forcedHeight {
              minSize.height = forcedHeight
          } else {
@@ -443,9 +455,10 @@ diff --git a/submodules/TelegramUI/Components/ContextControllerImpl/Sources/Cont
              if subtitle != nil {
                  minSize.height += titleSubtitleSpacing
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index ceba728009..990c472f04 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6240,6 +6240,8 @@
+@@ -6336,6 +6336,8 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          }, automaticMediaDownloadSettings: self.automaticMediaDownloadSettings, pollActionState: ChatInterfacePollActionState(), stickerSettings: self.stickerSettings, presentationContext: ChatPresentationContext(context: context, backgroundNode: self.chatBackgroundNode))
          controllerInteraction.enableFullTranslucency = context.sharedContext.energyUsageSettings.fullTranslucency
          
@@ -455,9 +468,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
          controllerInteraction.requestWalletTransferArrival = { [weak self] message in
              self?.walletTransferAnimationCoordinator().requestArrival(message)
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index a3749955e2..638602ea35 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -655,7 +655,7 @@
+@@ -657,7 +657,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              
              if chatPresentationInterfaceState.copyProtectionEnabled {
              } else {
@@ -466,7 +480,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                      return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
                  }, action: { _, f in
                      var messageEntities: [MessageTextEntity]?
-@@ -696,7 +696,7 @@
+@@ -698,7 +698,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              
              if let author = message.author, let addressName = author.addressName {
                  let link = "https://t.me/\(addressName)"
@@ -475,7 +489,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                      return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Link"), color: theme.actionSheet.primaryTextColor)
                  }, action: { _, f in
                      UIPasteboard.general.string = link
-@@ -712,7 +712,7 @@
+@@ -714,7 +714,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              }
          }
  
@@ -484,7 +498,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
      }
      
      var loadStickerSaveStatus: EngineMedia.Id?
-@@ -1113,7 +1113,7 @@
+@@ -1115,7 +1115,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      
                      if !isAlreadyAdded {
                          let presentationData = context.sharedContext.currentPresentationData.with { $0 }
@@ -493,7 +507,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                              return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/DownloadTone"), color: theme.actionSheet.primaryTextColor)
                          }, action: { _, f in
                              f(.default)
-@@ -1191,7 +1191,7 @@
+@@ -1193,7 +1193,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          }
          
          if !isPinnedMessages, !isReplyThreadHead, data.canReply {
@@ -502,7 +516,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Reply"), color: theme.actionSheet.primaryTextColor)
              }, action: { c, _ in
                  interfaceInteraction.setupReplyMessage(messages[0].id, nil, { transition, completed in
-@@ -1355,7 +1355,7 @@
+@@ -1364,7 +1364,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
             let audioFile = message.effectiveMedia.compactMap({ $0 as? TelegramMediaFile }).first(where: { $0.isVoice || $0.isInstantVideo }),
             let size = audioFile.size, size > 0, size <= Int64(NebulaAudioTranscription.maximumBytes) {
              let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
@@ -511,7 +525,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
              }, action: { c, f in
                  let present: () -> Void = {
-@@ -1368,7 +1368,7 @@
+@@ -1377,7 +1377,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              if !isExpired {
                  if !isPoll {
                      if !isCopyProtected {
@@ -520,7 +534,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                              return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
                          }, action: { _, f in
                              if let diceEmoji = diceEmoji {
-@@ -1481,7 +1481,7 @@
+@@ -1490,7 +1490,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      canTranslate = false
                  }
                  if canTranslate {
@@ -529,7 +543,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          let aiSettings = NebulaAiSettings.shared
-@@ -1514,7 +1514,7 @@
+@@ -1523,7 +1523,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      let sourceEntities = (message.attributes.first(where: { $0 is TextEntitiesMessageAttribute }) as? TextEntitiesMessageAttribute)?.entities ?? []
                      let attributedSource = messageText == message.text ? chatInputStateStringWithAppliedEntities(messageText, entities: sourceEntities) : NSAttributedString(string: messageText)
                      let russian = chatPresentationInterfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru")
@@ -538,7 +552,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
-@@ -1522,7 +1522,7 @@
+@@ -1531,7 +1531,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                          })
                          if c == nil { f(.default) }
                      })))
@@ -547,7 +561,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Translate"), color: theme.actionSheet.primaryTextColor)
                      }, action: { c, f in
                          c?.dismiss(completion: {
-@@ -1569,7 +1569,7 @@
+@@ -1578,7 +1578,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                  }
              }
              if let mediaReference = mediaReference {
@@ -556,7 +570,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                      return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Save"), color: theme.actionSheet.primaryTextColor)
                  }, action: { _, f in
                      let _ = (saveToCameraRoll(context: context, userLocation: .peer(message.id.peerId), mediaReference: mediaReference)
-@@ -1603,7 +1603,7 @@
+@@ -1612,7 +1612,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              for media in message.effectiveMedia {
                  if let file = media as? TelegramMediaFile {
                      if file.isMusic {
@@ -565,7 +579,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                              return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Save"), color: theme.actionSheet.primaryTextColor)
                          }, action: { _, f in
                              controllerInteraction.saveMediaToFiles(message.id)
-@@ -1773,7 +1773,7 @@
+@@ -1782,7 +1782,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                  canAppend = true
              }
              if canAppend {
@@ -574,16 +588,16 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                      return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/AddCircle"), color: theme.actionSheet.primaryTextColor)
                  }, action: { _, f in
                      interfaceInteraction.editTodoMessage(messages[0].id, nil, true)
-@@ -1859,7 +1859,7 @@
+@@ -1868,7 +1868,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          }
          
-         if let message = messages.first, message.id.namespace == Namespaces.Message.Cloud, let channel = message.peers[message.id.peerId] as? TelegramChannel, !channel.isMonoForum, !(message.media.first is TelegramMediaAction), !isReplyThreadHead, !isMigrated {
+         if let message = messages.first, let copyLinkKind = chatMessageCopyLinkKind(message: message), let channel = message.peers[message.id.peerId] as? TelegramChannel, !isReplyThreadHead, !isMigrated {
 -            actions.append(.action(ContextMenuActionItem(text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
 +            actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.copyLink.identifier, text: chatPresentationInterfaceState.strings.Conversation_ContextMenuCopyLink, icon: { theme in
                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Link"), color: theme.actionSheet.primaryTextColor)
              }, action: { _, f in
                  var threadMessageId: EngineMessage.Id?
-@@ -2009,7 +2009,7 @@
+@@ -2026,7 +2026,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      })))
                  }
  
@@ -592,7 +606,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                      return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Forward"), color: theme.actionSheet.primaryTextColor)
                  }, action: { _, f in
                      interfaceInteraction.forwardMessages(selectAll || isImage ? messages : [message])
-@@ -2019,7 +2019,7 @@
+@@ -2036,7 +2036,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          }
          
          if data.messageActions.options.contains(.report) {
@@ -601,7 +615,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                  return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Report"), color: theme.actionSheet.primaryTextColor)
              }, action: { controller, f in
                  interfaceInteraction.reportMessages(messages, controller)
-@@ -2412,7 +2412,7 @@
+@@ -2461,7 +2461,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
                      })))
                  }
                  if !messageText.isEmpty || richMessageMarkdown != nil || (resourceAvailable && isImage) || diceEmoji != nil {
@@ -610,7 +624,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
                          return generateTintedImage(image: UIImage(bundleImageName: "Chat/Context Menu/Copy"), color: theme.actionSheet.primaryTextColor)
                      }, action: { _, f in
                          if let richMessageInstantPage {
-@@ -2541,7 +2541,7 @@
+@@ -2590,7 +2590,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
              }
          }
          

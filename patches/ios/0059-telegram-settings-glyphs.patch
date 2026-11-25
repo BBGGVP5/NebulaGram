@@ -1,4 +1,5 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
+index 4e0b8475b5..d740a0dd39 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoSettingsItems.swift
 @@ -1,4 +1,5 @@
@@ -7,7 +8,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
  import UIKit
  import Display
  import AccountContext
-@@ -149,7 +150,7 @@
+@@ -149,7 +150,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
              }))
          }
          
@@ -16,7 +17,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              interaction.openSettings(.profile)
          }))
          
-@@ -189,7 +190,7 @@
+@@ -189,7 +190,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
              } else {
                  proxyType = presentationData.strings.Settings_ProxyDisabled
              }
@@ -25,7 +26,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  interaction.openSettings(.proxy)
              }))
          }
-@@ -222,10 +223,10 @@
+@@ -222,10 +223,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
          }
      }
      
@@ -37,8 +38,8 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 +    items[.shortcuts]!.append(PeerInfoScreenDisclosureItem(id: 2, text: presentationData.strings.CallSettings_RecentCalls, icon: NebulaSettingsStyle.icon(symbol: "phone", color: .systemGreen), action: {
          interaction.openSettings(.recentCalls)
      }))
-     
-@@ -240,10 +241,10 @@
+     // Contacts live here rather than in the tab bar, which News took; so does its tab's "!" for contacts access.
+@@ -245,10 +246,10 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
          devicesLabel = ""
      }
      
@@ -51,12 +52,12 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          interaction.openSettings(.chatFolders)
      }))
      
-@@ -253,36 +254,36 @@
+@@ -258,36 +259,36 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
      } else {
          notificationsWarning = false
      }
--    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: PresentationResourcesSettings.notifications, action: {
-+    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: NebulaSettingsStyle.icon(symbol: "bell", color: .systemRed), action: {
+-    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: PresentationResourcesSettings.notifications, labelAccessibilityText: notificationsWarning ? presentationData.strings.VoiceOver_TabBar_AttentionRequired : nil, action: {
++    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 0, label: notificationsWarning ? .badge("!", presentationData.theme.list.itemDestructiveColor) : .none, text: presentationData.strings.Settings_NotificationsAndSounds, icon: NebulaSettingsStyle.icon(symbol: "bell", color: .systemRed), labelAccessibilityText: notificationsWarning ? presentationData.strings.VoiceOver_TabBar_AttentionRequired : nil, action: {
          interaction.openSettings(.notificationsAndSounds)
      }))
 -    items[.advanced]!.append(PeerInfoScreenDisclosureItem(id: 1, text: presentationData.strings.Settings_PrivacySettings, icon: PresentationResourcesSettings.security, action: {
@@ -96,7 +97,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              interaction.openSettings(.premium)
          }))
      }
-@@ -298,7 +299,7 @@
+@@ -303,7 +304,7 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
              } else {
                  balanceText = NSAttributedString()
              }
@@ -105,7 +106,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  interaction.openSettings(.stars)
              }))
          }
-@@ -315,19 +316,19 @@
+@@ -320,19 +321,19 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
              } else {
                  balanceText = NSAttributedString()
              }
@@ -128,7 +129,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  interaction.openSettings(.premiumGift)
              }))
          }
-@@ -335,24 +336,24 @@
+@@ -340,24 +341,24 @@ func settingsItems(data: PeerInfoScreenData?, context: AccountContext, presentat
      
      if let settings = data.globalSettings {
          if settings.hasPassport {
@@ -158,7 +159,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          interaction.openSettings(.tips)
      }))
      
-@@ -443,7 +444,7 @@
+@@ -448,7 +449,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
      }
      
      let isEditingBirthDate = state.isEditingBirthDate
@@ -167,7 +168,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          interaction.updateIsEditingBirthdate(!isEditingBirthDate)
      }))
      if isEditingBirthDate, let birthday {
-@@ -474,7 +475,7 @@
+@@ -479,7 +480,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
      }
      
      if case let .user(user) = data.peer {
@@ -176,7 +177,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              interaction.openSettings(.phoneNumber)
          }))
      }
-@@ -482,7 +483,7 @@
+@@ -487,7 +488,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
      if let addressName = data.peer?.addressName, !addressName.isEmpty {
          username = "@\(addressName)"
      }
@@ -185,7 +186,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
            interaction.openSettings(.username)
      }))
      
-@@ -503,7 +504,7 @@
+@@ -508,7 +509,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
          }
          let colorImage = generateSettingsMenuPeerColorsLabelIcon(colors: colors)
          
@@ -194,7 +195,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              interaction.editingOpenNameColorSetup()
          }))
          
-@@ -519,7 +520,7 @@
+@@ -524,7 +525,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
                  personalChannelTitle = peer.compactDisplayTitle
              }
              
@@ -203,7 +204,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  interaction.editingOpenPersonalChannel()
              }))
          }
-@@ -532,7 +533,7 @@
+@@ -537,7 +538,7 @@ func settingsEditingItems(data: PeerInfoScreenData?, state: PeerInfoState, conte
      } else {
          automationBotTitle = presentationData.strings.Settings_ChatAutomationOff
      }

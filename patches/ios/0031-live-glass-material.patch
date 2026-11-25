@@ -1,7 +1,8 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index e05fe14dd0..b7f44013e9 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -134,6 +134,7 @@
+@@ -133,6 +133,7 @@ swift_library(
          "//submodules/ComponentFlow",
          "//submodules/Components/ViewControllerComponent",
          "//submodules/Components/MultilineTextComponent",
@@ -10,9 +11,10 @@ diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
          "//submodules/Components/ComponentDisplayAdapters",
          "//submodules/Components/BundleIconComponent",
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+index 384fbf4b71..648b33056c 100644
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
-@@ -568,6 +568,9 @@
+@@ -589,6 +589,9 @@ public class GlassBackgroundView: UIView {
      private var nebulaSize: CGSize = .zero
      private var nebulaReduced = false
      private var nebulaObservation: SettingsObservation?
@@ -22,7 +24,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      private let nebulaFallback = UIView()
      private lazy var nebulaFallbackClip = ClippingShapeContext(view: self.nebulaFallback)
      public private(set) var params: Params?
-@@ -620,11 +623,14 @@
+@@ -661,11 +664,14 @@ public class GlassBackgroundView: UIView {
          self.contentContainer = ContentContainer(maskContentView: self.maskContentView)
          
          super.init(frame: frame)
@@ -38,7 +40,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
              NotificationCenter.default.addObserver(self, selector: #selector(nebulaRefreshGlass), name: name, object: nil)
          }
  
-@@ -916,6 +922,24 @@
+@@ -958,6 +964,24 @@ public class GlassBackgroundView: UIView {
              }
          }
          

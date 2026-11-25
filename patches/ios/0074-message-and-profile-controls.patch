@@ -1,25 +1,26 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
+index 22010ec131..d7349fd9a6 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/BUILD
-@@ -10,6 +10,7 @@
-         "-warnings-as-errors",
+@@ -11,6 +11,7 @@ swift_library(
      ],
      deps = [
+         "//submodules/TelegramUI/Components/StaticGlassBackground",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/Display",
+         "//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index ec63f5ad0c..78a37ea2a7 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AVFoundation
  import AsyncDisplayKit
-@@ -1004,6 +1005,7 @@
+@@ -1066,6 +1067,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
              if Namespaces.Message.allEphemeral.contains(item.message.id.namespace) || Namespaces.Message.allWelcomeMessages.contains(item.message.id.namespace) {
                  needsShareButton = false
              }
@@ -28,18 +29,19 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerIte
              var isEmoji = false
              if let _ = telegramDice {
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
+index 6e80f05aa8..a8c9fc44d1 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageBubbleItemNode/Sources/ChatMessageBubbleItemNode.swift
-@@ -2036,6 +2036,8 @@
-             allowFullWidth = true
+@@ -2222,6 +2222,7 @@ public class ChatMessageBubbleItemNode: ChatMessageItemView, ChatMessagePreviewI
+         if bubbleStyle.isBubbleless && !isAd {
+             needsShareButton = false
          }
- 
 +        if !NebulaMessagePreferences.shared.enabled("direct_share") { needsShareButton = false }
-+
+ 
          var tmpWidth: CGFloat
          let isBroadcastPost: Bool
-         if let channel = item.content.firstMessage.peers[item.content.firstMessage.id.peerId] as? TelegramChannel, case .broadcast = channel.info {
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
+index 67774e5c59..35a8186e20 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/ChatMessageDateAndStatusNode.swift
 @@ -1,4 +1,5 @@
@@ -48,7 +50,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/
  import UIKit
  import AsyncDisplayKit
  import TelegramCore
-@@ -607,7 +608,7 @@
+@@ -610,7 +611,7 @@ public class ChatMessageDateAndStatusNode: ASDisplayNode {
              if arguments.edited {
                  if let useEditedTimestamp = arguments.context.getAppConfigValue("message_primary_edited_date") as? Bool, useEditedTimestamp {
                  } else {
@@ -58,9 +60,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/
              }
              if let impressionCount = arguments.impressionCount {
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
+index 2064b0e741..f9e94f5d8c 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/Sources/StringForMessageTimestampStatus.swift
-@@ -99,7 +99,7 @@
+@@ -155,7 +155,7 @@ public func stringForMessageTimestampStatus(
      var displayFullDate = false
      if case .full = format, timestamp > 100000 {
          displayFullDate = true
@@ -70,9 +73,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageDateAndStatusNode/
          timestamp = forwardInfo.date
      }
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
+index 1dd6a7760c..14fe67419a 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -81,6 +85,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
          "//submodules/Display",
          "//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
+index 48e9f02498..36eef5c645 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNode/Sources/ChatMessageInstantVideoItemNode.swift
 @@ -1,4 +1,5 @@
@@ -89,7 +94,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -388,6 +389,7 @@
+@@ -398,6 +399,7 @@ public class ChatMessageInstantVideoItemNode: ChatMessageItemView, ASGestureReco
              if let subject = item.associatedData.subject, case .messageOptions = subject {
                  needsShareButton = false
              }
@@ -98,17 +103,19 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInstantVideoItemNo
              var layoutInsets = layoutConstants.instantVideo.insets
              if dateHeaderAtBottom.hasDate && dateHeaderAtBottom.hasTopic {
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
+index 9498ab749d..9a85e3cf95 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/BUILD
-@@ -10,6 +10,7 @@
-         "-warnings-as-errors",
+@@ -11,6 +11,7 @@ swift_library(
      ],
      deps = [
+         "//submodules/TelegramUI/Components/StaticGlassBackground",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
          "//submodules/Display",
          "//submodules/SSignalKit/SwiftSignalKit",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
+index 928702a1b6..497ce878e6 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 @@ -1,4 +1,5 @@
@@ -117,7 +124,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -549,6 +550,7 @@
+@@ -612,6 +613,7 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
              if Namespaces.Message.allEphemeral.contains(item.message.id.namespace) || Namespaces.Message.allWelcomeMessages.contains(item.message.id.namespace) {
                  needsShareButton = false
              }
@@ -126,9 +133,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/So
              var layoutInsets = UIEdgeInsets(top: mergedTop.merged ? layoutConstants.bubble.mergedSpacing : layoutConstants.bubble.defaultSpacing, left: 0.0, bottom: mergedBottom.merged ? layoutConstants.bubble.mergedSpacing : layoutConstants.bubble.defaultSpacing, right: 0.0)
              if dateHeaderAtBottom.hasDate && dateHeaderAtBottom.hasTopic {
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 911feac4e3..a0d43d1ead 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -1382,7 +1382,7 @@
+@@ -1423,7 +1423,7 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                  title = "" //"\u{00A0}"
              }
              if title.isEmpty {
@@ -138,9 +146,10 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                  } else if let addressName = peer.addressName {
                      title = "@\(addressName)"
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
+index 28eaa0f186..d9a22c481e 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
-@@ -174,7 +174,7 @@
+@@ -178,7 +178,7 @@ func infoItems(
              ))
          }
          
@@ -149,7 +158,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let formattedPhone = formatPhoneNumber(context: context, number: phone)
              let label: String
              if formattedPhone.hasPrefix("+888 ") {
-@@ -190,6 +190,11 @@
+@@ -194,6 +194,11 @@ func infoItems(
                  interaction.requestLayout(animated)
              }))
          }
@@ -162,6 +171,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              var additionalUsernames: String?
              let usernames = user.usernames.filter { $0.isActive && $0.username != mainUsername }
 diff --git a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
+index 740fdbcb70..cc5d9b1edb 100644
 --- a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
 +++ b/submodules/TelegramUI/Sources/SharedMediaPlayer.swift
 @@ -1,4 +1,5 @@
@@ -170,7 +180,7 @@ diff --git a/submodules/TelegramUI/Sources/SharedMediaPlayer.swift b/submodules/
  import UIKit
  import SwiftSignalKit
  import TelegramCore
-@@ -258,6 +259,10 @@
+@@ -258,6 +259,10 @@ final class SharedMediaPlayer {
                                              strongSelf.playbackItem?.seek(0.0)
                                              strongSelf.playbackItem?.play()
                                          default:

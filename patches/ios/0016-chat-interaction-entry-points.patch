@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 834a34c72b..668bc78f72 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3856,7 +3856,7 @@
+@@ -4080,7 +4080,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              )
          }
          
@@ -11,9 +12,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          if isExpandInputEnabled {
              let expandButton: (button: HighlightTrackingButton, icon: UIImageView)
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index f32b3c1644..1b70baa0e2 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -1859,6 +1859,7 @@
+@@ -1939,6 +1939,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                      }
                      
                      guard let chosenReaction = chosenReaction else {
@@ -21,7 +23,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          return
                      }
                      
-@@ -1917,6 +1918,7 @@
+@@ -1997,6 +1998,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                      }
                      
                      guard let chosenReaction = chosenReaction else {

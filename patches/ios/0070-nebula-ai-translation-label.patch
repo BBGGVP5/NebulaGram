@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
+index 8aa1d94829..a1ff27e62a 100644
 --- a/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
 +++ b/submodules/TelegramUI/Components/TranslateHeaderPanelComponent/Sources/ChatTranslationPanelNode.swift
-@@ -148,7 +148,7 @@
+@@ -148,7 +148,7 @@ final class ChatTranslationPanelNode: ASDisplayNode {
              
              let buttonText: String
              if info.fromLang == "nebula-ai" {

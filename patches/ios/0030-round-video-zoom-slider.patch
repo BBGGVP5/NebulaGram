@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+index 3d84d7ad29..6abbd0c3a5 100644
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -903,6 +903,7 @@
+@@ -920,6 +920,7 @@ public class VideoMessageCameraScreen: ViewController {
          fileprivate var additionalPreviewView: CameraSimplePreviewView
          private var progressView: RecordingProgressView
          private let loadingView: LoadingEffectView
@@ -9,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
          
          private var resultPreviewView: ResultPreviewView?
          
-@@ -932,6 +933,10 @@
+@@ -949,6 +950,10 @@ public class VideoMessageCameraScreen: ViewController {
                  
          var cameraState: CameraState {
              didSet {
@@ -20,7 +21,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  if self.cameraState.isViewOnceEnabled != oldValue.isViewOnceEnabled {
                      if self.cameraState.isViewOnceEnabled {
                          let presentationData = self.context.sharedContext.currentPresentationData.with { $0 }
-@@ -948,6 +953,7 @@
+@@ -965,6 +970,7 @@ public class VideoMessageCameraScreen: ViewController {
              didSet {
                  self.previewStatePromise.set(.single(self.previewState))
                  self.resultPreviewView?.isMuted = self.previewState?.isMuted ?? true
@@ -28,7 +29,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              }
          }
          var previewStatePromise = Promise<PreviewState?>()
-@@ -1003,6 +1009,8 @@
+@@ -1020,6 +1026,8 @@ public class VideoMessageCameraScreen: ViewController {
              self.progressView = RecordingProgressView(frame: .zero)
              
              self.loadingView = LoadingEffectView(effectAlpha: 0.1, borderAlpha: 0.25, duration: 1.0)
@@ -37,7 +38,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.previewBlurView = BlurView()
              self.previewBlurView.isUserInteractionEnabled = false
-@@ -1033,6 +1041,12 @@
+@@ -1050,6 +1058,12 @@ public class VideoMessageCameraScreen: ViewController {
              self.backgroundColor = .clear
              
              self.view.addSubview(self.containerView)
@@ -50,7 +51,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              
              self.containerView.addSubview(self.previewContainerView)
  
-@@ -1165,6 +1179,7 @@
+@@ -1182,6 +1196,7 @@ public class VideoMessageCameraScreen: ViewController {
                  }
                  let scale = gestureRecognizer.scale
                  camera.setZoomDelta(scale)
@@ -58,7 +59,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
                  gestureRecognizer.scale = 1.0
              case .ended:
                  let pinchStartTimestamp = self.pinchStartTimestamp
-@@ -1173,9 +1188,11 @@
+@@ -1190,9 +1205,11 @@ public class VideoMessageCameraScreen: ViewController {
                      return
                  }
                  self.camera?.rampZoom(1.0, rate: 8.0)
@@ -70,7 +71,7 @@ diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/V
              case .failed:
                  self.pinchStartTimestamp = nil
              default:
-@@ -1566,6 +1583,8 @@
+@@ -1594,6 +1611,8 @@ public class VideoMessageCameraScreen: ViewController {
                  backgroundFrame = CGRect(origin: .zero, size: CGSize(width: layout.size.width, height: layout.size.height - layout.intrinsicInsets.bottom - controller.inputPanelFrame.0.height - 8.0))
              }
                          

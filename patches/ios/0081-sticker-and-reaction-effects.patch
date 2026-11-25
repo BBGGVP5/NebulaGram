@@ -1,23 +1,25 @@
 diff --git a/submodules/ReactionSelectionNode/BUILD b/submodules/ReactionSelectionNode/BUILD
+index 7e20878129..5bcfe7ae62 100644
 --- a/submodules/ReactionSelectionNode/BUILD
 +++ b/submodules/ReactionSelectionNode/BUILD
-@@ -10,6 +10,7 @@
-         "-warnings-as-errors",
+@@ -30,6 +30,7 @@ swift_library(
      ],
      deps = [
+         ":ReactionContextGeometry",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/TelegramCore:TelegramCore",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
 diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift b/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
+index ebdb4c3e10..fe56c8500c 100644
 --- a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
 +++ b/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift
 @@ -1,3 +1,4 @@
 +import NebulaSettingsContract
  import Foundation
- import LottieSettings
  import UIKit
-@@ -2642,6 +2643,7 @@
+ import AsyncDisplayKit
+@@ -2705,6 +2706,7 @@ public final class ReactionContextNode: ASDisplayNode, ASScrollViewDelegate {
      }
      
      public func animateOutToReaction(value: MessageReaction.Reaction, targetView: UIView, hideNode: Bool, forceSwitchToInlineImmediately: Bool = false, animateTargetContainer: UIView?, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, onHit: (() -> Void)?, completion: @escaping () -> Void) {
@@ -25,7 +27,7 @@ diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift 
          self.isAnimatingOutToReaction = true
          
          var foundItemNode: ReactionNode?
-@@ -3339,6 +3341,7 @@
+@@ -3417,6 +3419,7 @@ public final class StandaloneReactionAnimation: ASDisplayNode {
      public var currentDismissAnimation: (() -> Void)?
      
      public func animateReactionSelection(context: AccountContext, theme: PresentationTheme, animationCache: AnimationCache, reaction: ReactionItem, customEffectResource: TelegramMediaResource? = nil, avatarPeers: [EnginePeer], playHaptic: Bool, isLarge: Bool, playCenterReaction: Bool = true, forceSmallEffectAnimation: Bool = false, hideCenterAnimation: Bool = false, targetView: UIView, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, currentItemNode: ReactionNode?, onHit: (() -> Void)? = nil, completion: @escaping () -> Void) {
@@ -33,7 +35,7 @@ diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift 
          guard let sourceSnapshotView = targetView.snapshotContentTree() else {
              completion()
              return
-@@ -3826,6 +3829,7 @@
+@@ -3904,6 +3907,7 @@ public final class StandaloneReactionAnimation: ASDisplayNode {
      }
      
      public func animateOutToReaction(context: AccountContext, theme: PresentationTheme, item: ReactionItem, value: MessageReaction.Reaction, sourceView: UIView, targetView: UIView, hideNode: Bool, forceSwitchToInlineImmediately: Bool = false, animateTargetContainer: UIView?, addStandaloneReactionAnimation: ((StandaloneReactionAnimation) -> Void)?, onHit: (() -> Void)?, completion: @escaping () -> Void) {
@@ -41,7 +43,7 @@ diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift 
          let star = ComponentView<Empty>()
          let starSize = star.update(
              transition: .immediate,
-@@ -4103,6 +4107,7 @@
+@@ -4181,6 +4185,7 @@ public final class StandaloneDismissReactionAnimation: ASDisplayNode {
      }
      
      public func animateReactionDismiss(sourceView: UIView, hideNode: Bool, isIncoming: Bool, completion: @escaping () -> Void) {
@@ -50,9 +52,10 @@ diff --git a/submodules/ReactionSelectionNode/Sources/ReactionContextNode.swift 
              completion()
              return
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
+index 78a37ea2a7..817ed28451 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -2191,6 +2191,7 @@
+@@ -2362,6 +2362,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
      }
      
      public func playEffectAnimation(resource: TelegramMediaResource, isStickerEffect: Bool = false) {

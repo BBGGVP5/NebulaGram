@@ -1,7 +1,8 @@
 diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules/AccountContext/Sources/AccountContext.swift
+index 4753d200dc..dda93fcc71 100644
 --- a/submodules/AccountContext/Sources/AccountContext.swift
 +++ b/submodules/AccountContext/Sources/AccountContext.swift
-@@ -1419,6 +1419,8 @@
+@@ -1482,6 +1482,8 @@ public final class ChatMessageFeedItemActions {
  }
  
  public protocol SharedAccountContext: AnyObject {
@@ -11,9 +12,10 @@ diff --git a/submodules/AccountContext/Sources/AccountContext.swift b/submodules
      var sharedContainerPath: String { get }
      var basePath: String { get }
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
+index 7f64f67d76..bb0696c633 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNode/Sources/ChatMessageInteractiveFileNode.swift
-@@ -352,6 +352,10 @@
+@@ -367,6 +367,10 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
              return
          }
          
@@ -24,7 +26,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNod
          if !context.isPremium, case .inProgress = self.audioTranscriptionState {
              return
          }
-@@ -788,6 +792,10 @@
+@@ -806,6 +810,10 @@ public final class ChatMessageInteractiveFileNode: ASDisplayNode {
                      }
                  }
                  
@@ -36,9 +38,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveFileNod
                  
                  switch audioTranscriptionState {
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
+index 7882119b0c..bc8054871b 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstantVideoNode/Sources/ChatMessageInteractiveInstantVideoNode.swift
-@@ -843,6 +843,10 @@
+@@ -887,6 +887,10 @@ public class ChatMessageInteractiveInstantVideoNode: ASDisplayNode {
                          }
                      }
                      
@@ -46,10 +49,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstant
 +                       item.context.sharedContext.canTranscribeWithNebula(message: item.message) {
 +                        displayTranscribe = true
 +                    }
-                     if displayTranscribe, let durationBlurColor = durationBlurColor {
+                     if displayTranscribe, let transcribeButtonBlurColor {
                          var added = false
                          let audioTranscriptionButton: ComponentHostView<Empty>
-@@ -1812,6 +1816,10 @@
+@@ -1874,6 +1878,10 @@ public class ChatMessageInteractiveInstantVideoNode: ASDisplayNode {
              return
          }
          
@@ -61,9 +64,10 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveInstant
              return
          }
 diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
+index c465b5f196..a9d8b823d5 100644
 --- a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
 +++ b/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift
-@@ -1363,7 +1363,7 @@
+@@ -1372,7 +1372,7 @@ func contextMenuForChatPresentationInterfaceState(chatPresentationInterfaceState
          let isCopyProtected = chatPresentationInterfaceState.copyProtectionEnabled || message.isCopyProtected()
          if #available(iOS 15.0, *), NebulaAudioPreferences.shared.transcriptionEnabled, !isCopyProtected, !isExpired,
             !message.containsSecretMedia, messages.count == 1, message.id.peerId.namespace != Namespaces.Peer.SecretChat,
@@ -73,9 +77,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatInterfaceStateContextMenus.swift 
              let russian = chatPresentationInterfaceState.strings.baseLanguageCode.hasPrefix("ru")
              actions.append(.action(ContextMenuActionItem(id: NebulaMessageMenuAction.transcribe.identifier, text: russian ? "Nebula AI · расшифровать" : "Nebula AI · Transcribe", icon: { theme in
 diff --git a/submodules/TelegramUI/Sources/SharedAccountContext.swift b/submodules/TelegramUI/Sources/SharedAccountContext.swift
+index 0fe780741e..8a904d44be 100644
 --- a/submodules/TelegramUI/Sources/SharedAccountContext.swift
 +++ b/submodules/TelegramUI/Sources/SharedAccountContext.swift
-@@ -161,6 +161,23 @@
+@@ -167,6 +167,23 @@ private enum AddedAccountsResult {
  private var testHasInstance = false
  
  public final class SharedAccountContextImpl: SharedAccountContext {

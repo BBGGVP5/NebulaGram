@@ -1,7 +1,8 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
+index e1e633f63f..0aeec37797 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -405,6 +405,7 @@
+@@ -405,6 +405,7 @@ swift_library(
          "//third-party/boringssl:crypto",
          "//submodules/BuildConfig:BuildConfig",
      ],
@@ -9,7 +10,7 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
  )
  
  plist_fragment(
-@@ -1301,6 +1302,7 @@
+@@ -1301,6 +1302,7 @@ swift_library(
          "//submodules/OpenSSLEncryptionProvider:OpenSSLEncryptionProvider",
          "//Telegram:GeneratedSources",
      ],

@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index bd550ceeb7..5e567047ae 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -6151,6 +6151,21 @@
+@@ -6247,6 +6247,21 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                              })))
                          }
                                                  
@@ -23,7 +24,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                          return items
                      }
                  case let .replyThread(message):
-@@ -7726,6 +7741,10 @@
+@@ -7841,6 +7856,10 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { itemNode in
              itemNode.unreadMessageRangeUpdated()
          }
@@ -34,8 +35,8 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
                  
          if self.willAppear {
              self.chatDisplayNode.historyNode.refreshPollActionsForVisibleMessages()
-@@ -8341,6 +8360,7 @@
-         super.viewWillDisappear(animated)
+@@ -8463,6 +8482,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+         self.forwardSideListAppearance(.willDisappear, animated: animated)
  
          self.walletTransferAnimationsVisible = false
 +        NebulaChatLockGate.seal(host: self)

@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 84850272d5..027dc10e5f 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -795,7 +795,7 @@
+@@ -843,7 +843,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                      return
                  }
                  
@@ -10,7 +11,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                      tabsView.updateTabSwitchFraction(fraction: fraction, isDragging: strongSelf.chatListDisplayNode.mainContainerNode.isSwitchingCurrentItemFilterByDragging, transition: ComponentTransition(transition))
                  }
              }
-@@ -3696,7 +3696,7 @@
+@@ -3771,7 +3771,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
          let _ = defaultFilterIds
          
          var reorderedFilterIdsValue: [Int32]?
@@ -20,9 +21,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                  guard let value = item.base as? Int32 else {
                      return nil
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index ee72987be8..618f6dfbc9 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1184,6 +1184,14 @@
+@@ -1206,6 +1206,14 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
      private var tapRecognizer: UITapGestureRecognizer?
      var navigationBar: NavigationBar?
      let navigationBarView = ComponentView<Empty>()
@@ -37,7 +39,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
      weak var controller: ChatListControllerImpl?
      
      private var toolbar: ComponentView<Empty>?
-@@ -1557,6 +1565,10 @@
+@@ -1579,6 +1587,10 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
          }
          
          var navigationHeaderPanels: AnyComponent<Empty>?
@@ -48,16 +50,16 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          if self.controller?.tabContainerData != nil || !panels.isEmpty {
              var tabs: AnyComponent<Empty>?
              if let tabContainerData = self.controller?.tabContainerData, tabContainerData.0.count > 1 {
-@@ -1594,7 +1606,7 @@
+@@ -1616,7 +1628,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                      theme: self.presentationData.theme,
                      tabs: tabContainerData.0.map { entry -> HorizontalTabsComponent.Tab in
                          let id: HorizontalTabsComponent.Tab.Id
 -                        let title: HorizontalTabsComponent.Tab.Title
 +                        var title: HorizontalTabsComponent.Tab.Title
                          var badge: HorizontalTabsComponent.Tab.Badge?
+                         var accessibilityValue: String?
                          var isMainTab = false
-                         switch entry {
-@@ -1613,6 +1625,8 @@
+@@ -1637,6 +1649,8 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                              }
                          }
                          
@@ -66,7 +68,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
                          return HorizontalTabsComponent.Tab(
                              id: id,
                              content: .title(title),
-@@ -1692,17 +1706,44 @@
+@@ -1719,17 +1733,44 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                      },
                      selectedTab: selectedTab,
                      isEditing: isEditing,
@@ -118,7 +120,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          var effectiveStorySubscriptions: EngineStorySubscriptions?
          if let controller = self.controller, case .forum = controller.location {
              effectiveStorySubscriptions = nil
-@@ -2026,6 +2067,7 @@
+@@ -2067,6 +2108,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
          var mainNavigationBarHeight = navigationBarHeight
          var cleanMainNavigationBarHeight = cleanNavigationBarHeight
          var mainInsets = insets
@@ -127,9 +129,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
              mainNavigationBarHeight = visualNavigationHeight
              cleanMainNavigationBarHeight = visualNavigationHeight
 diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
+index 2137c84364..03daccc617 100644
 --- a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
 +++ b/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContainerNode/Sources/ChatListFilterTabContainerNode.swift
-@@ -11,7 +11,7 @@
+@@ -11,7 +11,7 @@ import GlassBackgroundComponent
  import ComponentFlow
  import ComponentDisplayAdapters
  
@@ -139,9 +142,10 @@ diff --git a/submodules/TelegramUI/Components/ChatList/ChatListFilterTabContaine
  
      var icon = isAllChats ? "💬" : "📁"
 diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
+index 4d60d6cc71..8d1c94cc19 100644
 --- a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
 +++ b/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sources/HeaderPanelContainerComponent.swift
-@@ -36,6 +36,7 @@
+@@ -36,6 +36,7 @@ public final class HeaderPanelContainerComponent: Component {
      }
      
      public let theme: PresentationTheme
@@ -149,7 +153,7 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
      public let preferClearGlass: Bool
      public let tabs: AnyComponent<Empty>?
      public let panels: [Panel]
-@@ -43,9 +44,11 @@
+@@ -43,9 +44,11 @@ public final class HeaderPanelContainerComponent: Component {
      public init(
          theme: PresentationTheme,
          preferClearGlass: Bool = false,
@@ -161,7 +165,7 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
          self.theme = theme
          self.preferClearGlass = preferClearGlass
          self.tabs = tabs
-@@ -53,6 +56,7 @@
+@@ -53,6 +56,7 @@ public final class HeaderPanelContainerComponent: Component {
      }
      
      public static func ==(lhs: HeaderPanelContainerComponent, rhs: HeaderPanelContainerComponent) -> Bool {
@@ -169,7 +173,7 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
          if lhs.theme !== rhs.theme {
              return false
          }
-@@ -84,6 +88,7 @@
+@@ -84,6 +88,7 @@ public final class HeaderPanelContainerComponent: Component {
      public final class View: UIView {
          private let backgroundContainer: GlassBackgroundContainerView
          private let backgroundView: GlassBackgroundView
@@ -177,7 +181,7 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
          private let contentContainer: UIView
          
          private var tabsView: ComponentView<Empty>?
-@@ -108,6 +113,7 @@
+@@ -108,6 +113,7 @@ public final class HeaderPanelContainerComponent: Component {
              
              super.init(frame: frame)
              
@@ -185,7 +189,7 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
              self.backgroundContainer.contentView.addSubview(self.backgroundView)
              self.addSubview(self.backgroundContainer)
              
-@@ -269,6 +275,14 @@
+@@ -269,6 +275,14 @@ public final class HeaderPanelContainerComponent: Component {
              
              transition.setAlpha(view: self.backgroundContainer, alpha: (component.tabs != nil || !component.panels.isEmpty) ? 1.0 : 0.0)
              
@@ -201,9 +205,10 @@ diff --git a/submodules/TelegramUI/Components/HeaderPanelContainerComponent/Sour
              
              transition.setCornerRadius(layer: self.contentContainer.layer, cornerRadius: min(cornerRadius, backgroundFrame.height * 0.5))
 diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
+index ed83fb0543..4576cbf651 100644
 --- a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
 +++ b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
-@@ -286,6 +286,8 @@
+@@ -304,6 +304,8 @@ public final class HorizontalTabsComponent: Component {
      public let selectedTab: Tab.Id?
      public let isEditing: Bool
      public let layout: Layout
@@ -212,7 +217,7 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
      public let liftWhileSwitching: Bool
      
      public init(
-@@ -295,7 +297,9 @@
+@@ -313,7 +315,9 @@ public final class HorizontalTabsComponent: Component {
          selectedTab: Tab.Id?,
          isEditing: Bool,
          layout: Layout = .fill,
@@ -223,7 +228,7 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
      ) {
          self.context = context
          self.theme = theme
-@@ -303,10 +307,13 @@
+@@ -321,10 +325,13 @@ public final class HorizontalTabsComponent: Component {
          self.selectedTab = selectedTab
          self.isEditing = isEditing
          self.layout = layout
@@ -237,7 +242,7 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
          if lhs.theme !== rhs.theme {
              return false
          }
-@@ -363,6 +370,8 @@
+@@ -403,6 +410,8 @@ public final class HorizontalTabsComponent: Component {
      }
      
      public final class View: UIView, UIScrollViewDelegate, HeaderPanelContainerChildView {
@@ -246,9 +251,9 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
          private let lensView: LiquidLensView
          private let scrollView: ScrollView
          private let selectedScrollView: UIView
-@@ -418,7 +427,11 @@
-                 return self.scrollView.contentOffset.x > .ulpOfOne
-             }
+@@ -464,7 +473,11 @@ public final class HorizontalTabsComponent: Component {
+             self.isAccessibilityElement = false
+             self.accessibilityTraits = .tabBar
              
 +            self.addSubview(self.plainContainer)
 +            self.plainContainer.clipsToBounds = true
@@ -258,7 +263,7 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
              
              self.lensView.contentView.addSubview(self.scrollView)
              self.lensView.selectedContentView.addSubview(self.selectedScrollView)
-@@ -693,6 +706,19 @@
+@@ -812,6 +825,19 @@ public final class HorizontalTabsComponent: Component {
                  isLifted = false
              }
              let lensSize = layoutData.lensSize
@@ -275,10 +280,10 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
 +            self.nebulaSelection.layer.borderWidth = component.nebulaOutline && style != 2 ? 1.0 : 0.0
 +            self.nebulaSelection.layer.borderColor = component.theme.list.itemAccentColor.withAlphaComponent(0.4).cgColor
 +            transition.setFrame(view: self.nebulaSelection, frame: style == 2 ? CGRect(x: selectionFrame.minX + 8.0, y: selectionFrame.maxY - 3.0, width: max(0, selectionFrame.width - 16.0), height: 3.0) : selectionFrame)
-             self.lensView.update(size: lensSize, selectionOrigin: CGPoint(x:  -self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 0.0), selectionSize: CGSize(width: layoutData.selectedItemFrame.width, height: lensSize.height), inset: 0.0, liftedInset: 6.0, isDark: component.theme.overallDarkAppearance, isLifted: isLifted, transition: transition)
+             self.lensView.update(size: lensSize, selectionOrigin: CGPoint(x:  -self.scrollView.contentOffset.x + layoutData.selectedItemFrame.minX, y: 0.0), selectionSize: CGSize(width: layoutData.selectedItemFrame.width, height: lensSize.height), inset: 0.0, liftedInset: 6.0, isDark: component.theme.overallDarkAppearance, isLifted: isLifted, isCollapsed: layoutData.isSelectionHidden, transition: transition)
              
              transition.setPosition(view: self.selectedScrollView, position: CGRect(origin: CGPoint(), size: lensSize).center)
-@@ -795,7 +821,7 @@
+@@ -914,7 +940,7 @@ public final class HorizontalTabsComponent: Component {
                          context: component.context,
                          theme: component.theme,
                          tab: tab,
@@ -287,7 +292,7 @@ diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/Ho
                          editing: itemEditing
                      )),
                      environment: {},
-@@ -999,6 +1025,7 @@
+@@ -1121,6 +1147,7 @@ public final class HorizontalTabsComponent: Component {
              self.selectedScrollView.layer.cornerRadius = lensSize.height * 0.5
              
              transition.setFrame(view: self.lensView, frame: CGRect(origin: CGPoint(x: lensInset, y: lensInset), size: lensSize))

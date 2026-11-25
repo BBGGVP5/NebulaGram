@@ -1,18 +1,20 @@
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
+index 810a546c0b..4298f5e6b2 100644
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/BUILD
-@@ -70,6 +70,7 @@
-         "//submodules/Components/HierarchyTrackingLayer",
+@@ -71,6 +71,7 @@ swift_library(
          "//submodules/TelegramUI/Components/ChatListTitleView",
          "//submodules/TelegramUI/Components/Utils/AnimatableProperty",
+         "//submodules/TelegramStringFormatting",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
      ],
      visibility = [
          "//visibility:public",
 diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
+index 4277006b09..27b339a9d7 100644
 --- a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
 +++ b/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sources/StoryPeerListComponent.swift
-@@ -11,6 +11,16 @@
+@@ -11,6 +11,16 @@ import TelegramPresentationData
  import StoryContainerScreen
  import EmojiStatusComponent
  import ChatListTitleView
@@ -29,7 +31,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
  
  public final class StoryPeerListComponent: Component {
      public enum PeerStatus: Equatable {
-@@ -773,20 +783,12 @@
+@@ -815,20 +825,12 @@ public final class StoryPeerListComponent: Component {
                  }
              }
              
@@ -56,7 +58,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              struct CollapseState {
                  var globalFraction: CGFloat
-@@ -821,14 +823,18 @@
+@@ -863,14 +865,18 @@ public final class StoryPeerListComponent: Component {
                  targetSideAlphaFraction = 0.0
              }
              
@@ -80,16 +82,16 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              
              let timestamp = CACurrentMediaTime()
              
-@@ -954,7 +960,7 @@
+@@ -996,7 +1002,7 @@ public final class StoryPeerListComponent: Component {
              let titleWidth = collapsedState.titleWidth - hiddenTitleWidth
              let placedContentWidth = centralContentWidth - hiddenTitleWidth
-             self.titleOriginWidths = (itemLayout.containerSize.width, placedContentWidth)
+             self.titleOriginWidths = (itemLayout.containerSize.width, placedContentWidth, titleWidth)
 -            collapsedContentOrigin = StoryPeerListTitleLayout.contentOrigin(containerWidth: itemLayout.containerSize.width, contentWidth: placedContentWidth, minX: component.minTitleX, maxX: component.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: CACurrentMediaTime()) ?? 0.0)
 +            collapsedContentOrigin = nebulaTitleContentOrigin(containerWidth: itemLayout.containerSize.width, contentWidth: placedContentWidth, minX: component.minTitleX, maxX: component.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: CACurrentMediaTime()) ?? 0.0)
              
              let collapsedContentOriginOffset: CGFloat = 0.0
              collapsedContentOrigin -= collapsedContentOriginOffset
-@@ -1032,7 +1038,7 @@
+@@ -1074,7 +1080,7 @@ public final class StoryPeerListComponent: Component {
                  var collapsedMaxItemFrame = collapsedItemFrame
                  
                  if itemLayout.itemCount > 1 {
@@ -98,18 +100,18 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
                      collapseDistance = max(0.0, min(1.0, collapseDistance))
                      collapsedMaxItemFrame.origin.x -= collapsedState.minFraction * 4.0
                      collapsedMaxItemFrame.origin.x += collapseDistance * 20.0
-@@ -1642,8 +1648,8 @@
-                     // Where the content stands now, against where the new band places it. Only the content's actual
+@@ -1698,8 +1704,8 @@ public final class StoryPeerListComponent: Component {
                      // movement springs: a band change that does not move it (content centred far from both sides)
                      // starts nothing.
--                    let from = StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: now) ?? 0.0)
--                    let to = StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX)
-+                    let from = nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX) + (self.titleOriginOffsetCurve?.value(at: now) ?? 0.0)
-+                    let to = nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX)
-                     self.titleOriginOffsetCurve = from == to ? nil : NavigationSpringCurve(startTime: now, from: from - to, velocity: self.titleOriginOffsetCurve?.velocity(at: now) ?? 0.0, target: 0.0, spring: NavigationTransitionSpring(duration: CGFloat(duration), bounce: 0.0), rest: .glass(0.01))
-                 } else {
-                     self.titleOriginOffsetCurve = nil
-@@ -1765,9 +1771,43 @@
+                     self.titleOriginOffsetCurve = View.bandChangeCurve(
+-                        from: StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX),
+-                        to: StoryPeerListTitleLayout.contentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX),
++                        from: nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: previousComponent.minTitleX, maxX: previousComponent.maxTitleX),
++                        to: nebulaTitleContentOrigin(containerWidth: widths.container, contentWidth: widths.content, minX: component.minTitleX, maxX: component.maxTitleX),
+                         current: self.titleOriginOffsetCurve,
+                         now: now,
+                         duration: duration
+@@ -1835,9 +1841,43 @@ public final class StoryPeerListComponent: Component {
              self.component = component
              self.state = state
              
@@ -154,7 +156,7 @@ diff --git a/submodules/TelegramUI/Components/Stories/StoryPeerListComponent/Sou
              let updatedTitleState = TitleState(text: component.title, color: component.theme.rootController.navigationBar.primaryTextColor, availableWidth: titleAvailableWidth)
              if self.titleState != updatedTitleState {
                  self.titleState = updatedTitleState
-@@ -1808,20 +1848,6 @@
+@@ -1878,20 +1918,6 @@ public final class StoryPeerListComponent: Component {
              
              self.collapsedButton.isUserInteractionEnabled = !component.unlocked
              

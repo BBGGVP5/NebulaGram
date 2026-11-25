@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/BUILD b/submodules/TelegramUI/Components/GlassBackgroundComponent/BUILD
+index 03e0c56da9..8de4bf3024 100644
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/BUILD
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -10,6 +11,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/BUILD b/s
          "//submodules/ComponentFlow",
          "//submodules/Components/ComponentDisplayAdapters",
 diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
+index d36e8604b1..7d5db54a5d 100644
 --- a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 +++ b/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/GlassBackgroundComponent.swift
 @@ -1,5 +1,6 @@
@@ -19,7 +21,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
  import Display
  import ComponentFlow
  import ComponentDisplayAdapters
-@@ -564,6 +565,11 @@
+@@ -585,6 +586,11 @@ public class GlassBackgroundView: UIView {
          self.nativeViewClippingContext = clippingContext
      }
      
@@ -29,9 +31,9 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
 +    private let nebulaFallback = UIView()
 +    private lazy var nebulaFallbackClip = ClippingShapeContext(view: self.nebulaFallback)
      public private(set) var params: Params?
-         
+ 
      public static var useCustomGlassImpl: Bool = false
-@@ -614,6 +620,13 @@
+@@ -655,6 +661,13 @@ public class GlassBackgroundView: UIView {
          self.contentContainer = ContentContainer(maskContentView: self.maskContentView)
          
          super.init(frame: frame)
@@ -45,7 +47,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          
          if let shadowView = self.shadowView {
              self.addSubview(shadowView)
-@@ -668,6 +681,13 @@
+@@ -709,6 +722,13 @@ public class GlassBackgroundView: UIView {
          return nil
      }
      
@@ -59,7 +61,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
      public func update(size: CGSize, cornerRadius: CGFloat, isDark: Bool, tintColor: TintColor, isInteractive: Bool = false, isVisible: Bool = true, transition: ComponentTransition) {
          let shape: Shape = .roundedRect(cornerRadius: cornerRadius)
          self.update(size: size, shape: shape, isDark: isDark, tintColor: tintColor, isInteractive: isInteractive, isVisible: isVisible, transition: transition)
-@@ -679,9 +699,21 @@
+@@ -720,9 +740,21 @@ public class GlassBackgroundView: UIView {
      }
  
      func update(size: CGSize, shape: Shape, isDark: Bool, tintColor: TintColor, isInteractive: Bool = false, isVisible: Bool = true, transition: ComponentTransition) {
@@ -82,7 +84,7 @@ diff --git a/submodules/TelegramUI/Components/GlassBackgroundComponent/Sources/G
          }
          
          // UIKit can sample backdrop luminance synchronously while changing
-@@ -863,6 +895,10 @@
+@@ -905,6 +937,10 @@ public class GlassBackgroundView: UIView {
                                  }
                              }
                          }

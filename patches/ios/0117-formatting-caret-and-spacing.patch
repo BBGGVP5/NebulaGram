@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 173d3388dd..20e857ef9a 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -2640,7 +2640,7 @@
+@@ -2808,7 +2808,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          var nebulaTextMode = false
          if case .text = interfaceState.inputMode { nebulaTextMode = true }
          let formattingHeight: CGFloat = NebulaSettingsStore.shared.formattingToolbar && self.isFocused && nebulaTextMode
@@ -10,7 +11,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
  
          let baseWidth = width - leftInset - leftMenuInset - rightInset - rightSlowModeInset
          let (accessoryButtonsWidth, textFieldHeight, isTextFieldOverflow) = self.calculateTextFieldMetrics(width: baseWidth, sendActionControlsWidth: sendActionButtonsSize.width, maxHeight: maxHeight, metrics: metrics, bottomInset: bottomInset, interfaceState: interfaceState)
-@@ -3968,14 +3968,14 @@
+@@ -4200,14 +4200,14 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
                  self.nebulaFormattingToolbar = toolbar
                  self.view.addSubview(toolbar)
              }
@@ -27,7 +28,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          }
          return contentHeight + formattingHeight
      }
-@@ -5461,6 +5461,7 @@
+@@ -5732,6 +5732,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              }
              return
          }
@@ -35,7 +36,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          guard let range = NebulaFormattingSelection.range(self.inputTextState.inputText.string, selection: self.inputTextState.selectionRange, selectWord: true), !range.isEmpty else { return }
          self.interfaceInteraction?.updateTextInputStateAndMode { current, mode in
              guard let selected = NebulaFormattingSelection.range(current.inputText.string, selection: current.selectionRange, selectWord: true) else { return (current, mode) }
-@@ -5492,6 +5493,13 @@
+@@ -5763,6 +5764,13 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
                  return (ChatTextInputState(inputText: text, selectionRange: current.selectionRange), mode)
              }
          }

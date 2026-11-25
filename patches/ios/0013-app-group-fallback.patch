@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/TelegramUI/Sources/AppDelegate.swift
+index cf304286a7..332e15e8ee 100644
 --- a/submodules/TelegramUI/Sources/AppDelegate.swift
 +++ b/submodules/TelegramUI/Sources/AppDelegate.swift
-@@ -241,6 +241,22 @@
+@@ -236,6 +236,22 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
      )
  }
  
@@ -24,7 +25,7 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
  @objc(AppDelegate) class AppDelegate: UIResponder, UIApplicationDelegate, PKPushRegistryDelegate, UNUserNotificationCenterDelegate, URLSessionDelegate, URLSessionTaskDelegate {
      @objc var window: UIWindow?
      var nativeWindow: (UIWindow & WindowHost)?
-@@ -319,7 +335,9 @@
+@@ -314,7 +330,9 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
          let appGroupName = "group.\(baseAppBundleId)"
  
          let configuration = URLSessionConfiguration.background(withIdentifier: identifier)
@@ -35,7 +36,7 @@ diff --git a/submodules/TelegramUI/Sources/AppDelegate.swift b/submodules/Telegr
          configuration.isDiscretionary = false
          let session = URLSession(configuration: configuration, delegate: self, delegateQueue: .main)
          self.urlSessions.append(session)
-@@ -573,7 +591,15 @@
+@@ -568,7 +586,15 @@ private func extractAccountManagerState(records: AccountRecordsView<TelegramAcco
          try! PasscodeEnvironment.shared.configure(PasscodeConfiguration(appGroupIdentifier: appGroupName, processRole: .mainApp, biometricKeychainService: walletBiometricKeychainService), privateAccessGroup: {
              BuildConfig.keychainAccessGroup(baseAppBundleId: baseAppBundleId)
          })

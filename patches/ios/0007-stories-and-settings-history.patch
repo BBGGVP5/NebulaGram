@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index 9126525f5d..c9a6a67512 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1307,6 +1307,7 @@
+@@ -1329,6 +1329,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
          }
          
          self.nebulaSettingsObservation = NebulaSettingsStore.shared.observe { [weak self] in
@@ -9,7 +10,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
              self?.controller?.requestLayout(transition: .immediate)
          }
          self.mainContainerNode.onFilterSwitch = { [weak self] in
-@@ -2522,6 +2523,7 @@
+@@ -2574,6 +2575,7 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
  }
  
  func shouldDisplayStoriesInChatListHeader(storySubscriptions: EngineStorySubscriptions, isHidden: Bool) -> Bool {
@@ -18,6 +19,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submod
          return true
      }
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift
+index 97c4342ca7..db8b10510d 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift
 @@ -1,4 +1,5 @@
@@ -26,7 +28,7 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift b/sub
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -384,8 +385,15 @@
+@@ -384,8 +385,15 @@ public final class SettingsSearchContainerNode: SearchDisplayControllerContentNo
              return result
          }
          
@@ -45,6 +47,7 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchItem.swift b/sub
                  var map = map
                  map[item.id] = item
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
+index b8082a755c..cada9ad634 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.swift
 @@ -1,4 +1,5 @@
@@ -53,7 +56,7 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchRecentQueries.sw
  import UIKit
  import TelegramCore
  import SwiftSignalKit
-@@ -38,6 +39,7 @@
+@@ -38,6 +39,7 @@ public final class RecentSettingsSearchQueryItem: Codable {
  }
  
  func addRecentSettingsSearchItem(engine: TelegramEngine, item: AnyHashable) {

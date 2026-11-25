@@ -1,4 +1,5 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 1ef2cfaf98..610ccdcba3 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
 @@ -1,4 +1,5 @@
@@ -7,7 +8,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
  import UIKit
  import Postbox
  import SwiftSignalKit
-@@ -6956,6 +6957,16 @@
+@@ -6991,6 +6992,16 @@ private final class ChatListLocationContext {
          }
          #endif
          
@@ -24,7 +25,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          switch location {
          case .chatList:
              if !hideNetworkActivityStatus {
-@@ -6967,7 +6978,7 @@
+@@ -7002,7 +7013,7 @@ private final class ChatListLocationContext {
                      isReorderingTabs,
                      peerStatus,
                      parentController.updatedPresentationData.1,
@@ -33,7 +34,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                  ).startStrict(next: { [weak self] networkState, proxy, passcode, stateAndFilterId, isReorderingTabs, peerStatus, presentationData, storyPostingAvailable in
                      guard let self else {
                          return
-@@ -7320,14 +7331,20 @@
+@@ -7397,14 +7408,20 @@ private final class ChatListLocationContext {
                      }
                  }
                  
@@ -56,10 +57,12 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
                              if let componentView = parentController.chatListHeaderView(), let storyPeerListView = componentView.storyPeerListView(), storyPeerListView.isLiveStreaming {
                                  parentController.displayContinueLiveStream()
                              } else {
-@@ -7606,3 +7623,16 @@
-     
+@@ -7817,4 +7834,18 @@ private func chatListSideListTitleView(in view: UIView) -> ChatTitleComponent.Vi
+         }
+     }
      return nil
- }
++    return nil
++}
 +
 +/// Значок ярлыка Nebula AI для кнопки панели навигации.
 +///
@@ -72,11 +75,12 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
 +        return image.withRenderingMode(.alwaysTemplate)
 +    }
 +    return UIImage(bundleImageName: "Chat List/AddStoryIcon") ?? UIImage()
-+}
+ }
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index b357bf7435..058213af29 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -201,6 +201,8 @@
+@@ -205,6 +205,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
      }
      
      public func addRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
@@ -85,7 +89,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
          self.nebulaShowCalls = showCallsTab
          self.nebulaShowNews = showNewsTab
          let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
-@@ -290,6 +292,13 @@
+@@ -287,6 +289,13 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          }
      }
  

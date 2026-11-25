@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
+index d7bda44429..7e94d0fcb5 100644
 --- a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
 +++ b/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/ChatListNavigationBar.swift
-@@ -242,6 +242,7 @@
+@@ -242,6 +242,7 @@ public final class ChatListNavigationBar: Component {
          public var edgeEffectBackgroundView: UIView {
              return self.edgeEffectView
          }
@@ -9,7 +10,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
          private var nebulaHeaderObservation: SettingsObservation?
          
          private var headerBackgroundContainer: UIView
-@@ -319,6 +320,9 @@
+@@ -321,6 +322,9 @@ public final class ChatListNavigationBar: Component {
              
              self.addSubview(self.contentView)
              self.contentView.addSubview(self.edgeEffectView)
@@ -19,7 +20,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              self.nebulaHeaderObservation = NebulaSettingsStore.shared.observe { [weak self] in
                  guard let self else { return }
                  self.state?.updated(transition: .immediate)
-@@ -598,7 +602,20 @@
+@@ -600,7 +604,20 @@ public final class ChatListNavigationBar: Component {
              transition.setFrame(view: self.edgeEffectView, frame: edgeEffectFrame)
              self.edgeEffectView.update(content: nil, blur: true, alpha: ChatListNavigationBar.View.edgeEffectTintAlpha, rect: edgeEffectFrame, edge: .top, edgeSize: min(ChatListNavigationBar.View.edgeEffectEdgeLength, edgeEffectHeight), transition: transition)
              
@@ -41,7 +42,7 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
  
              let headerTransition = transition
              
-@@ -1048,7 +1065,7 @@
+@@ -1052,7 +1069,7 @@ public final class ChatListNavigationBar: Component {
              
              self.updateEdgeEffectColor(transition: transition)
              
@@ -51,9 +52,10 @@ diff --git a/submodules/TelegramUI/Components/ChatListHeaderComponent/Sources/Ch
              if self.isContentLifted {
                  self.transitionContentFrameUpdated?(CGRect(origin: CGPoint(), size: size))
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+index 48ec6ea4c9..aa3f4ceffa 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -150,8 +150,7 @@
+@@ -150,8 +150,7 @@ extension ChatControllerImpl {
          if self.videoRecorderValue == nil && initialFrontCamera == nil {
              let presentationData = self.presentationData
              let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")

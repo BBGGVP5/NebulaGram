@@ -1,7 +1,8 @@
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+index 6800bdd019..90a7cbdf47 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-@@ -551,14 +551,14 @@
+@@ -549,14 +549,14 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
          if let codeType = self.codeType {
              switch codeType {
              case .missedCall:
@@ -20,7 +21,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
                 
                  self.proceedNode.title = self.strings.Login_OpenFragment
                  self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
-@@ -568,16 +568,16 @@
+@@ -566,16 +566,16 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
                  animationPlaybackMode = .count(3)
                  self.proceedNode.animation = "anim_fragment"
              case .word:
@@ -42,9 +43,10 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          
          self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+index 310d86ce32..673094b9fe 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
-@@ -76,7 +76,7 @@
+@@ -75,7 +75,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = false
          self.titleNode.displaysAsynchronously = false
@@ -52,8 +54,8 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
 +        self.titleNode.attributedText = NSAttributedString(string: NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).password : strings.LoginPassword_Title, font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.semibold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
-         self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -208,7 +208,7 @@
+         self.titleActivateAreaNode.accessibilityTraits = [.staticText, .header]
+@@ -208,7 +208,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
          
@@ -63,9 +65,10 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          let animationSize = CGSize(width: 100.0, height: 100.0)
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+index 06984a7ba4..337bcb48ca 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -385,7 +385,7 @@
+@@ -389,7 +389,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = true
          self.titleNode.displaysAsynchronously = false
@@ -73,8 +76,8 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
 +        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : (NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).phone : strings.Login_PhoneTitle), font: NebulaSettingsStore.shared.loginStyle ? NebulaAuthTypography.title() : Font.light(30.0), textColor: theme.list.itemPrimaryTextColor)
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
-         self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -593,7 +593,7 @@
+         self.titleActivateAreaNode.accessibilityTraits = [.staticText, .header]
+@@ -597,7 +597,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
          
@@ -82,4 +85,4 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
 +        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : (self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).phone : self.strings.Login_PhoneTitle), font: self.nebulaStyleEnabled ? NebulaAuthTypography.title() : Font.bold(28.0), textColor: self.theme.list.itemPrimaryTextColor)
          self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
          
-         // iPhone Duo: beside a side strip the content keeps to the band between the side insets. With equal
+         // iPhone Duo: beside a side strip the content keeps to the band between the side insets; on the unfolded screen it

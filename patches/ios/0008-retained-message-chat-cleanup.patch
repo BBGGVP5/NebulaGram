@@ -1,25 +1,27 @@
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
+index 46ffa1da85..28a6e7e21f 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerNavigationButtonAction.swift
-@@ -267,6 +267,14 @@
+@@ -272,6 +272,14 @@ extension ChatControllerImpl {
                      
-                     let actionSheet = ActionSheetController(presentationData: strongSelf.presentationData)
-                     var items: [ActionSheetItem] = []
+                     var actions: [AlertScreen.Action] = []
+                     let clearAlertController: AlertScreen
 +                    if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
 +                    } else {
++                        // NebulaGram: очистить сохранённые удалённые сообщения этого чата.
 +                        let ru = strongSelf.presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")
-+                        items.append(ActionSheetButtonItem(title: ru ? "Очистить удаленки" : "Clear deleted messages", color: .accent, action: { [weak self, weak actionSheet] in
-+                            actionSheet?.dismissAnimated()
++                        actions.append(AlertScreen.Action(title: ru ? "Очистить удаленки" : "Clear deleted messages", action: { [weak self] in
 +                            self?.nebulaConfirmClearRetained(peerId: peerId)
 +                        }))
 +                    }
                      
                      if case .scheduledMessages = strongSelf.presentationInterfaceState.subject {
-                         items.append(ActionSheetButtonItem(title: strongSelf.presentationData.strings.ScheduledMessages_ClearAllConfirmation, color: .destructive, action: { [weak actionSheet] in
+                         actions.append(AlertScreen.Action(title: strongSelf.presentationData.strings.ScheduledMessages_ClearAllConfirmation, type: .destructive, action: {
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
+index e1e8b94b03..1445c10a61 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerOpenPeer.swift
-@@ -349,6 +349,14 @@
+@@ -349,6 +349,14 @@ extension ChatControllerImpl {
          let strings = self.presentationData.strings
          
          var items: [ContextMenuItem] = []

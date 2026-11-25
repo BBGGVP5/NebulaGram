@@ -1,30 +1,35 @@
 diff --git a/submodules/MediaPickerUI/BUILD b/submodules/MediaPickerUI/BUILD
+index 480fa9a8ea..373b3f570d 100644
 --- a/submodules/MediaPickerUI/BUILD
 +++ b/submodules/MediaPickerUI/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/SSignalKit/SwiftSignalKit:SwiftSignalKit",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
+         "//submodules/Display:Display",
 diff --git a/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift b/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
+index e9e3915b82..b016d08852 100644
 --- a/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
 +++ b/submodules/MediaPickerUI/Sources/MediaPickerScreen.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import Display
  import AsyncDisplayKit
-@@ -751,7 +752,7 @@
+@@ -898,7 +899,11 @@ public final class MediaPickerScreenImpl: ViewController, MediaPickerScreen, Att
+                 self.avatarEditorPreviewView = avatarEditorPreviewView
+             }
              
-             var useLegacyCamera = false
-             var useModernCamera = false
--            if case .assets(nil, .default) = controller.subject {
-+            if case .assets(nil, .default) = controller.subject, !NebulaSettingsStore.shared.hideAttachCamera {
-                 useLegacyCamera = true
-             } else if case .assets(nil, let mode) = controller.subject {
-                 switch mode {
+-            let cameraCellSubject = controller.subject.cameraCellSubject
++            var cameraCellSubject = controller.subject.cameraCellSubject
++            // NebulaGram: ÐºÐ°Ð¼ÐµÑÑ Ð²Ð¾ Ð²Ð»Ð¾Ð¶ÐµÐ½Ð¸ÑÑ Ð¼Ð¾Ð¶Ð½Ð¾ ÑÐºÑÑÑÑ Ð² Ð½Ð°ÑÑÑÐ¾Ð¹ÐºÐ°Ñ.
++            if case .chatAssets = cameraCellSubject, NebulaSettingsStore.shared.hideAttachCamera {
++                cameraCellSubject = .other
++            }
+             #if targetEnvironment(simulator)
+             let isSimulator = true
+             #else

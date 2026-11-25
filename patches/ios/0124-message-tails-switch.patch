@@ -1,5 +1,5 @@
 diff --git a/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift b/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
-index 6da2641..dcccb44 100644
+index 77fbbdd7b6..263b6cee3a 100644
 --- a/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
 +++ b/submodules/TelegramPresentationData/Sources/ChatMessageBubbleImages.swift
 @@ -97,7 +97,7 @@ public func messageBubbleArguments(maxCornerRadius: CGFloat, minCornerRadius: CG
@@ -38,7 +38,7 @@ index 6da2641..dcccb44 100644
      case .side:
          topLeftRadius = maxCornerRadius
          topRightRadius = maxCornerRadius
-@@ -529,3 +529,9 @@ public func messageBubbleActionButtonImage(color: UIColor, strokeColor: UIColor,
+@@ -533,3 +533,9 @@ public func messageBubbleActionButtonImage(color: UIColor, strokeColor: UIColor,
          }
      })!.stretchableImage(withLeftCapWidth: Int(size.width / 2.0), topCapHeight: Int(size.height / 2.0))
  }

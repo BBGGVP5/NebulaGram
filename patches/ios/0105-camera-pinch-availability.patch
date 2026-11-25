@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
+index fb241ce1c7..ec30cfb036 100644
 --- a/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
 +++ b/submodules/TelegramUI/Components/VideoMessageCameraScreen/Sources/VideoMessageCameraScreen.swift
-@@ -1172,9 +1172,7 @@
+@@ -1189,9 +1189,7 @@ public class VideoMessageCameraScreen: ViewController {
              case .began:
                  self.pinchStartTimestamp = CACurrentMediaTime()
              case .changed:

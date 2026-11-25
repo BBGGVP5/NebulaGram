@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 418590ca5f..173d3388dd 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -3970,7 +3970,7 @@
+@@ -4202,7 +4202,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
              }
              toolbar.update(color: interfaceState.theme.chat.inputPanel.actionControlForegroundColor,
                  russian: interfaceState.strings.baseLanguageCode.lowercased().hasPrefix("ru"),
@@ -10,7 +11,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
              transition.updateFrame(view: toolbar, frame: CGRect(x: leftInset + 8, y: 4,
                  width: max(0, width - leftInset - rightInset - 16), height: 44))
          } else if let toolbar = self.nebulaFormattingToolbar {
-@@ -5451,7 +5451,21 @@
+@@ -5722,7 +5722,21 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
      }
      
      private func nebulaFormatSelection(_ index: Int) {
@@ -33,7 +34,7 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
          switch index {
          case 0: self.formatAttributesBold(self)
          case 1: self.formatAttributesItalic(self)
-@@ -5459,6 +5473,9 @@
+@@ -5730,6 +5744,9 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          case 3: self.formatAttributesQuote(self)
          case 4: self.formatAttributesSpoiler(self)
          case 5: self.formatAttributesLink(self)

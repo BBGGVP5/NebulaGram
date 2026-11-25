@@ -995,6 +995,30 @@ enum NebulaEmbeddedCatalog {
       "literal_default_binding": true
     },
     {
+      "key": "inline_superscript",
+      "type": "boolean",
+      "feature": "chat.inline_results",
+      "android_store": "nebulagram",
+      "android_source": "NebulaInlineSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
+    },
+    {
+      "key": "inline_world_zones",
+      "type": "boolean",
+      "feature": "chat.inline_results",
+      "android_store": "nebulagram",
+      "android_source": "NebulaInlineSettings.java",
+      "transfer_v1": true,
+      "ios_status": "planned",
+      "ios_mapping": "native",
+      "default": false,
+      "literal_default_binding": true
+    },
+    {
       "key": "inline_group_digits",
       "type": "boolean",
       "feature": "chat.inline_results",

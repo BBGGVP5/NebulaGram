@@ -1,7 +1,8 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
+index 72c230a094..37c35d1577 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -357,7 +357,7 @@
+@@ -357,7 +357,7 @@ alternate_icon_folders = [
      "NebulaMonogramIcon",
  ]
  

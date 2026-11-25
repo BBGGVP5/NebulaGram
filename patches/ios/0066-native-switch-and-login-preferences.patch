@@ -1,25 +1,26 @@
 diff --git a/submodules/AuthorizationUI/BUILD b/submodules/AuthorizationUI/BUILD
+index d7dbfe8e0d..9fc49188db 100644
 --- a/submodules/AuthorizationUI/BUILD
 +++ b/submodules/AuthorizationUI/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//submodules/AsyncDisplayKit:AsyncDisplayKit",
-         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/TelegramCore:TelegramCore",
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
+index 0aa536283e..6800bdd019 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryControllerNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -22,6 +23,7 @@
+@@ -21,6 +22,7 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
      private let theme: PresentationTheme
      
      private let animationNode: AnimatedStickerNode
@@ -27,7 +28,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private var nebulaLegacyArtConfigured = false
-@@ -512,6 +514,7 @@
+@@ -512,6 +514,7 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -35,7 +36,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
-@@ -548,14 +551,14 @@
+@@ -546,14 +549,14 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
          if let codeType = self.codeType {
              switch codeType {
              case .missedCall:
@@ -54,7 +55,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
                 
                  self.proceedNode.title = self.strings.Login_OpenFragment
                  self.proceedNode.updateTheme(SolidRoundedButtonTheme(backgroundColor: UIColor(rgb: 0x37475a), foregroundColor: .white))
-@@ -565,16 +568,16 @@
+@@ -563,16 +566,16 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
                  animationPlaybackMode = .count(3)
                  self.proceedNode.animation = "anim_fragment"
              case .word:
@@ -75,7 +76,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          }
          
          self.textField.textField.attributedPlaceholder = NSAttributedString(string: textFieldPlaceholder, font: Font.regular(20.0), textColor: self.theme.list.itemPlaceholderTextColor)
-@@ -598,7 +601,7 @@
+@@ -596,7 +599,7 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
              self.animationNode.visibility = false
          }
          
@@ -84,7 +85,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          let titleSize = self.titleNode.updateLayout(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
          
          let currentOptionSize = self.currentOptionNode.updateLayout(CGSize(width: maximumWidth - 48.0, height: CGFloat.greatestFiniteMagnitude))
-@@ -657,11 +660,11 @@
+@@ -655,11 +658,11 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
          
          var items: [AuthorizationLayoutItem] = []
          if layout.size.width > 320.0 {
@@ -100,17 +101,44 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceCodeEntryCo
          } else {
              insets.top = navigationBarHeight
              self.nebulaArtwork.isHidden = true
+@@ -825,14 +828,21 @@ final class AuthorizationSequenceCodeEntryControllerNode: ASDisplayNode, UITextF
+             items.append(AuthorizationLayoutItem(node: self.nextOptionButtonNode, size: nextOptionSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 50.0, maxValue: 120.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)))
+         }
+         
+-        if items.first?.node === self.nebulaArtwork, !authorizationLayoutItemsFit(height: layout.size.height - insets.top - insets.bottom - additionalBottomInset, items: items) {
++        if items.first?.node === self.nebulaArtwork || items.first?.node === self.animationNode, !authorizationLayoutItemsFit(height: layout.size.height - insets.top - insets.bottom - additionalBottomInset, items: items) {
+             items.removeFirst()
+             insets.top = navigationBarHeight
+         }
+-        // NebulaGram: вместо наклейки — своя иллюстрация, наклейка всегда скрыта.
+-        self.animationNode.isHidden = true
+-        self.animationNode.visibility = false
+-        self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        if self.nebulaStyleEnabled {
++            // NebulaGram: вместо наклейки — своя иллюстрация, наклейка скрыта.
++            self.animationNode.isHidden = true
++            self.animationNode.visibility = false
++            self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        } else {
++            self.nebulaArtwork.isHidden = true
++            let animationShown = items.first?.node === self.animationNode
++            self.animationNode.isHidden = !animationShown
++            self.animationNode.visibility = animationShown
++        }
+         
+         let _ = layoutAuthorizationItems(bounds: CGRect(origin: CGPoint(x: bandMinX, y: insets.top), size: CGSize(width: bandWidth, height: layout.size.height - insets.top - insets.bottom - additionalBottomInset)), items: items, transition: transition, failIfDoesNotFit: false)
+         
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
+index 6c4054ea4d..310d86ce32 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEntryControllerNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -15,6 +16,7 @@
+@@ -14,6 +15,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
      private let theme: PresentationTheme
      
      private let animationNode: AnimatedStickerNode
@@ -118,7 +146,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private let titleNode: ASTextNode
-@@ -74,7 +76,7 @@
+@@ -73,7 +75,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = false
          self.titleNode.displaysAsynchronously = false
@@ -126,8 +154,8 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
 +        self.titleNode.attributedText = NSAttributedString(string: NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).password : strings.LoginPassword_Title, font: Font.semibold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
-         self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -170,6 +172,7 @@
+         self.titleActivateAreaNode.accessibilityTraits = [.staticText, .header]
+@@ -172,6 +174,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -135,7 +163,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          let previousInputHeight = self.layoutArguments?.0.inputHeight ?? 0.0
          let newInputHeight = layout.inputHeight ?? 0.0
-@@ -205,7 +208,7 @@
+@@ -205,7 +208,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 110.0 : 20.0
          
@@ -144,33 +172,48 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePasswordEnt
          
          let animationSize = CGSize(width: 100.0, height: 100.0)
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
-@@ -233,11 +236,11 @@
+@@ -233,7 +236,7 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
          }
          
          if layout.size.width > 320.0 {
 -            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
 +            items.insert(AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
              self.proceedNode.isHidden = false
--            self.animationNode.isHidden = true
--            self.nebulaArtwork.isHidden = false
--            self.animationNode.visibility = false
-+            self.animationNode.isHidden = self.nebulaStyleEnabled
-+            self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled
-+            self.animationNode.visibility = !self.nebulaStyleEnabled
-         } else {
+             if !authorizationLayoutItemsFit(height: layout.size.height - insets.top - insets.bottom - additionalBottomInset, items: items) {
+                 items.removeFirst()
+@@ -243,10 +246,17 @@ final class AuthorizationSequencePasswordEntryControllerNode: ASDisplayNode, UIT
              insets.top = navigationBarHeight
              self.proceedNode.isHidden = true
+         }
+-        // NebulaGram: вместо наклейки — своя иллюстрация, наклейка всегда скрыта.
+-        self.animationNode.isHidden = true
+-        self.animationNode.visibility = false
+-        self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        if self.nebulaStyleEnabled {
++            // NebulaGram: вместо наклейки — своя иллюстрация, наклейка скрыта.
++            self.animationNode.isHidden = true
++            self.animationNode.visibility = false
++            self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        } else {
++            self.nebulaArtwork.isHidden = true
++            let animationShown = items.first?.node === self.animationNode
++            self.animationNode.isHidden = !animationShown
++            self.animationNode.visibility = animationShown
++        }
+         
+         transition.updateFrame(node: self.proceedNode, frame: CGRect(origin: CGPoint(x: bottomBandMinX + floorToScreenPixels((bottomBandWidth - proceedSize.width) / 2.0), y: layout.size.height - insets.bottom - proceedSize.height - inset), size: proceedSize))
+         
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
+index ff92be57cb..06984a7ba4 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryControllerNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaSettingsContract
  import UIKit
  import AsyncDisplayKit
  import Display
-@@ -261,7 +262,7 @@
+@@ -265,7 +266,7 @@ private final class ContactSyncNode: ASDisplayNode {
      
      func updateLayout(width: CGFloat) -> CGSize {
          var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -179,7 +222,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
              if self.switchNode.bounds.size.width.isZero {
                  switchView.sizeToFit()
              }
-@@ -285,6 +286,7 @@
+@@ -289,6 +290,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
      private let hasOtherAccounts: Bool
      
      private let animationNode: AnimatedStickerNode
@@ -187,7 +230,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
      private let nebulaArtwork: NebulaAuthArtNode
      private let nebulaBackdrop: NebulaAuthBackdropNode
      private let managedAnimationNode: ManagedPhoneAnimationNode
-@@ -383,7 +385,7 @@
+@@ -387,7 +389,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
          self.titleNode = ASTextNode()
          self.titleNode.isUserInteractionEnabled = true
          self.titleNode.displaysAsynchronously = false
@@ -195,8 +238,8 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
 +        self.titleNode.attributedText = NSAttributedString(string: account == nil ? strings.Login_NewNumber : (NebulaSettingsStore.shared.loginStyle ? NebulaAuthCopy(strings.baseLanguageCode).phone : strings.Login_PhoneTitle), font: Font.light(30.0), textColor: NebulaSettingsStore.shared.loginStyle ? theme.list.itemAccentColor : theme.list.itemPrimaryTextColor)
          
          self.titleActivateAreaNode = AccessibilityAreaNode()
-         self.titleActivateAreaNode.accessibilityTraits = .staticText
-@@ -580,6 +582,7 @@
+         self.titleActivateAreaNode.accessibilityTraits = [.staticText, .header]
+@@ -584,6 +586,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
      }
      
      func containerLayoutUpdated(_ layout: ContainerViewLayout, navigationBarHeight: CGFloat, transition: ContainedViewLayoutTransition) {
@@ -204,7 +247,7 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          transition.updateFrame(node: self.nebulaBackdrop, frame: CGRect(origin: .zero, size: layout.size))
          var insets = layout.insets(options: [])
          insets.top = layout.statusBarHeight ?? 20.0
-@@ -590,7 +593,7 @@
+@@ -594,7 +597,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
          let titleInset: CGFloat = layout.size.width > 320.0 ? 18.0 : 0.0
          let additionalBottomInset: CGFloat = layout.size.width > 320.0 ? 80.0 : 10.0
          
@@ -212,9 +255,9 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
 +        self.titleNode.attributedText = NSAttributedString(string: self.account == nil ? self.strings.Login_NewNumber : (self.nebulaStyleEnabled ? NebulaAuthCopy(self.strings.baseLanguageCode).phone : self.strings.Login_PhoneTitle), font: Font.bold(28.0), textColor: self.nebulaStyleEnabled ? self.theme.list.itemAccentColor : self.theme.list.itemPrimaryTextColor)
          self.titleActivateAreaNode.accessibilityLabel = self.titleNode.attributedText?.string ?? ""
          
-         // iPhone Duo: beside a side strip the content keeps to the band between the side insets. With equal
-@@ -608,7 +611,7 @@
-         let bottomBandWidth: CGFloat = insetsDiffer ? layout.size.width - bottomSideInsets.left - bottomSideInsets.right : layout.size.width
+         // iPhone Duo: beside a side strip the content keeps to the band between the side insets; on the unfolded screen it
+@@ -610,7 +613,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
+         let (bottomBandMinX, bottomBandWidth) = authorizationBottomBand(layout: layout)
          let bottomMaximumWidth: CGFloat = min(430.0, bottomBandWidth)
          
 -        let animationSize = CGSize(width: min(260.0, max(100.0, layout.size.width - 64.0)), height: 100.0)
@@ -222,26 +265,46 @@ diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequencePhoneEntryC
          let titleSize = self.titleNode.measure(CGSize(width: maximumWidth, height: CGFloat.greatestFiniteMagnitude))
          
          let noticeInset: CGFloat = self.account == nil ? 32.0 : 0.0
-@@ -624,11 +627,11 @@
+@@ -626,7 +629,7 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
          ]
          
          if layout.size.width > 320.0 {
 -            items.insert(AuthorizationLayoutItem(node: self.nebulaArtwork, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
 +            items.insert(AuthorizationLayoutItem(node: self.nebulaStyleEnabled ? self.nebulaArtwork : self.animationNode, size: animationSize, spacingBefore: AuthorizationLayoutItemSpacing(weight: 10.0, maxValue: 10.0), spacingAfter: AuthorizationLayoutItemSpacing(weight: 0.0, maxValue: 0.0)), at: 0)
              self.proceedNode.isHidden = false
--            self.animationNode.isHidden = true
--            self.nebulaArtwork.isHidden = false
--            self.animationNode.visibility = false
-+            self.animationNode.isHidden = self.nebulaStyleEnabled
-+            self.nebulaArtwork.isHidden = !self.nebulaStyleEnabled
-+            self.animationNode.visibility = !self.nebulaStyleEnabled
          } else {
              insets.top = navigationBarHeight
-             self.proceedNode.isHidden = true
+@@ -645,11 +648,20 @@ final class AuthorizationSequencePhoneEntryControllerNode: ASDisplayNode {
+             items.removeFirst()
+             insets.top = navigationBarHeight
+         }
+-        // NebulaGram: вместо наклеек — своя иллюстрация, наклейки всегда скрыты.
+-        self.animationNode.isHidden = true
+-        self.animationNode.visibility = false
+-        self.managedAnimationNode.isHidden = true
+-        self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        if self.nebulaStyleEnabled {
++            // NebulaGram: вместо наклейки — своя иллюстрация, наклейка скрыта.
++            self.animationNode.isHidden = true
++            self.animationNode.visibility = false
++            self.managedAnimationNode.isHidden = true
++            self.nebulaArtwork.isHidden = items.first?.node !== self.nebulaArtwork
++        } else {
++            self.nebulaArtwork.isHidden = true
++            let animationShown = items.first?.node === self.animationNode
++            self.animationNode.isHidden = !animationShown
++            self.animationNode.visibility = animationShown
++            // The intro animation hands over to the managed one once it completes (and leaves its supernode).
++            self.managedAnimationNode.isHidden = !animationShown || self.animationNode.supernode != nil
++        }
+         
+         let buttonFrame: CGRect
+         if let forcedButtonFrame = self.forcedButtonFrame, (layout.inputHeight ?? 0.0).isZero {
 diff --git a/submodules/Display/Source/ActionSheetSwitchItem.swift b/submodules/Display/Source/ActionSheetSwitchItem.swift
+index 75d0651a30..d19adde7ab 100644
 --- a/submodules/Display/Source/ActionSheetSwitchItem.swift
 +++ b/submodules/Display/Source/ActionSheetSwitchItem.swift
-@@ -111,7 +111,7 @@
+@@ -111,7 +111,7 @@ public class ActionSheetSwitchNode: ActionSheetItemNode {
          self.label.frame = CGRect(origin: CGPoint(x: 16.0, y: floorToScreenPixels((size.height - labelSize.height) / 2.0)), size: labelSize)
          
          var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -251,6 +314,7 @@ diff --git a/submodules/Display/Source/ActionSheetSwitchItem.swift b/submodules/
                  switchView.sizeToFit()
              }
 diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Source/SwitchNode.swift
+index 1204a3a585..ac8f714655 100644
 --- a/submodules/Display/Source/SwitchNode.swift
 +++ b/submodules/Display/Source/SwitchNode.swift
 @@ -1,22 +1,8 @@
@@ -277,7 +341,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
  open class SwitchNode: ASDisplayNode {
      public var valueUpdated: ((Bool) -> Void)?
      
-@@ -24,7 +10,7 @@
+@@ -24,7 +10,7 @@ open class SwitchNode: ASDisplayNode {
          didSet {
              if self.isNodeLoaded {
                  if oldValue != self.frameColor {
@@ -286,7 +350,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
                  }
              }
          }
-@@ -32,7 +18,7 @@
+@@ -32,7 +18,7 @@ open class SwitchNode: ASDisplayNode {
      public var handleColor = UIColor(rgb: 0xffffff) {
          didSet {
              if self.isNodeLoaded {
@@ -295,7 +359,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
              }
          }
      }
-@@ -40,7 +26,7 @@
+@@ -40,7 +26,7 @@ open class SwitchNode: ASDisplayNode {
          didSet {
              if self.isNodeLoaded {
                  if oldValue != self.contentColor {
@@ -304,7 +368,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
                  }
              }
          }
-@@ -54,7 +40,7 @@
+@@ -54,7 +40,7 @@ open class SwitchNode: ASDisplayNode {
              if (value != self._isOn) {
                  self._isOn = value
                  if self.isNodeLoaded {
@@ -313,7 +377,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
                  }
              }
          }
-@@ -64,7 +50,7 @@
+@@ -64,7 +50,7 @@ open class SwitchNode: ASDisplayNode {
          super.init()
          
          self.setViewBlock({
@@ -322,7 +386,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
          })
      }
      
-@@ -73,23 +59,25 @@
+@@ -73,23 +59,25 @@ open class SwitchNode: ASDisplayNode {
          
          self.view.isAccessibilityElement = false
          
@@ -354,7 +418,7 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
          if #available(iOS 26.0, *) {
              return CGSize(width: 63.0, height: 28.0)
          } else {
-@@ -97,7 +85,7 @@
+@@ -97,7 +85,7 @@ open class SwitchNode: ASDisplayNode {
          }
      }
      
@@ -364,9 +428,10 @@ diff --git a/submodules/Display/Source/SwitchNode.swift b/submodules/Display/Sou
          self.valueUpdated?(view.isOn)
      }
 diff --git a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift b/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
+index e6fa38d5f1..6d8a22ee16 100644
 --- a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
 +++ b/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.swift
-@@ -74,7 +74,7 @@
+@@ -74,7 +74,7 @@ final class InstantPageSettingsSwitchNode: InstantPageSettingsItemNode {
          
          let labelSize = self.labelNode.measure(CGSize(width: width - 46.0 - 5.0, height: 44.0))
          self.labelNode.frame = CGRect(origin: CGPoint(x: 15.0, y: insets.top + floor((44.0 - labelSize.height) / 2.0)), size: labelSize)
@@ -376,9 +441,10 @@ diff --git a/submodules/InstantPageUI/Sources/InstantPageSettingsSwitchItemNode.
                  switchView.sizeToFit()
              }
 diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
+index 9723400556..be614c4ef8 100644
 --- a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
 +++ b/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift
-@@ -1078,7 +1078,7 @@
+@@ -1090,7 +1090,7 @@ public class ItemListPeerItemNode: ItemListRevealOptionsItemNode, ItemListItemNo
                  currentCheckNode = nil
              }
              
@@ -388,9 +454,10 @@ diff --git a/submodules/ItemListPeerItem/Sources/ItemListPeerItem.swift b/submod
                      switchView.sizeToFit()
                  }
 diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift b/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
+index d3985fdf55..72269ca062 100644
 --- a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
 +++ b/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.swift
-@@ -293,7 +293,7 @@
+@@ -304,7 +304,7 @@ public class ItemListExpandableSwitchItemNode: ListViewItemNode, ItemListItemNod
      override public func didLoad() {
          super.didLoad()
          
@@ -399,7 +466,7 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.sw
          self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
      }
      
-@@ -532,7 +532,7 @@
+@@ -559,7 +559,7 @@ public class ItemListExpandableSwitchItemNode: ListViewItemNode, ItemListItemNod
                          transition.updateTransformRotation(node: strongSelf.expandArrowNode, angle: item.isExpanded ? CGFloat.pi * -0.5 : CGFloat.pi * 0.5)
                      }
                      
@@ -408,7 +475,7 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.sw
                          if strongSelf.switchNode.bounds.size.width.isZero {
                              switchView.sizeToFit()
                          }
-@@ -701,7 +701,7 @@
+@@ -728,7 +728,7 @@ public class ItemListExpandableSwitchItemNode: ListViewItemNode, ItemListItemNod
          self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
      }
      
@@ -417,7 +484,7 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.sw
          if let item = self.item {
              let value = switchView.isOn
              item.updated(value)
-@@ -709,7 +709,7 @@
+@@ -736,7 +736,7 @@ public class ItemListExpandableSwitchItemNode: ListViewItemNode, ItemListItemNod
      }
      
      @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
@@ -427,18 +494,19 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListExpandableSwitchItem.sw
                  let value = switchView.isOn
                  item.updated(!value)
 diff --git a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift b/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
+index a43101e4d1..972a8c4536 100644
 --- a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
 +++ b/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift
-@@ -238,7 +238,7 @@
+@@ -243,7 +243,7 @@ public class ItemListSwitchItemNode: ListViewItemNode, ItemListItemNode {
      override public func didLoad() {
          super.didLoad()
          
 -        (self.switchNode.view as? UISwitch)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
 +        (self.switchNode.view as? NebulaSwitchView)?.addTarget(self, action: #selector(self.switchValueChanged(_:)), for: .valueChanged)
-         self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
-     }
-     
-@@ -540,7 +540,7 @@
+         // The row's element (`activateArea`) carries the title, the on/off value and the toggle; the switch itself
+         // would be a second, unlabelled element.
+         self.switchNode.view.accessibilityElementsHidden = true
+@@ -552,7 +552,7 @@ public class ItemListSwitchItemNode: ListViewItemNode, ItemListItemNode {
                          }
                      }
                      
@@ -447,7 +515,7 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift b/subm
                          if strongSelf.switchNode.bounds.size.width.isZero {
                              switchView.sizeToFit()
                          }
-@@ -705,7 +705,7 @@
+@@ -717,7 +717,7 @@ public class ItemListSwitchItemNode: ListViewItemNode, ItemListItemNode {
          self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
      }
      
@@ -456,7 +524,7 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift b/subm
          if let item = self.item {
              let value = switchView.isOn
              item.updated(value)
-@@ -713,7 +713,7 @@
+@@ -725,7 +725,7 @@ public class ItemListSwitchItemNode: ListViewItemNode, ItemListItemNode {
      }
      
      @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
@@ -466,9 +534,10 @@ diff --git a/submodules/ItemListUI/Sources/Items/ItemListSwitchItem.swift b/subm
                  let value = switchView.isOn
                  item.updated(!value)
 diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
+index b55866bad1..8893fc6671 100644
 --- a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
 +++ b/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift
-@@ -189,7 +189,7 @@
+@@ -189,7 +189,7 @@ public class ItemListReactionItemNode: ListViewItemNode, ItemListItemNode {
      override public func didLoad() {
          super.didLoad()
          
@@ -477,7 +546,7 @@ diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodul
          self.switchGestureNode.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.tapGesture(_:))))
      }
      
-@@ -384,7 +384,7 @@
+@@ -384,7 +384,7 @@ public class ItemListReactionItemNode: ListViewItemNode, ItemListItemNode {
                      }
                      
                      strongSelf.titleNode.frame = CGRect(origin: CGPoint(x: leftInset, y: floorToScreenPixels((contentSize.height - titleLayout.size.height) / 2.0) + 1.0), size: titleLayout.size)
@@ -486,7 +555,7 @@ diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodul
                          if strongSelf.switchNode.bounds.size.width.isZero {
                              switchView.sizeToFit()
                          }
-@@ -468,7 +468,7 @@
+@@ -468,7 +468,7 @@ public class ItemListReactionItemNode: ListViewItemNode, ItemListItemNode {
          self.layer.animateAlpha(from: 1.0, to: 0.0, duration: 0.15, removeOnCompletion: false)
      }
      
@@ -495,7 +564,7 @@ diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodul
          if let item = self.item {
              let value = switchView.isOn
              item.updated(value)
-@@ -476,7 +476,7 @@
+@@ -476,7 +476,7 @@ public class ItemListReactionItemNode: ListViewItemNode, ItemListItemNode {
      }
      
      @objc private func tapGesture(_ recognizer: UITapGestureRecognizer) {
@@ -505,9 +574,10 @@ diff --git a/submodules/PeerInfoUI/Sources/ItemListReactionItem.swift b/submodul
                  let value = switchView.isOn
                  item.updated(!value)
 diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
+index 9c452c4904..e7fce3c235 100644
 --- a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
 +++ b/submodules/TelegramUI/Components/ListActionItemComponent/Sources/ListActionItemComponent.swift
-@@ -833,7 +833,7 @@
+@@ -1029,7 +1029,7 @@ public final class ListActionItemComponent: Component {
                      }
                      
                      var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -516,7 +586,7 @@ diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/Li
                          if switchNode.bounds.size.width.isZero {
                              switchView.sizeToFit()
                          }
-@@ -939,7 +939,7 @@
+@@ -1135,7 +1135,7 @@ public final class ListActionItemComponent: Component {
                      }
                      
                      var switchSize = CGSize(width: 51.0, height: 31.0)
@@ -526,9 +596,10 @@ diff --git a/submodules/TelegramUI/Components/ListActionItemComponent/Sources/Li
                              switchView.sizeToFit()
                          }
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
+index cbfc383cb2..5aa78bd354 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/ListItems/PeerInfoScreenSwitchItem.swift
-@@ -184,7 +184,7 @@
+@@ -196,7 +196,7 @@ private final class PeerInfoScreenSwitchItemNode: PeerInfoScreenItemNode {
          
          transition.updateFrame(node: self.textNode, frame: textFrame)
          
@@ -538,9 +609,10 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Li
                  switchView.sizeToFit()
              }
 diff --git a/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift b/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
+index 8858bdaecd..92134a9e84 100644
 --- a/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
 +++ b/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComponent.swift
-@@ -33,12 +33,12 @@
+@@ -33,12 +33,12 @@ public final class SwitchComponent: Component {
      }
      
      public final class View: UIView {
@@ -555,7 +627,7 @@ diff --git a/submodules/TelegramUI/Components/SwitchComponent/Sources/SwitchComp
              
              super.init(frame: frame)
              
-@@ -58,7 +58,8 @@
+@@ -58,7 +58,8 @@ public final class SwitchComponent: Component {
          func update(component: SwitchComponent, availableSize: CGSize, state: EmptyComponentState, environment: Environment<EnvironmentType>, transition: ComponentTransition) -> CGSize {
              self.component = component
            

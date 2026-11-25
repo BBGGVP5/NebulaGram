@@ -1,7 +1,8 @@
 diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/TabBarUI/Sources/TabBarController.swift
+index 086859672f..c6e2a9fb0c 100644
 --- a/submodules/TabBarUI/Sources/TabBarController.swift
 +++ b/submodules/TabBarUI/Sources/TabBarController.swift
-@@ -66,6 +66,8 @@
+@@ -66,6 +66,8 @@ open class TabBarControllerImpl: ViewController, TabBarController {
          return self._ready
      }
      
@@ -10,7 +11,7 @@ diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/Tab
      private var _selectedIndex: Int?
      public var selectedIndex: Int {
          get {
-@@ -436,6 +438,7 @@
+@@ -445,6 +447,7 @@ open class TabBarControllerImpl: ViewController, TabBarController {
      }
      
      override open func viewWillAppear(_ animated: Bool) {
@@ -19,9 +20,10 @@ diff --git a/submodules/TabBarUI/Sources/TabBarController.swift b/submodules/Tab
              currentController.viewWillAppear(animated)
          }
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
+index 744db3af2b..66b006f06d 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreen.swift
-@@ -6711,6 +6711,7 @@
+@@ -6780,6 +6780,7 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
          
                  
          if isSettings || isMyProfile {
@@ -29,7 +31,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
              let activeSessionsContextAndCountSignal = deferred { () -> Signal<(ActiveSessionsContext, Int, WebSessionsContext)?, NoError> in
                  let activeSessionsContext = context.engine.privacy.activeSessions()
                  let webSessionsContext = context.engine.privacy.webSessions()
-@@ -6759,7 +6760,7 @@
+@@ -6828,7 +6829,7 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
              
              let accountTabBarAvatar: Signal<(UIImage, UIImage)?, NoError> = combineLatest(self.accountsAndPeers.get(), context.sharedContext.presentationData)
              |> map { primaryAndOther, presentationData -> (Account, EnginePeer, PresentationTheme)? in
@@ -38,28 +40,28 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
                      return (primary.0.account, primary.1, presentationData.theme)
                  } else {
                      return nil
-@@ -6852,7 +6853,6 @@
+@@ -6921,7 +6922,6 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
                  icon = UIImage(bundleImageName: "Chat List/Tabs/IconSettings")
              }
              
 -            let isMyProfileTab = self.isMyProfile
-             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
-             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, Bool, Bool) in
+             let tabBarItem: Signal<(String, UIImage?, UIImage?, String?, String?, Bool, Bool), NoError> = combineLatest(queue: .mainQueue(), self.context.sharedContext.presentationData, notificationsAuthorizationStatus.get(), notificationsWarningSuppressed.get(), context.engine.notices.getServerProvidedSuggestions(), accountTabBarAvatar, accountTabBarAvatarBadge)
+             |> map { presentationData, notificationsAuthorizationStatus, notificationsWarningSuppressed, suggestions, accountTabBarAvatar, accountTabBarAvatarBadge -> (String, UIImage?, UIImage?, String?, String?, Bool, Bool) in
                  let notificationsWarning = shouldDisplayNotificationsPermissionWarning(status: notificationsAuthorizationStatus, suppressed:  notificationsWarningSuppressed)
-@@ -6864,8 +6864,10 @@
+@@ -6933,8 +6933,10 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
                  }
                  if isMyProfileTab {
                      let title = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru") ? "Профиль" : "Profile"
 -                    let profileIcon = accountTabBarAvatar?.0 ?? UIImage(systemName: "person.crop.circle") ?? icon
--                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
+-                    return (title, profileIcon, accountTabBarAvatar?.1 ?? profileIcon, nil, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
 +                    let person = UIImage(systemName: "person.crop.circle", withConfiguration: UIImage.SymbolConfiguration(pointSize: 28.0, weight: .regular)) ?? UIImage(bundleImageName: "Chat List/Tabs/IconContacts")
 +                    let profileIcon = accountTabBarAvatar?.0 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.textColor, renderingMode: .alwaysOriginal)
 +                    let selectedProfileIcon = accountTabBarAvatar?.1 ?? person?.withTintColor(presentationData.theme.rootController.tabBar.selectedTextColor, renderingMode: .alwaysOriginal)
-+                    return (title, profileIcon, selectedProfileIcon, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
++                    return (title, profileIcon, selectedProfileIcon, nil, nil, accountTabBarAvatar != nil, presentationData.reduceMotion)
                  }
-                 return (presentationData.strings.Settings_Title, icon, icon, notificationsWarning || phoneNumberWarning || passwordWarning ? "!" : otherAccountsBadge, false, presentationData.reduceMotion)
-             }
-@@ -6875,7 +6877,7 @@
+                 let hasWarning = notificationsWarning || phoneNumberWarning || passwordWarning
+                 // The numeric badge of the other accounts is read as it shows; the warning mark is not.
+@@ -6946,7 +6948,7 @@ public final class PeerInfoScreenImpl: ViewController, PeerInfoScreen, KeyShortc
                      strongSelf.tabBarItem.title = title
                      strongSelf.tabBarItem.image = image
                      strongSelf.tabBarItem.selectedImage = selectedImage
@@ -67,19 +69,20 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
 +                    strongSelf.tabBarItem.animationName = isMyProfileTab || isAvatar || reduceMotion ? nil : "TabSettings"
                      strongSelf.tabBarItem.ringSelection = isAvatar
                      strongSelf.tabBarItem.badgeValue = badgeValue
-                 }
+                     strongSelf.tabBarItem.accessibilityValue = badgeAccessibilityValue
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
+index d4f734c813..904939fc96 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
-@@ -78,6 +78,7 @@
+@@ -81,6 +81,7 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
      private var nebulaNavigationObservation: SettingsObservation?
      private var nebulaShowCalls = false
      private var nebulaShowNews = false
 +    private var nebulaNavigationRefreshScheduled = false
      public var rootTabController: TabBarController?
      
-     public var contactsController: ContactsController?
-@@ -266,13 +267,26 @@
+     /// The Contacts screen `openContacts()` pushed; `getContactsController()` returns it while it is open.
+@@ -264,13 +265,26 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          self.newsController = newsController
          self.chatListController = chatListController
          self.rootTabController = tabBarController
@@ -108,7 +111,7 @@ diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submod
      public func updateRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
          self.nebulaShowCalls = showCallsTab
          self.nebulaShowNews = showNewsTab
-@@ -311,17 +325,18 @@
+@@ -308,17 +322,18 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
  
      private func nebulaOrderedControllers(_ source: [ViewController]) -> [ViewController] {
          let store = NebulaSettingsStore.shared

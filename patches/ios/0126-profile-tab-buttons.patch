@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
-index 4946d83..230ede7 100644
+index 4576cbf651..91d43adb68 100644
 --- a/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
 +++ b/submodules/TelegramUI/Components/HorizontalTabsComponent/Sources/HorizontalTabsComponent.swift
-@@ -288,6 +288,7 @@ public final class HorizontalTabsComponent: Component {
+@@ -306,6 +306,7 @@ public final class HorizontalTabsComponent: Component {
      public let layout: Layout
      public let nebulaPanelStyle: Int
      public let nebulaOutline: Bool
@@ -10,7 +10,7 @@ index 4946d83..230ede7 100644
      public let liftWhileSwitching: Bool
      
      public init(
-@@ -299,7 +300,8 @@ public final class HorizontalTabsComponent: Component {
+@@ -317,7 +318,8 @@ public final class HorizontalTabsComponent: Component {
          layout: Layout = .fill,
          liftWhileSwitching: Bool = true,
          nebulaPanelStyle: Int = 0,
@@ -20,7 +20,7 @@ index 4946d83..230ede7 100644
      ) {
          self.context = context
          self.theme = theme
-@@ -309,11 +311,12 @@ public final class HorizontalTabsComponent: Component {
+@@ -327,11 +329,12 @@ public final class HorizontalTabsComponent: Component {
          self.layout = layout
          self.nebulaPanelStyle = nebulaPanelStyle
          self.nebulaOutline = nebulaOutline
@@ -34,7 +34,7 @@ index 4946d83..230ede7 100644
          if lhs.theme !== rhs.theme {
              return false
          }
-@@ -901,6 +904,15 @@ public final class HorizontalTabsComponent: Component {
+@@ -1020,6 +1023,15 @@ public final class HorizontalTabsComponent: Component {
                      }
                      itemTransition.setFrame(view: itemRegularView, frame: itemFrame)
                      itemTransition.setFrame(view: itemSelectedView, frame: itemFrame)
@@ -51,7 +51,7 @@ index 4946d83..230ede7 100644
                      if tabId == self.reorderingItem {
                          itemTransition.setSublayerTransform(view: itemRegularView, transform: CATransform3DMakeScale(1.2, 1.2, 1.0))
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
-index 7fc781e..a1842eb 100644
+index 9619a55216..ae80729045 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoPaneContainerNode.swift
 @@ -1,5 +1,6 @@
@@ -61,8 +61,8 @@ index 7fc781e..a1842eb 100644
  import AsyncDisplayKit
  import Display
  import SwiftSignalKit
-@@ -1381,7 +1382,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
-                 selectedTab: self.currentPaneKey.flatMap { HorizontalTabsComponent.Tab.Id($0) },
+@@ -1411,7 +1412,8 @@ final class PeerInfoPaneContainerNode: ASDisplayNode, ASGestureRecognizerDelegat
+                 selectedTab: availablePanes.count > 1 ? self.currentPaneKey.flatMap { HorizontalTabsComponent.Tab.Id($0) } : nil,
                  isEditing: false,
                  layout: .fit,
 -                liftWhileSwitching: deviceMetrics.type != .tablet

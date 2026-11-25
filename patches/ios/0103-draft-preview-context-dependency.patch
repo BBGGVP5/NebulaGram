@@ -1,20 +1,21 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
+index 920e1a62e1..79c178ad7a 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/AccountContext",
          "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
-         "//submodules/LottieSettings:LottieSettings",
+         "//submodules/Display",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
+index ccadd99dde..fda20e350b 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatRecordingPreviewInputPanelNode/Sources/ChatRecordingPreviewInputPanelNode.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import AccountContext
  import NebulaSettingsContract
  import UIKit

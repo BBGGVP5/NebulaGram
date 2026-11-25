@@ -1,8 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
-index 9e56a14..8a8e6a6 100644
+index e4e1fe8edd..d262424a2e 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -7428,16 +7428,21 @@ private final class ChatListLocationContext {
+@@ -7505,16 +7505,21 @@ private final class ChatListLocationContext {
                      }
                  }
                  
@@ -27,7 +27,7 @@ index 9e56a14..8a8e6a6 100644
                              if NebulaAiSettings.shared.homeShortcut {
                                  NotificationCenter.default.post(name: NebulaAiSettings.openHomeChat, object: parentController.navigationController)
                                  return
-@@ -7726,6 +7731,14 @@ public func resolveChatListNavigationTarget(navigationController: NavigationCont
+@@ -7938,6 +7943,14 @@ private func chatListSideListTitleView(in view: UIView) -> ChatTitleComponent.Vi
  /// Системный символ, а не ресурс приложения: он подхватывает начертание и
  /// толщину как остальные значки панели. Отрисовка шаблоном обязательна —
  /// иначе панель не покрасит его в свой цвет.
@@ -43,7 +43,7 @@ index 9e56a14..8a8e6a6 100644
      let configuration = UIImage.SymbolConfiguration(pointSize: 22.0, weight: .medium)
      if let image = UIImage(systemName: "sparkles", withConfiguration: configuration) {
 diff --git a/submodules/TelegramUI/Sources/TelegramRootController.swift b/submodules/TelegramUI/Sources/TelegramRootController.swift
-index d4a0834..4e12a72 100644
+index 904939fc96..f4584858e1 100644
 --- a/submodules/TelegramUI/Sources/TelegramRootController.swift
 +++ b/submodules/TelegramUI/Sources/TelegramRootController.swift
 @@ -1,4 +1,5 @@
@@ -52,7 +52,7 @@ index d4a0834..4e12a72 100644
  import UIKit
  import NebulaSettingsContract
  import Display
-@@ -206,6 +207,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
+@@ -210,6 +211,8 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
      public func addRootControllers(showCallsTab: Bool, showNewsTab: Bool) {
          NotificationCenter.default.removeObserver(self, name: NebulaAiSettings.openHomeChat, object: nil)
          NotificationCenter.default.addObserver(self, selector: #selector(nebulaOpenAiChat(_:)), name: NebulaAiSettings.openHomeChat, object: nil)
@@ -61,7 +61,7 @@ index d4a0834..4e12a72 100644
          self.nebulaShowCalls = showCallsTab
          self.nebulaShowNews = showNewsTab
          let tabBarController = TabBarControllerImpl(theme: self.presentationData.theme, strings: self.presentationData.strings)
-@@ -316,6 +319,14 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
+@@ -313,6 +316,14 @@ public final class TelegramRootController: NavigationController, TelegramRootCon
          rootTabController.updateLayout(transition: .immediate)
      }
  

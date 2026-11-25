@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-index 3f127da..a188251 100644
+index b0c6aa5380..2696709e9f 100644
 --- a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-@@ -4289,7 +4289,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
+@@ -4315,7 +4315,8 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
          self.currentDeleteAnimationCorrelationIds.formUnion(expiredMessageStableIds)
          
          var appliedDeleteAnimationCorrelationIds = Set<UInt32>()

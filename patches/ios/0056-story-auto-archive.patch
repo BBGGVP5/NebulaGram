@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules/ChatListUI/Sources/ChatListController.swift
+index 57c726e8ab..c1285fb2ca 100644
 --- a/submodules/ChatListUI/Sources/ChatListController.swift
 +++ b/submodules/ChatListUI/Sources/ChatListController.swift
-@@ -227,6 +227,28 @@
+@@ -272,6 +272,28 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
      private var shouldFixStorySubscriptionOrder: Bool = false
      private var fixedStorySubscriptionOrder: [EnginePeer.Id] = []
      private(set) var orderedStorySubscriptions: EngineStorySubscriptions?
@@ -30,7 +31,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
      private var displayedStoriesTooltip: Bool = false
      
      public var hasStorySubscriptions: Bool {
-@@ -297,6 +319,9 @@
+@@ -343,6 +365,9 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
          )
                  
          super.init(context: context, navigationBarPresentationData: nil)
@@ -40,7 +41,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          
          self.accessoryPanelContainer = ASDisplayNode()
          
-@@ -804,6 +829,7 @@
+@@ -852,6 +877,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
      }
      
      deinit {
@@ -48,7 +49,7 @@ diff --git a/submodules/ChatListUI/Sources/ChatListController.swift b/submodules
          self.openMessageFromSearchDisposable.dispose()
          self.badgeDisposable?.dispose()
          self.badgeIconDisposable?.dispose()
-@@ -2211,6 +2237,7 @@
+@@ -2281,6 +2307,7 @@ public class ChatListControllerImpl: TelegramBaseController, ChatListController
                          items: items,
                          hasMoreToken: rawStorySubscriptions.hasMoreToken
                      )

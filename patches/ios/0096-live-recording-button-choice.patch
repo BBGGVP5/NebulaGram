@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 990c472f04..1a3990b4f5 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -281,6 +281,9 @@
+@@ -284,6 +284,9 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
              nebulaTranslationTimer = Foundation.Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in self?.nebulaTickChatAI() }
          }
          if nebulaTranslationObservers.isEmpty {
@@ -11,7 +12,7 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              nebulaTranslationObservers.append(NotificationCenter.default.addObserver(forName: NebulaTranslationActivity.changed, object: nil, queue: .main) { [weak self] _ in
                  guard let self, self.isNodeLoaded, self.nebulaTranslationVisible else { return }
                  self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { node in
-@@ -7969,6 +7972,7 @@
+@@ -8084,6 +8087,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
          self.chatDisplayNode.historyNode.forEachVisibleMessageItemNode { itemNode in
              itemNode.unreadMessageRangeUpdated()
          }

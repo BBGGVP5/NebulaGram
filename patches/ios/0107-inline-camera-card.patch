@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
+index aa3f4ceffa..09aee6b47c 100644
 --- a/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
 +++ b/submodules/TelegramUI/Sources/Chat/ChatControllerMediaRecording.swift
-@@ -150,7 +150,10 @@
+@@ -150,7 +150,10 @@ extension ChatControllerImpl {
          if self.videoRecorderValue == nil && initialFrontCamera == nil {
              let presentationData = self.presentationData
              let russian = presentationData.strings.baseLanguageCode.lowercased().hasPrefix("ru")

@@ -1,7 +1,8 @@
 diff --git a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
+index 67fd1b9590..8c64c1680b 100644
 --- a/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
 +++ b/submodules/AuthorizationUI/Sources/AuthorizationSequenceSplashController.swift
-@@ -67,6 +67,14 @@
+@@ -68,6 +68,14 @@ public final class AuthorizationSequenceSplashController: ViewController {
          self.controller.languageChanged = { [weak self] language in
              self?.startButton.title = NebulaAuthCopy(language).next
          }

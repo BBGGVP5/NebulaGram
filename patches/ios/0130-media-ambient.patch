@@ -1,5 +1,5 @@
 diff --git a/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift b/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
-index a1f9746..438d0e9 100644
+index a1f9746c9e..438d0e9b09 100644
 --- a/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
 +++ b/submodules/GalleryUI/Sources/Items/ChatImageGalleryItem.swift
 @@ -230,6 +230,8 @@ final class ChatImageGalleryItemNode: ZoomableContentGalleryItemNode {

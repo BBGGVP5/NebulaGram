@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-index 27a10a4..5982e5e 100644
+index e76b816fdf..9beeab0c4b 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageAnimatedStickerItemNode/Sources/ChatMessageAnimatedStickerItemNode.swift
-@@ -1011,6 +1011,9 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+@@ -1073,6 +1073,9 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
              if let _ = telegramDice {
                  imageSize = displaySize
              } else if let telegramFile = telegramFile {
@@ -12,7 +12,7 @@ index 27a10a4..5982e5e 100644
                  if let dimensions = telegramFile.dimensions {
                      imageSize = dimensions.cgSize.aspectFitted(displaySize)
                  } else if let thumbnailSize = telegramFile.previewRepresentations.first?.dimensions {
-@@ -1021,7 +1024,10 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+@@ -1083,7 +1086,10 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
              } else if let emojiFile = emojiFile {
                  isEmoji = true
                  
@@ -24,7 +24,7 @@ index 27a10a4..5982e5e 100644
  
                  if var dimensions = emojiFile.dimensions {
                      if emojiFile.isCustomEmoji {
-@@ -1055,7 +1061,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
+@@ -1118,7 +1124,7 @@ public class ChatMessageAnimatedStickerItemNode: ChatMessageItemView {
                  
                  let maximumContentWidth = floor(tmpWidth - layoutConstants.bubble.edgeInset - layoutConstants.bubble.edgeInset - layoutConstants.bubble.contentInsets.left - layoutConstants.bubble.contentInsets.right - avatarInset)
  
@@ -34,28 +34,28 @@ index 27a10a4..5982e5e 100644
                  let attributedText = stringWithAppliedEntities(item.message.text, entities: item.message.textEntitiesAttribute?.entities ?? [], baseColor: textColor, linkColor: textColor, baseFont: font, linkFont: font, boldFont: font, italicFont: font, boldItalicFont: font, fixedFont: font, blockQuoteFont: font, message: item.message, adjustQuoteFontSize: true)
                  textLayoutAndApply = textLayout(TextNodeLayoutArguments(attributedString: attributedText, backgroundColor: nil, maximumNumberOfLines: 0, truncationType: .end, constrainedSize: CGSize(width: maximumContentWidth, height: CGFloat.greatestFiniteMagnitude), alignment: .natural))
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/BUILD b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/BUILD
-index d296936..8fd8b56 100644
+index 2e865e2f95..e53e502d25 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/BUILD
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/BUILD
-@@ -10,6 +10,7 @@ swift_library(
-         "-warnings-as-errors",
+@@ -11,6 +11,7 @@ swift_library(
      ],
      deps = [
+         "//submodules/ShimmerEffect",
 +        "//submodules/NebulaSettingsContract:NebulaSettingsContract",
          "//submodules/AsyncDisplayKit",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/SSignalKit/SwiftSignalKit",
+         "//submodules/Display",
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift
-index b9025a4..a634a22 100644
+index 48c8b520de..a18107d6cd 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageInteractiveMediaNode/Sources/ChatMessageInteractiveMediaNode.swift
 @@ -1,4 +1,5 @@
  import Foundation
 +import NebulaSettingsContract
- import LottieSettings
  import UIKit
  import AsyncDisplayKit
-@@ -1108,6 +1109,15 @@ public final class ChatMessageInteractiveMediaNode: ASDisplayNode, GalleryItemTr
+ import SwiftSignalKit
+@@ -1121,6 +1122,15 @@ public final class ChatMessageInteractiveMediaNode: ASDisplayNode, GalleryItemTr
                      nativeSize = unboundSize
              }
  
@@ -72,10 +72,10 @@ index b9025a4..a634a22 100644
              var statusApply: ((ListViewItemUpdateAnimation) -> Void)?
              
 diff --git a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
-index 6dc381d..455f27b 100644
+index e00e520e9f..38ecb616e9 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatMessageStickerItemNode/Sources/ChatMessageStickerItemNode.swift
-@@ -420,6 +420,9 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+@@ -469,6 +469,9 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
              let incoming = item.content.effectivelyIncoming(item.context.account.peerId, associatedData: item.associatedData)
              var imageSize: CGSize = CGSize(width: 100.0, height: 100.0)
              if let telegramFile = telegramFile {
@@ -85,7 +85,7 @@ index 6dc381d..455f27b 100644
                  if let dimensions = telegramFile.dimensions {
                      imageSize = dimensions.cgSize.aspectFitted(displaySize)
                  } else if let thumbnailSize = telegramFile.previewRepresentations.first?.dimensions {
-@@ -430,8 +433,8 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
+@@ -479,8 +482,8 @@ public class ChatMessageStickerItemNode: ChatMessageItemView {
              var textLayoutAndApply: (TextNodeLayout, () -> TextNode)?
              var isEmoji = false
              if item.presentationData.largeEmoji && messageIsEligibleForLargeEmoji(EngineMessage(item.message)) {
@@ -97,10 +97,10 @@ index 6dc381d..455f27b 100644
                  imageSize = CGSize(width: textLayoutAndApply!.0.size.width, height: textLayoutAndApply!.0.size.height)
                  isEmoji = true
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
-index 412f6dc..a66525c 100644
+index 740879c88a..42f931ba5c 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -365,6 +365,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -368,6 +368,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
      }
  
      private var nebulaLastSecondsInTime = NebulaSettingsStore.shared.secondsInTime
@@ -108,7 +108,7 @@ index 412f6dc..a66525c 100644
      
      public weak var parentController: ViewController?
      public weak var customNavigationController: NavigationController?
-@@ -932,7 +933,17 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
+@@ -944,7 +945,17 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
              let refreshMessageTimes = self.nebulaLastSecondsInTime != seconds || self.nebulaReplyAppearance != replyAppearance
              self.nebulaReplyAppearance = replyAppearance
              self.nebulaLastSecondsInTime = seconds

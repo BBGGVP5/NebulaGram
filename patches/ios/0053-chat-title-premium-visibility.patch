@@ -1,13 +1,14 @@
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
+index 3bba777e18..1f3ff555b1 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleComponent.swift
 @@ -1,4 +1,5 @@
  import Foundation
 +import NebulaSettingsContract
  import UIKit
+ import SwiftSignalKit
  import Display
- import ComponentFlow
-@@ -113,6 +114,8 @@
+@@ -154,6 +155,8 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarGlassPillTit
      
      private var contentData: ContentData?
      private var activities: ChatTitleComponent.Activities?
@@ -16,7 +17,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      private var networkState: AccountNetworkState?
      
      private var ignoreParentTransitionRequests: Bool = false
-@@ -123,6 +126,13 @@
+@@ -164,6 +167,13 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarGlassPillTit
      
      override public init(frame: CGRect) {
          super.init(frame: frame)
@@ -30,39 +31,39 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
      }
      
      required public init?(coder: NSCoder) {
-@@ -247,6 +257,7 @@
-                     content: contentData.content,
+@@ -294,6 +304,7 @@ public final class ChatNavigationBarTitleView: UIView, NavigationBarGlassPillTit
+                     leadingIcon: contentData.leadingIcon,
                      activities: self.activities,
                      networkState: self.networkState,
 +                    hidePremiumStatus: NebulaSettingsStore.shared.hidePremiumStatus,
                      tapped: { [weak self] in
                          guard let self else {
                              return
-@@ -316,6 +327,7 @@
-     public let content: ChatTitleContent
+@@ -373,6 +384,7 @@ public final class ChatTitleComponent: Component {
+     public let leadingIcon: ChatTitleLeadingIcon?
      public let activities: Activities?
      public let networkState: AccountNetworkState?
 +    public let hidePremiumStatus: Bool
      public let tapped: () -> Void
      public let longTapped: () -> Void
      
-@@ -330,6 +342,7 @@
-         content: ChatTitleContent,
+@@ -389,6 +401,7 @@ public final class ChatTitleComponent: Component {
+         leadingIcon: ChatTitleLeadingIcon? = nil,
          activities: Activities?,
          networkState: AccountNetworkState?,
 +        hidePremiumStatus: Bool = NebulaSettingsStore.shared.hidePremiumStatus,
          tapped: @escaping () -> Void,
          longTapped: @escaping () -> Void
      ) {
-@@ -343,6 +356,7 @@
-         self.content = content
+@@ -404,6 +417,7 @@ public final class ChatTitleComponent: Component {
+         self.leadingIcon = leadingIcon
          self.activities = activities
          self.networkState = networkState
 +        self.hidePremiumStatus = hidePremiumStatus
          self.tapped = tapped
          self.longTapped = longTapped
      }
-@@ -378,6 +392,9 @@
+@@ -445,6 +459,9 @@ public final class ChatTitleComponent: Component {
          if lhs.networkState != rhs.networkState {
              return false
          }
@@ -72,7 +73,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
          return true
      }
      
-@@ -647,9 +664,9 @@
+@@ -759,9 +776,9 @@ public final class ChatTitleComponent: Component {
                                  titleCredibilityIcon = .fake
                              } else if peer.isScam {
                                  titleCredibilityIcon = .scam
@@ -85,9 +86,10 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleCom
                              }
                              
 diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
+index c7ff011517..e1cf9fcf9c 100644
 --- a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
 +++ b/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleView.swift
-@@ -215,6 +215,7 @@
+@@ -219,6 +219,7 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
      var manualLayout: Bool = false
      private var validLayout: CGSize?
      private var nebulaAlignmentObservation: SettingsObservation?
@@ -95,7 +97,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
      private var nebulaWasCentered = NebulaSettingsStore.shared.centeredChatHeader
      
      public var requestUpdate: ((ContainedViewLayoutTransition) -> Void)?
-@@ -311,9 +312,9 @@
+@@ -315,9 +316,9 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
                                          titleCredibilityIcon = .fake
                                      } else if peer.isScam {
                                          titleCredibilityIcon = .scam
@@ -107,7 +109,7 @@ diff --git a/submodules/TelegramUI/Components/ChatTitleView/Sources/ChatTitleVie
                                          titleCredibilityIcon = .premium
                                      }
                                      
-@@ -804,8 +805,14 @@
+@@ -834,8 +835,14 @@ public final class ChatTitleView: UIView, NavigationBarTitleView {
          self.nebulaAlignmentObservation = NebulaSettingsStore.shared.observe { [weak self] in
              guard let self else { return }
              let centered = NebulaSettingsStore.shared.centeredChatHeader

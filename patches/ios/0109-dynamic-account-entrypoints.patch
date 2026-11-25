@@ -1,7 +1,8 @@
 diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/AccountUtils/Sources/AccountUtils.swift
+index 0185a18651..3146ab7da5 100644
 --- a/submodules/AccountUtils/Sources/AccountUtils.swift
 +++ b/submodules/AccountUtils/Sources/AccountUtils.swift
-@@ -4,8 +4,8 @@
+@@ -4,8 +4,8 @@ import TelegramCore
  import TelegramUIPreferences
  import AccountContext
  
@@ -13,9 +14,10 @@ diff --git a/submodules/AccountUtils/Sources/AccountUtils.swift b/submodules/Acc
  public func activeAccountsAndPeers(context: AccountContext, includePrimary: Bool = false) -> Signal<((AccountContext, EnginePeer)?, [(AccountContext, EnginePeer, Int32)]), NoError> {
      let sharedContext = context.sharedContext
 diff --git a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift b/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
+index 588fc00b26..c66ff11f7b 100644
 --- a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
 +++ b/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift
-@@ -197,41 +197,8 @@
+@@ -197,41 +197,8 @@ public func deleteAccountOptionsController(context: AccountContext, navigationCo
      }, addAccount: {
          context.engine.accountData.addAppLogEvent(type: "deactivate.options_add_account_tap")
          
@@ -59,7 +61,7 @@ diff --git a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift 
      }, setupPrivacy: {
          context.engine.accountData.addAppLogEvent(type: "deactivate.options_privacy_tap")
          
-@@ -422,7 +389,7 @@
+@@ -422,7 +389,7 @@ public func deleteAccountOptionsController(context: AccountContext, navigationCo
                  break
          }
          
@@ -69,9 +71,10 @@ diff --git a/submodules/SettingsUI/Sources/DeleteAccountOptionsController.swift 
          let controllerState = ItemListControllerState(presentationData: ItemListPresentationData(presentationData), title: .text(presentationData.strings.DeleteAccount_AlternativeOptionsTitle), leftNavigationButton: leftNavigationButton, rightNavigationButton: nil, backNavigationButton: ItemListBackButton(title: presentationData.strings.Common_Back))
          let listState = ItemListNodeState(presentationData: ItemListPresentationData(presentationData), entries: deleteAccountOptionsEntries(presentationData: presentationData, canAddAccounts: canAddAccounts, hasTwoStepAuth: hasTwoStepAuth, hasPasscode: hasPasscode), style: .blocks)
 diff --git a/submodules/SettingsUI/Sources/LogoutOptionsController.swift b/submodules/SettingsUI/Sources/LogoutOptionsController.swift
+index a884524f24..8983cccf6a 100644
 --- a/submodules/SettingsUI/Sources/LogoutOptionsController.swift
 +++ b/submodules/SettingsUI/Sources/LogoutOptionsController.swift
-@@ -138,41 +138,8 @@
+@@ -138,41 +138,8 @@ public func logoutOptionsController(context: AccountContext, navigationControlle
      let logoutConfirmationDisposable = MetaDisposable()
      
      let arguments = LogoutOptionsItemArguments(addAccount: {
@@ -116,9 +119,10 @@ diff --git a/submodules/SettingsUI/Sources/LogoutOptionsController.swift b/submo
          let _ = passcodeOptionsAccessController(context: context, replaceController: { controller in
              replaceTopControllerImpl?(controller)
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
+index 2ad1e26953..636dfba666 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
-@@ -4265,11 +4265,7 @@
+@@ -4278,11 +4278,7 @@ func settingsSearchableItems(
      activeSessionsContext: Signal<ActiveSessionsContext?, NoError> = .single(nil),
      webSessionsContext: Signal<WebSessionsContext?, NoError> = .single(nil)
  ) -> Signal<[SettingsSearchableItem], NoError> {
@@ -132,9 +136,10 @@ diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift 
      let notificationSettings = context.engine.data.subscribe(TelegramEngine.EngineData.Item.Configuration.ApplicationSpecificPreference(key: PreferencesKeys.globalNotifications))
      |> take(1)
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
+index ee20d8d2c0..74f861a89b 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoScreenSettingsActions.swift
-@@ -219,26 +219,7 @@
+@@ -222,26 +222,7 @@ extension PeerInfoScreenNode {
              }
              push(usernameSetupController(context: self.context))
          case .addAccount:

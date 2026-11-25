@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
+index 989eab1391..8e5e346b6d 100644
 --- a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
 +++ b/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Sources/ChatTextInputPanelNode.swift
-@@ -315,6 +315,7 @@
+@@ -354,6 +354,7 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
      
      private var presentationInterfaceState: ChatPresentationInterfaceState?
      private let nebulaArithmeticHint = NebulaArithmeticHint()
@@ -9,9 +10,9 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
      private var nebulaAppearanceObservation: SettingsObservation?
      private var initializedPlaceholder = false
      
-@@ -3954,7 +3955,28 @@
-         self.glassBackgroundContainer.update(size: containerFrame.size, isDark: interfaceState.theme.overallDarkAppearance, transition: ComponentTransition(transition))
-         
+@@ -4186,7 +4187,28 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
+             return contentHeight + self.agentContainerExtraBottomInset
+         }
          self.nebulaArithmeticHint.update(input: audioRecordingItemsAlpha > 0 ? self.richTextInputNode?.inputView : nil, container: self.textInputNodeClippingContainer, color: interfaceState.theme.chat.inputPanel.inputPlaceholderColor)
 -        return contentHeight
 +        var formattingHeight: CGFloat = 0
@@ -38,8 +39,8 @@ diff --git a/submodules/TelegramUI/Components/Chat/ChatTextInputPanelNode/Source
 +        return contentHeight + formattingHeight
      }
      
-     @objc private func slowModeButtonPressed() {
-@@ -5427,6 +5449,33 @@
+     private func overscrollIslandAnchor() -> (container: UIView, anchorFrame: CGRect) {
+@@ -5698,6 +5720,33 @@ public class ChatTextInputPanelNode: ChatInputPanelNode, ASEditableTextNodeDeleg
          }
      }
      

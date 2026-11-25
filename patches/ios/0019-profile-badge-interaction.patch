@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
+index 471da3b71c..96c3dce6ee 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoHeaderNode.swift
-@@ -288,9 +288,10 @@
+@@ -318,9 +318,10 @@ final class PeerInfoHeaderNode: ASDisplayNode {
          for view in [self.nebulaBadgeView, self.nebulaExpandedBadgeView] {
              view.contentMode = .scaleAspectFit
              view.isHidden = true
@@ -14,7 +15,7 @@ diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/Pe
          }
          self.titleNode.stateNode(forKey: TitleNodeStateRegular)?.view.addSubview(self.nebulaBadgeView)
          self.titleNode.stateNode(forKey: TitleNodeStateExpanded)?.view.addSubview(self.nebulaExpandedBadgeView)
-@@ -569,11 +570,77 @@
+@@ -616,11 +617,77 @@ final class PeerInfoHeaderNode: ASDisplayNode {
                  view.image = image
                  view.isHidden = image == nil
                  view.accessibilityLabel = badge?.title

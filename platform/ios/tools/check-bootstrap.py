@@ -352,11 +352,11 @@ def main():
         marker = '            self.backgroundContainer.nebulaPreservesNativeAppearance = true\n'
         assert native_tab.count(marker) == 1
         original_tab = run('git', '-C', str(tree), 'show', revision + ':' + native_tab_path).decode('utf-8')
-        expected_tab = original_tab.replace('import LottieSettings\n', 'import LottieSettings\nimport NebulaSettingsContract\n', 1)
+        expected_tab = original_tab.replace('import Foundation\n', 'import Foundation\nimport NebulaSettingsContract\n', 1)
         expected_tab = expected_tab.replace('            self.addSubview(self.backgroundContainer)\n', '            self.addSubview(self.backgroundContainer)\n' + marker, 1)
-        expected_tab = expected_tab.replace('            let availableSize = CGSize(width: min(500.0, availableSize.width), height: availableSize.height)\n',
+        expected_tab = expected_tab.replace('            let availableSize = CGSize(width: isSystemLayout ? availableSize.width : min(500.0, availableSize.width), height: availableSize.height)\n',
             '            let preferredWidth = NebulaSettingsStore.shared.compactBottomBar ? max(160.0, CGFloat(component.items.count) * 72.0 + 8.0) : 500.0\n'
-            '            let availableSize = CGSize(width: min(preferredWidth, availableSize.width), height: availableSize.height)\n', 1)
+            '            let availableSize = CGSize(width: isSystemLayout ? availableSize.width : min(preferredWidth, availableSize.width), height: availableSize.height)\n', 1)
         expected_tab = expected_tab.replace('                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle) ? 0.0 : 1.0)\n',
             '                alphaTransition.setAlpha(view: titleView, alpha: (component.isSearchActive || !component.showsTitle || !NebulaSettingsStore.shared.showTabLabels) ? 0.0 : 1.0)\n', 1)
         assert native_tab == expected_tab

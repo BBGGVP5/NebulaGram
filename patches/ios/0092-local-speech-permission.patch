@@ -1,7 +1,8 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
+index 6882696cae..a279f39c9a 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -1796,7 +1796,7 @@
+@@ -1796,7 +1796,7 @@ plist_fragment(
      <key>NSSiriUsageDescription</key>
      <string>You can use Siri to send messages.</string>
      <key>NSSpeechRecognitionUsageDescription</key>
@@ -11,6 +12,7 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
      <array>
          <string>INSendMessageIntent</string>
 diff --git a/Telegram/Telegram-iOS/Info.plist b/Telegram/Telegram-iOS/Info.plist
+index 85d0b2a6d2..4dbb0370b7 100644
 --- a/Telegram/Telegram-iOS/Info.plist
 +++ b/Telegram/Telegram-iOS/Info.plist
 @@ -293,6 +293,8 @@

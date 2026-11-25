@@ -15,7 +15,9 @@ def check(source, swift=False):
     for name in ['liveMicrophoneButton', 'starReactionButton', 'settingsButton']:
         frames.append(re.search(r'(?:var|let) ' + name + r'Frame = (CGRect[^\n]+)', source).group(1))
     assert source.count('y: formattingHeight + contentHeight - maxOverlayHeight)') == 2
-    assert 'dy: self.glassBackgroundContainer.frame.minY + self.sendActionButtons.frame.minY)' in source
+    # 13.2 converts the send buttons' frame into the panel's coordinates, which already includes the glass offset.
+    assert ('dy: self.glassBackgroundContainer.frame.minY + self.sendActionButtons.frame.minY)' in source
+            or 'self.view.convert(self.sendActionButtons.frame, from: self.sendActionButtons.view.superview)' in source)
     for name in ['mediaActionButtons', 'sendActionButtons']:
         assert 'y: rect.origin.y + formattingHeight + ' + name + 'Frame.origin.y' in source
     assert 'return contentHeight + formattingHeight' in source

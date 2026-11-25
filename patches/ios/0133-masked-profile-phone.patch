@@ -1,8 +1,8 @@
 diff --git a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
-index 7da5591..5fc1f83 100644
+index e9ed2a682b..3adab98414 100644
 --- a/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
 +++ b/submodules/TelegramUI/Components/PeerInfo/PeerInfoScreen/Sources/PeerInfoProfileItems.swift
-@@ -174,7 +174,8 @@ func infoItems(
+@@ -178,7 +178,8 @@ func infoItems(
              ))
          }
          
@@ -12,7 +12,7 @@ index 7da5591..5fc1f83 100644
              let formattedPhone = formatPhoneNumber(context: context, number: phone)
              let label: String
              if formattedPhone.hasPrefix("+888 ") {
-@@ -182,7 +183,8 @@ func infoItems(
+@@ -186,7 +187,8 @@ func infoItems(
              } else {
                  label = presentationData.strings.ContactInfo_PhoneLabelMobile
              }

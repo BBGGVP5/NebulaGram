@@ -1,11 +1,12 @@
-diff --git a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
---- a/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-+++ b/submodules/TelegramCore/Sources/State/AccountStateManagementUtils.swift
-@@ -4673,6 +4673,7 @@
-                     invalidateGroupStats.insert(Namespaces.PeerGroup.archive)
-                 }
-             case let .EditMessage(id, message):
-+                NebulaEditHistory.capture(transaction: transaction, accountPeerId: accountPeerId, id: id, incoming: message)
-                 var generatedEvent: (reactionAuthor: Peer, reaction: MessageReaction.Reaction, message: Message, timestamp: Int32)?
-                 transaction.updateMessage(id, update: { previousMessage in
-                     let peers: [PeerId:Peer] = previousMessage.peers.reduce([:], { current, value in
+diff --git a/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift b/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
+index 8c0c704e30..30df23d2b1 100644
+--- a/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
++++ b/submodules/TelegramCore/Sources/State/Sync/StateReplay+Messages.swift
+@@ -310,6 +310,7 @@ extension ReplayContext {
+     }
+     
+     func applyEditMessage(_ id: MessageId, _ message: StoreMessage) {
++        NebulaEditHistory.capture(transaction: transaction, accountPeerId: accountPeerId, id: id, incoming: message)
+         var generatedEvent: (reactionAuthor: Peer, reaction: MessageReaction.Reaction, message: Message, timestamp: Int32)?
+         transaction.updateMessage(id, update: { previousMessage in
+             let peers: [PeerId:Peer] = previousMessage.peers.reduce([:], { current, value in

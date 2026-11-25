@@ -1,7 +1,8 @@
 diff --git a/Telegram/BUILD b/Telegram/BUILD
+index 1ac8279be2..e1e633f63f 100644
 --- a/Telegram/BUILD
 +++ b/Telegram/BUILD
-@@ -381,6 +381,7 @@
+@@ -381,6 +381,7 @@ swift_library(
      module_name = "Lib",
      srcs = glob([
          "Telegram-iOS/Application.swift",
@@ -9,7 +10,7 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
      ]),
      data = [
          ":Icons",
-@@ -402,6 +403,7 @@
+@@ -402,6 +403,7 @@ swift_library(
      deps = [
          "//submodules/TelegramUI:TelegramUI",
          "//third-party/boringssl:crypto",
@@ -18,9 +19,10 @@ diff --git a/Telegram/BUILD b/Telegram/BUILD
  )
  
 diff --git a/Telegram/WidgetKitWidget/TodayViewController.swift b/Telegram/WidgetKitWidget/TodayViewController.swift
+index 4e3c838915..957ec35a2e 100644
 --- a/Telegram/WidgetKitWidget/TodayViewController.swift
 +++ b/Telegram/WidgetKitWidget/TodayViewController.swift
-@@ -941,6 +941,7 @@
+@@ -941,6 +941,7 @@ struct AllWidgets: WidgetBundle {
     var body: some Widget {
          Static_Widget()
          Static_AvatarsWidget()
@@ -29,9 +31,10 @@ diff --git a/Telegram/WidgetKitWidget/TodayViewController.swift b/Telegram/Widge
  }
  
 diff --git a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
+index 6e0c6d0f71..2430f54497 100644
 --- a/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
 +++ b/submodules/SettingsUI/Sources/Search/SettingsSearchableItems.swift
-@@ -4570,6 +4570,7 @@
+@@ -4583,6 +4583,7 @@ func searchSettingsItems(items: [SettingsSearchableItem], query: String) -> [Set
  }
  
  public func handleSettingsPathUrl(context: AccountContext, path: String, navigationController: NavigationController) {

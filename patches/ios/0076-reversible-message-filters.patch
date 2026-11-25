@@ -1,7 +1,8 @@
 diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/TelegramUI/Sources/ChatController.swift
+index 563b6a2f9f..58ad149e72 100644
 --- a/submodules/TelegramUI/Sources/ChatController.swift
 +++ b/submodules/TelegramUI/Sources/ChatController.swift
-@@ -3543,6 +3543,7 @@
+@@ -3623,6 +3623,7 @@ public final class ChatControllerImpl: TelegramBaseController, ChatController, G
                  return
              }
              let url = urlData.url
@@ -10,9 +11,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatController.swift b/submodules/Tel
              let message = urlData.message
              let progress = urlData.progress
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift b/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
+index 44fec06499..d3ae1bcf25 100644
 --- a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift
-@@ -143,6 +143,7 @@
+@@ -171,6 +171,7 @@ func chatHistoryEntriesForView(
      var count = 0
      loop: for entry in view.entries {
          var message = entry.message.withAppliedEphemeralReplacementMessage()
@@ -21,9 +23,10 @@ diff --git a/submodules/TelegramUI/Sources/ChatHistoryEntriesForView.swift b/sub
          
          var pinToTop = false
 diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
+index cbc2d884e1..b0c6aa5380 100644
 --- a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
 +++ b/submodules/TelegramUI/Sources/ChatHistoryListNode.swift
-@@ -683,6 +683,7 @@
+@@ -648,6 +648,7 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
          return self.isInteractivelyScrollingPromise.get()
      }
      
@@ -31,8 +34,8 @@ diff --git a/submodules/TelegramUI/Sources/ChatHistoryListNode.swift b/submodule
      private var currentPresentationData: ChatPresentationData
      private var chatPresentationDataPromise: Promise<ChatPresentationData>
      private var presentationDataDisposable: Disposable?
-@@ -1040,6 +1041,10 @@
-         self.listView = ChatHistoryListNodeImpl.makeListView(rotated: rotated, useCoreListBackend: useCoreListBackend)
+@@ -1005,6 +1006,10 @@ public final class ChatHistoryListNodeImpl: ASDisplayNode, ChatHistoryNode, Chat
+         self.listView = ChatHistoryListNodeImpl.makeListView(rotated: rotated, useCoreListBackend: useCoreListBackend, scrollTrace: context.sharedContext.immediateExperimentalUISettings.coreListScrollTrace)
  
          super.init()
 +        self.nebulaHistoryFilter = NebulaHistoryFilter(context: context) { [weak self] in

@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatContextMenus.swift b/submodules/ChatListUI/Sources/ChatContextMenus.swift
+index f753a8eaad..d3668cb4f8 100644
 --- a/submodules/ChatListUI/Sources/ChatContextMenus.swift
 +++ b/submodules/ChatListUI/Sources/ChatContextMenus.swift
-@@ -136,6 +136,20 @@
+@@ -136,6 +136,20 @@ func chatContextMenuItems(context: AccountContext, peerId: EnginePeer.Id, promoI
                      }
  
                      var items: [ContextMenuItem] = []
@@ -23,9 +24,10 @@ diff --git a/submodules/ChatListUI/Sources/ChatContextMenus.swift b/submodules/C
                      if case let .search(search) = source {
                          switch search {
 diff --git a/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift b/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
+index 5ab0a1d305..9c13b3f4b2 100644
 --- a/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
 +++ b/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift
-@@ -196,12 +196,51 @@
+@@ -196,12 +196,51 @@ public func chatListFilterPredicate(filter: ChatListFilterData, accountPeerId: E
  }
  
  public func chatListViewForLocation(chatListLocation: ChatListControllerLocation, location: ChatListNodeLocation, account: Account, shouldLoadCanMessagePeer: Bool) -> Signal<ChatListNodeViewUpdate, NoError> {
@@ -79,9 +81,10 @@ diff --git a/submodules/ChatListUI/Sources/Node/ChatListNodeLocation.swift b/sub
          } else {
              filterPredicate = nil
 diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/Sources/ChatListView.swift
+index 1d46d10f7b..3233c1089d 100644
 --- a/submodules/Postbox/Sources/ChatListView.swift
 +++ b/submodules/Postbox/Sources/ChatListView.swift
-@@ -444,6 +444,9 @@
+@@ -444,6 +444,9 @@ private enum ChatListEntryType {
  }
  
  public struct ChatListFilterPredicate {
@@ -91,7 +94,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
      public var includePeerIds: Set<PeerId>
      public var excludePeerIds: Set<PeerId>
      public var pinnedPeerIds: [PeerId]
-@@ -461,6 +464,7 @@
+@@ -461,6 +464,7 @@ public struct ChatListFilterPredicate {
      }
      
      public func includes(peer: Peer, groupId: PeerGroupId, isRemovedFromTotalUnreadCount: Bool, isUnread: Bool, isContact: Bool, messageTagSummaryResult: Bool?) -> Bool {
@@ -99,7 +102,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
          if self.pinnedPeerIds.contains(peer.id) {
              return false
          }
-@@ -476,7 +480,7 @@
+@@ -476,7 +480,7 @@ public struct ChatListFilterPredicate {
          if self.includePeerIds.contains(includePeerId) {
              return true
          }
@@ -108,7 +111,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
              if !self.includeAdditionalPeerGroupIds.contains(groupId) {
                  return false
              }
-@@ -637,7 +641,7 @@
+@@ -637,7 +641,7 @@ final class MutableChatListView {
          
          self.count = count
          
@@ -117,7 +120,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
              let items = postbox.additionalChatListItemsTable.get()
              self.additionalItems = items
              self.additionalItemIds = Set(items.map { $0.peerId })
-@@ -662,7 +666,7 @@
+@@ -662,7 +666,7 @@ final class MutableChatListView {
      
      private func reloadGroups(postbox: PostboxImpl) {
          self.groupEntries.removeAll()
@@ -126,7 +129,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
              for groupId in postbox.chatListTable.existingGroups() {
                  var foundIndices: [(ChatListIndex, MessageIndex)] = []
                  var unpinnedCount = 0
-@@ -814,7 +818,7 @@
+@@ -814,7 +818,7 @@ final class MutableChatListView {
              }
          }
          
@@ -135,7 +138,7 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
              var invalidatedGroups = false
              for (groupId, groupOperations) in operations {
                  if case .group = groupId, !groupOperations.isEmpty {
-@@ -867,7 +871,7 @@
+@@ -867,7 +871,7 @@ final class MutableChatListView {
          }
          
          var updateAdditionalItems = false
@@ -145,9 +148,10 @@ diff --git a/submodules/Postbox/Sources/ChatListView.swift b/submodules/Postbox/
              self.additionalItemIds = Set(items.map { $0.peerId })
              updateAdditionalItems = true
 diff --git a/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift b/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
+index 37441e5cfb..4763e6f2fc 100644
 --- a/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
 +++ b/submodules/TelegramCore/Sources/TelegramEngine/Peers/TelegramEnginePeers.swift
-@@ -893,7 +893,8 @@
+@@ -893,7 +893,8 @@ public extension TelegramEngine {
  
          public func reorderPinnedItemIds(location: TogglePeerChatPinnedLocation, itemIds: [PinnedItemId]) -> Signal<Bool, NoError> {
              return self.account.postbox.transaction { transaction -> Bool in

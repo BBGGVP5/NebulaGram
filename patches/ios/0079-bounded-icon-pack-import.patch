@@ -1,7 +1,8 @@
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index 5333fea211..6f2944e29c 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -12,6 +12,8 @@
+@@ -12,6 +12,8 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
@@ -11,9 +12,10 @@ diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
          "//submodules/NebulaLinkUI:NebulaLinkUI",
          "//submodules/NebulaSettingsContract:NebulaSettingsContract",
 diff --git a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
+index 58d0fece59..2cd7d7486c 100644
 --- a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
 +++ b/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h
-@@ -42,6 +42,8 @@
+@@ -42,6 +42,8 @@ typedef NS_ENUM(NSInteger, SSZipArchiveErrorCode) {
  
  @interface SSZipArchive : NSObject
  
@@ -23,9 +25,10 @@ diff --git a/third-party/ZipArchive/PublicHeaders/ZipArchive/ZipArchive.h b/thir
  + (BOOL)extractFileFromArchiveAtPath:(NSString *)path filePath:(NSString *)filePath toPath:(NSString *)toPath;
  
 diff --git a/third-party/ZipArchive/Sources/SSZipArchive.m b/third-party/ZipArchive/Sources/SSZipArchive.m
+index 9669fd7268..2ace50499e 100644
 --- a/third-party/ZipArchive/Sources/SSZipArchive.m
 +++ b/third-party/ZipArchive/Sources/SSZipArchive.m
-@@ -44,6 +44,29 @@
+@@ -44,6 +44,29 @@ BOOL _fileIsSymbolicLink(const unz_file_info *fileInfo);
      zipFile _zip;
  }
  

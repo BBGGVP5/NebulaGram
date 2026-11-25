@@ -1,7 +1,8 @@
 diff --git a/submodules/ChatListUI/Sources/ChatListControllerNode.swift b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
+index c9a6a67512..9d1f574402 100644
 --- a/submodules/ChatListUI/Sources/ChatListControllerNode.swift
 +++ b/submodules/ChatListUI/Sources/ChatListControllerNode.swift
-@@ -1727,7 +1727,9 @@
+@@ -1757,7 +1757,9 @@ final class ChatListControllerNode: ASDisplayNode, ASGestureRecognizerDelegate {
                  leftInset: layout.safeInsets.left,
                  rightInset: layout.safeInsets.right,
                  trailingButtonsInset: layout.navigationBarTrailingButtonsInset,

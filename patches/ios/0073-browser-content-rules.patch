@@ -1,25 +1,26 @@
 diff --git a/submodules/BrowserUI/BUILD b/submodules/BrowserUI/BUILD
+index 0820fe458f..821d937160 100644
 --- a/submodules/BrowserUI/BUILD
 +++ b/submodules/BrowserUI/BUILD
-@@ -10,6 +10,7 @@
+@@ -10,6 +10,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
 +        "//submodules/NebulaBrowserCore:NebulaBrowserCore",
          "//submodules/SSignalKit/SwiftSignalKit",
-         "//submodules/LottieSettings:LottieSettings",
          "//submodules/AsyncDisplayKit",
+         "//submodules/Display",
 diff --git a/submodules/BrowserUI/Sources/BrowserWebContent.swift b/submodules/BrowserUI/Sources/BrowserWebContent.swift
+index 37efac8ca6..3541f509d9 100644
 --- a/submodules/BrowserUI/Sources/BrowserWebContent.swift
 +++ b/submodules/BrowserUI/Sources/BrowserWebContent.swift
-@@ -1,5 +1,6 @@
+@@ -1,4 +1,5 @@
  import Foundation
- import LottieSettings
 +import NebulaBrowserCore
  import UIKit
  import Display
  import ComponentFlow
-@@ -203,6 +204,7 @@
+@@ -203,6 +204,7 @@ private func computedUserAgent() -> String {
  }
  
  final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKUIDelegate, UIScrollViewDelegate, WKDownloadDelegate {
@@ -27,7 +28,7 @@ diff --git a/submodules/BrowserUI/Sources/BrowserWebContent.swift b/submodules/B
      private let context: AccountContext
      private var presentationData: PresentationData
      
-@@ -344,9 +346,10 @@
+@@ -344,9 +346,10 @@ final class BrowserWebContent: UIView, BrowserContent, WKNavigationDelegate, WKU
          self.webView.backgroundColor = presentationData.theme.list.plainBackgroundColor
          self.webView.alpha = 0.0
          
@@ -42,9 +43,10 @@ diff --git a/submodules/BrowserUI/Sources/BrowserWebContent.swift b/submodules/B
          self.webView.allowsBackForwardNavigationGestures = true
          self.webView.scrollView.delegate = self
 diff --git a/submodules/SettingsUI/BUILD b/submodules/SettingsUI/BUILD
+index b7f44013e9..ce3b0c4b0c 100644
 --- a/submodules/SettingsUI/BUILD
 +++ b/submodules/SettingsUI/BUILD
-@@ -12,6 +12,7 @@
+@@ -12,6 +12,7 @@ swift_library(
          "-warnings-as-errors",
      ],
      deps = [
