@@ -20,6 +20,8 @@ public final class NebulaMediaPreferences {
     public static boolean wordSync() { return prefs().getBoolean("player_word_sync", false); }
     /** A Latin reading under lines in other scripts (Android 10+). */
     public static boolean transliteration() { return prefs().getBoolean("player_transliteration", false); }
+    /** A translation under each line, through the web translator chosen for chats. */
+    public static boolean lyricsTranslation() { return prefs().getBoolean("player_translation", false); }
     public static int lyricsSource() { return prefs().getInt("player_lyrics_source", NebulaLyricsSources.LRCLIB); }
     public static void setLyricsSource(int value) { prefs().edit().putInt("player_lyrics_source", value).apply(); }
     public static boolean pdfViewer() { return prefs().getBoolean("pdf_viewer", true); }

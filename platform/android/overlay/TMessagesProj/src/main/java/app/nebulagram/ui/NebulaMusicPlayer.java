@@ -472,6 +472,7 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
             NebulaLrc chosen = NebulaLyricsSources.choose(source, null, fromFile);
             lyricsView.setLyrics(chosen, chosen == null ? missing : null);
             progress();
+            translateLyrics(chosen, key);
             return;
         }
         NebulaMusicService.lyrics(artist, name, length, lrc -> {
@@ -479,6 +480,15 @@ public final class NebulaMusicPlayer extends FrameLayout implements Notification
             NebulaLrc chosen = NebulaLyricsSources.choose(source, lrc, fromFile);
             lyricsView.setLyrics(chosen, chosen == null ? missing : null);
             progress();
+            translateLyrics(chosen, key);
+        });
+    }
+
+    private void translateLyrics(NebulaLrc lyrics, String key) {
+        if (lyrics == null || !NebulaMediaPreferences.lyricsTranslation()) return;
+        NebulaMusicService.translate(lyrics, key, lines -> {
+            if (released || !key.equals(trackKey) || lines == null) return;
+            lyricsView.setTranslations(lines);
         });
     }
 

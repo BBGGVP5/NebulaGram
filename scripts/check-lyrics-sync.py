@@ -47,6 +47,13 @@ public class Check {
   // Transliteration need.
   check(NebulaLyricsText.needsReading("Привет")&&NebulaLyricsText.needsReading("こんにちは")&&NebulaLyricsText.needsReading("Hello мир"),"other scripts");
   check(!NebulaLyricsText.needsReading("Hello, world! 123")&&!NebulaLyricsText.needsReading("Ça va, señor")&&!NebulaLyricsText.needsReading(null),"Latin needs no reading");
+  // Translation chunks.
+  List<String> lines=Arrays.asList("aaaa","bbbb","cc","dddddddddd","e");
+  List<int[]> chunks=NebulaLyricsText.chunks(lines,10);
+  check(chunks.size()==4&&chunks.get(0)[1]==2&&chunks.get(1)[0]==2&&chunks.get(1)[1]==3&&chunks.get(2)[1]==4&&chunks.get(3)[1]==5,"chunks fit the limit");
+  check(NebulaLyricsText.chunks(new ArrayList<>(),10).isEmpty(),"no lines, no chunks");
+  check(Arrays.equals(NebulaLyricsText.split("a\nb\n",2),new String[]{"a","b"})&&NebulaLyricsText.split("a b",2)==null&&NebulaLyricsText.split(null,1)==null,"split keeps the line count");
+  check(NebulaLyricsText.useful("Hello","Привет")&&!NebulaLyricsText.useful("Hello"," hello ")&&!NebulaLyricsText.useful("x","  ")&&!NebulaLyricsText.useful("x",null),"useful translations");
   // Sources.
   NebulaLrc net=NebulaLrc.parse("[00:01.00]net"),file=NebulaLrc.parse("[00:01.00]file");
   check(NebulaLyricsSources.choose(NebulaLyricsSources.LRCLIB,net,file)==net&&NebulaLyricsSources.choose(NebulaLyricsSources.LRCLIB,null,file)==null,"lrclib only, as before");
@@ -86,7 +93,13 @@ view = (ui / 'NebulaLyricsView.java').read_text(encoding='utf-8')
 for part in ['Layout.Alignment.ALIGN_OPPOSITE', 'NebulaLrc.backgroundRanges(line.text)', 'NebulaLrc.sung(line, now(), end)',
              'android.icu.text.Transliterator.getInstance("Any-Latin; Latin-ASCII")', 'android.os.Build.VERSION.SDK_INT >= 29', 'private void drawSung(']:
     assert part in view, part
+assert 'getBoolean("player_translation", false)' in prefs
+service = (ui / 'NebulaMusicService.java').read_text(encoding='utf-8')
+assert 'NebulaLyricsText.chunks(texts, NebulaWebTranslation.chunkLimit(provider) - 50)' in service and 'NebulaWebTranslation.translate(provider,' in service
+assert player.count('translateLyrics(chosen, key);') == 2 and 'if (lyrics == null || !NebulaMediaPreferences.lyricsTranslation()) return;' in player
+assert 'public void setTranslations(String[] values)' in view
 screen = (ui / 'NebulaMediaFeaturesFragment.java').read_text(encoding='utf-8')
+assert 't("Перевод текстов", "Lyrics translation")' in screen
 for row in ['t("Пословная синхронизация", "Word-by-word sync")', 't("Транслитерация", "Transliteration")', 't("Источники текстов", "Lyrics sources")']:
     assert row in screen, row
 print('Lyrics sync: settings, player wiring and drawing verified')

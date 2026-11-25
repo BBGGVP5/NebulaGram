@@ -27,6 +27,11 @@ public final class NebulaLyricsView extends View {
     private final ArrayList<StaticLayout> readings = new ArrayList<>();
     private final TextPaint readingPaint = new TextPaint(TextPaint.ANTI_ALIAS_FLAG);
     private boolean rich, transliterate;
+    /** Line translations ("Translation" in the player settings), aligned with the lyrics lines. */
+    private String[] translations;
+    public void setTranslations(String[] values) {
+        translations = values; layoutWidth = -1; invalidate();
+    }
     private long position, positionAt;
     private final OverScroller scroller;
     private final GestureDetector gestures;
@@ -73,7 +78,7 @@ public final class NebulaLyricsView extends View {
         layoutWidth = -1; requestLayout(); invalidate();
     }
     public void setLyrics(NebulaLrc lyrics, CharSequence message) {
-        this.lyrics = lyrics; this.message = message; current = -1; scroll = 0; layoutWidth = -1;
+        this.lyrics = lyrics; this.message = message; current = -1; scroll = 0; layoutWidth = -1; translations = null;
         emphasis = new float[lyrics == null ? 0 : lyrics.lines.size()];
         requestLayout(); invalidate();
     }
@@ -140,6 +145,9 @@ public final class NebulaLyricsView extends View {
                 .setAlignment(alignment).setLineSpacing(0, 1.05f).build();
             tops.add(y); layouts.add(layout); y += layout.getHeight();
             String reading = transliterate ? transliterated(line.text) : null;
+            int lineIndex = layouts.size() - 1;
+            String translation = translations != null && lineIndex < translations.length ? translations[lineIndex] : null;
+            if (translation != null) reading = reading == null ? translation : reading + "\n" + translation;
             StaticLayout readingLayout = reading == null ? null : StaticLayout.Builder.obtain(reading, 0, reading.length(), readingPaint, width)
                 .setAlignment(alignment).build();
             readings.add(readingLayout);

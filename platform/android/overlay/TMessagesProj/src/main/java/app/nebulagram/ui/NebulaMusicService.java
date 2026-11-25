@@ -60,6 +60,45 @@ public final class NebulaMusicService {
         });
     }
 
+    /**
+     * Translations of the lines into the app language, or null, on the UI thread. Lines go in
+     * chunks the provider accepts; a chunk whose line count changes in translation is dropped.
+     */
+    public static void translate(NebulaLrc lyrics, String trackKey, Consumer<String[]> result) {
+        if (lyrics == null || lyrics.lines.isEmpty()) { result.accept(null); return; }
+        String target = org.telegram.messenger.LocaleController.getInstance().getCurrentLocale().getLanguage();
+        String provider = NebulaWebTranslation.known(NebulaTranslationSettings.web()) ? NebulaTranslationSettings.web() : NebulaWebTranslation.GOOGLE;
+        String key = "tr:" + provider + ":" + target + ":" + trackKey;
+        worker.execute(() -> {
+            String[] out = new String[lyrics.lines.size()];
+            String cached = cached(key);
+            if (cached != null && !cached.isEmpty()) {
+                String[] parts = cached.split("\u0001", -1);
+                if (parts.length == out.length) out = parts; else cached = null;
+            }
+            if (cached == null) {
+                java.util.List<String> texts = new java.util.ArrayList<>();
+                for (NebulaLrc.Line line : lyrics.lines) texts.add(line.text.replace('\n', ' '));
+                try {
+                    for (int[] range : NebulaLyricsText.chunks(texts, NebulaWebTranslation.chunkLimit(provider) - 50)) {
+                        StringBuilder joined = new StringBuilder();
+                        for (int i = range[0]; i < range[1]; i++) { if (i > range[0]) joined.append('\n'); joined.append(texts.get(i)); }
+                        String[] parts = NebulaLyricsText.split(NebulaWebTranslation.translate(provider, joined.toString(), target, false, () -> false), range[1] - range[0]);
+                        if (parts != null) for (int i = range[0]; i < range[1]; i++) out[i] = parts[i - range[0]];
+                    }
+                    StringBuilder store = new StringBuilder();
+                    for (int i = 0; i < out.length; i++) { if (i > 0) store.append('\u0001'); store.append(out[i] == null ? "" : out[i]); }
+                    store(key, store.toString());
+                } catch (Exception error) {
+                    FileLog.e(error, false);
+                }
+            }
+            for (int i = 0; i < out.length; i++) if (!NebulaLyricsText.useful(lyrics.lines.get(i).text, out[i])) out[i] = null;
+            final String[] answer = out;
+            AndroidUtilities.runOnUIThread(() -> result.accept(answer));
+        });
+    }
+
     /** Delivers a high-resolution iTunes cover URL, or null, on the UI thread. */
     public static void cover(String artist, String title, int duration, Consumer<String> result) {
         if (title == null || title.trim().isEmpty()) { result.accept(null); return; }
