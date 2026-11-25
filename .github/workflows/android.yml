@@ -215,6 +215,7 @@ jobs:
           python3 scripts/check-wide-posts.py vendor/telegram-android
           python3 scripts/check-editor-page-background.py vendor/telegram-android
           python3 scripts/check-sections-page-background.py vendor/telegram-android
+          python3 scripts/check-chat-settings-app-icon.py vendor/telegram-android
           python3 scripts/check-menu-feedback.py vendor/telegram-android
           python3 scripts/check-tab-lens-motion.py
           python3 scripts/check-liquid-popup.py

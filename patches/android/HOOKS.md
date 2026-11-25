@@ -2015,9 +2015,10 @@ FileProvider).
 «Другое»; форматирование текста (жирный, ссылки) в HTML.
 
 Проверка: `check-data-export.py`.
-### 0375 — фон страницы под карточками в «Настройках чатов» и участниках
 
-`0375-sections-page-background.patch`, `ThemeActivity` (только `THEME_TYPE_BASIC`) и `ChatUsersActivity`.
+### 0380 — фон страницы под карточками в «Настройках чатов» и участниках
+
+`0380-sections-page-background.patch`, `ThemeActivity` (только `THEME_TYPE_BASIC`) и `ChatUsersActivity`.
 В стиле NebulaGram карточки рисуются только при выключенном `setSectionsDrawBackground`,
 иначе декорация Telegram подменила бы их плоскими прямоугольниками. Но тогда серый фон между
 карточками не рисовал никто: в зазорах и по краям оставались прошлые кадры, края карточек и
@@ -2030,3 +2031,16 @@ FileProvider).
 экрана работают как в Telegram.
 
 Проверка: `check-sections-page-background.py`.
+
+### 0381 — «Иконка приложения» в «Настройках чатов»
+
+`0381-chat-settings-app-icon-row.patch`, `ThemeActivity`. Вместо нативной ленты иконок Telegram
+(`AppIconsSelectorCell`) в секции стоит одна строка `NebulaAppIconRow` (оверлей): превью текущей
+иконки лаунчера (`NebulaIconArt`), подпись «Иконка приложения», название иконки и шеврон.
+Отдельный заголовок секции (`appIconHeaderRow`) убран, строка называет себя сама. Нажатие
+открывает `NebulaIconPickerFragment`, при привязке строка перечитывает текущую иконку.
+`onResume` → `updateRows(true)` перепривязывает список, так что после карусели строка
+показывает выбранную иконку. Список и текущая иконка берутся из `LauncherIconController`
+NebulaGram (`NebulaBrandPalette.current()`), как в карусели.
+
+Проверка: `check-chat-settings-app-icon.py` сверяет хуки и компилирует строку против `android.jar`.

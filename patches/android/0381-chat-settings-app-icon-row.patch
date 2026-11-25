@@ -1,0 +1,44 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+index 3d2e21d..127c2d9 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+@@ -778,7 +778,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+             chatListRow = rowCount++;
+             chatListInfoRow = rowCount++;
+ 
+-            appIconHeaderRow = rowCount++;
++            // NebulaGram: one row opens NebulaIconPickerFragment; it names itself, no header.
+             appIconSelectorRow = rowCount++;
+             appIconShadowRow = rowCount++;
+ 
+@@ -1220,7 +1220,9 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+         ((DefaultItemAnimator) listView.getItemAnimator()).setDelayAnimations(false);
+         frameLayout.addView(listView, LayoutHelper.createFrame(LayoutHelper.MATCH_PARENT, LayoutHelper.MATCH_PARENT));
+         listView.setOnItemClickListener((view, position, x, y) -> {
+-            if (position == enableAnimationsRow) {
++            if (position == appIconSelectorRow) {
++                presentFragment(new app.nebulagram.ui.NebulaIconPickerFragment()); // NebulaGram
++            } else if (position == enableAnimationsRow) {
+                 SharedPreferences preferences = MessagesController.getGlobalMainSettings();
+                 boolean animations = preferences.getBoolean("view_animations", true);
+                 SharedPreferences.Editor editor = preferences.edit();
+@@ -2574,7 +2576,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+                     view = new RadioButtonCell(mContext);
+                     break;
+                 case TYPE_APP_ICON:
+-                    view = new AppIconsSelectorCell(mContext, ThemeActivity.this, currentAccount);
++                    view = new app.nebulagram.ui.NebulaAppIconRow(mContext, getResourceProvider()); // NebulaGram
+                     break;
+                 case TYPE_CHOOSE_COLOR:
+                     view = new PeerColorActivity.ChangeNameColorCell(currentAccount, 0, mContext, getResourceProvider());
+@@ -2828,6 +2830,10 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+ 
+                     break;
+                 }
++                case TYPE_APP_ICON: {
++                    ((app.nebulagram.ui.NebulaAppIconRow) holder.itemView).update(); // NebulaGram
++                    break;
++                }
+                 case TYPE_CHOOSE_COLOR: {
+                     PeerColorActivity.ChangeNameColorCell cell = (PeerColorActivity.ChangeNameColorCell) holder.itemView;
+                     cell.set(getUserConfig().getCurrentUser());
