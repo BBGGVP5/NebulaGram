@@ -2015,3 +2015,18 @@ FileProvider).
 «Другое»; форматирование текста (жирный, ссылки) в HTML.
 
 Проверка: `check-data-export.py`.
+### 0375 — фон страницы под карточками в «Настройках чатов» и участниках
+
+`0375-sections-page-background.patch`, `ThemeActivity` (только `THEME_TYPE_BASIC`) и `ChatUsersActivity`.
+В стиле NebulaGram карточки рисуются только при выключенном `setSectionsDrawBackground`,
+иначе декорация Telegram подменила бы их плоскими прямоугольниками. Но тогда серый фон между
+карточками не рисовал никто: в зазорах и по краям оставались прошлые кадры, края карточек и
+голубая обводка размножались при прокрутке (тот же класс, что 0013 в `SectionsScrollView`).
+Сразу после `NebulaProfileStyle.sections` экран ставит `NebulaProfileStyle.sectionsPage`:
+фоном списка становится непрозрачный `windowBackgroundGray`, цвет читается при каждой отрисовке.
+Тот же патч оборачивает `ThemeDescription` с `FLAG_CELLBACKGROUNDCOLOR` в
+`NebulaProfileStyle.cellBackgrounds()`. При смене темы он заливал видимые строки непрозрачным
+`windowBackgroundWhite`, и строка выделялась на карточке другим тоном. Без стиля NebulaGram оба
+экрана работают как в Telegram.
+
+Проверка: `check-sections-page-background.py`.

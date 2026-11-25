@@ -243,6 +243,46 @@ public final class NebulaProfileStyle {
         }
     }
 
+    /**
+     * Фон страницы под карточками на экранах, где список стоит прямо на окне
+     * («Настройки чатов», участники группы).
+     *
+     * <p>Свои карточки рисуются только при выключенном
+     * {@code setSectionsDrawBackground}: иначе декорация Telegram подменила бы
+     * их плоскими прямоугольниками. Но тогда серый фон между карточками не
+     * рисует никто, и в зазорах и по краям оставались прошлые кадры — края
+     * карточек и голубая обводка размножались при прокрутке. Цвет читается
+     * при каждой отрисовке, поэтому смена темы на этом же экране его не
+     * застаёт врасплох.
+     */
+    public static void sectionsPage(RecyclerListView list, Theme.ResourcesProvider provider) {
+        if (list == null || !NebulaAppearance.profileStyle()) return;
+        list.setBackground(new SectionsPage(provider));
+    }
+
+    /**
+     * Можно ли теме заливать строки списка {@code windowBackgroundWhite}.
+     * На карточках нельзя: непрозрачная заливка закрывает карточку, и строка
+     * выделяется другим тоном.
+     */
+    public static boolean cellBackgrounds() {
+        return !NebulaAppearance.profileStyle();
+    }
+
+    static final class SectionsPage extends Drawable {
+        private final Theme.ResourcesProvider provider;
+        private final Paint paint = new Paint();
+        SectionsPage(Theme.ResourcesProvider provider) { this.provider = provider; }
+        int color() { return Theme.getColor(Theme.key_windowBackgroundGray, provider) | 0xff000000; }
+        @Override public void draw(Canvas canvas) {
+            paint.setColor(color());
+            canvas.drawRect(getBounds(), paint);
+        }
+        @Override public void setAlpha(int alpha) { }
+        @Override public void setColorFilter(ColorFilter filter) { }
+        @Override public int getOpacity() { return PixelFormat.OPAQUE; }
+    }
+
     /** All drawing, hit targets, accessibility and avatar blur remain native. */
     public static ProfileActionsView actions(Context context, int height, Theme.ResourcesProvider provider) {
         return NebulaAppearance.profileStyle() || NebulaProfileArt.materialButtons()

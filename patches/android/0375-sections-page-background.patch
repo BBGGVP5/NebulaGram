@@ -1,0 +1,42 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
+index abbde22..9b3ab94 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatUsersActivity.java
+@@ -776,6 +776,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
+         };
+         app.nebulagram.ui.NebulaProfileStyle.sections(listView, getResourceProvider()); // NebulaGram
+         if (!app.nebulagram.ui.NebulaAppearance.profileStyle()) listView.setSectionsDrawBackground(true);
++        app.nebulagram.ui.NebulaProfileStyle.sectionsPage(listView, getResourceProvider()); // NebulaGram
+         listView.setLayoutManager(layoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false) {
+             @Override
+             public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
+@@ -4101,7 +4102,7 @@ public class ChatUsersActivity extends BaseFragment implements NotificationCente
+ 
+         ThemeDescription.ThemeDescriptionDelegate cellDelegate = this::cellDelegateThemeColors;
+ 
+-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{HeaderCell.class, ManageChatUserCell.class, ManageChatTextCell.class, TextCheckCell2.class, TextSettingsCell.class, SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhite));
++        if (app.nebulagram.ui.NebulaProfileStyle.cellBackgrounds()) themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{HeaderCell.class, ManageChatUserCell.class, ManageChatTextCell.class, TextCheckCell2.class, TextSettingsCell.class, SlideChooseView.class}, null, null, null, Theme.key_windowBackgroundWhite));
+ 
+ 
+ 
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+index ecaf0fe..3d2e21d 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ThemeActivity.java
+@@ -1209,6 +1209,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+         if (currentType == THEME_TYPE_BASIC) {
+             app.nebulagram.ui.NebulaProfileStyle.sections(listView, getResourceProvider()); // NebulaGram
+             if (!app.nebulagram.ui.NebulaAppearance.profileStyle()) listView.setSectionsDrawBackground(true);
++            app.nebulagram.ui.NebulaProfileStyle.sectionsPage(listView, getResourceProvider()); // NebulaGram
+         } else {
+             listView.setSections();
+             listView.setSectionsDrawBackground(true);
+@@ -2912,7 +2913,7 @@ public class ThemeActivity extends BaseFragment implements NotificationCenter.No
+     public ArrayList<ThemeDescription> getThemeDescriptions() {
+         ArrayList<ThemeDescription> themeDescriptions = new ArrayList<>();
+ 
+-        themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, TextSizeCell.class, BubbleRadiusCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TintRecyclerListView.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
++        if (currentType != THEME_TYPE_BASIC || app.nebulagram.ui.NebulaProfileStyle.cellBackgrounds()) themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_CELLBACKGROUNDCOLOR, new Class[]{TextSettingsCell.class, TextCheckCell.class, HeaderCell.class, BrightnessControlCell.class, ThemeTypeCell.class, TextSizeCell.class, BubbleRadiusCell.class, ChatListCell.class, NotificationsCheckCell.class, ThemesHorizontalListCell.class, TintRecyclerListView.class, TextCell.class, PeerColorActivity.ChangeNameColorCell.class, SwipeGestureSettingsView.class, DefaultThemesPreviewCell.class, AppIconsSelectorCell.class}, null, null, null, Theme.key_windowBackgroundWhite));
+ 
+         themeDescriptions.add(new ThemeDescription(listView, ThemeDescription.FLAG_LISTGLOWCOLOR, null, null, null, null, Theme.key_actionBarDefault));
+ 
