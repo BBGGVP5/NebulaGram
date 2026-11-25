@@ -44,10 +44,13 @@ public final class NebulaMediaFeaturesFragment extends BaseFragment {
         documents.add(toggle(c, t("Встроенный просмотр PDF", "Built-in PDF viewer"),
             t("Открывать PDF из чатов в Nebula · выключите, чтобы открывать в другом приложении", "Open PDFs from chats in Nebula · turn off to use another app"),
             "pdf_viewer", NebulaMediaPreferences.pdfViewer()));
+        documents.add(toggle(c, t("Просмотр SVG", "SVG preview"),
+            t("Открывать векторные рисунки из чатов и медиа в Nebula, с масштабированием", "Open vector drawings from chats and media in Nebula, with zoom"),
+            "svg_viewer", NebulaMediaPreferences.svgViewer()));
         NebulaFormUi.group(column, t("Документы", "Documents"), documents);
         column.addView(NebulaFormUi.note(c, t(
-            "PDF открывается без интернета. Кнопки в шапке просмотра позволяют поделиться файлом или открыть его в другом приложении. В чатах с запретом пересылки эти кнопки скрыты.",
-            "PDFs open offline. Buttons in the viewer's header share the file or open it in another app. In chats that restrict forwarding these buttons are hidden.")));
+            "PDF и SVG открываются без интернета: скрипты и внешние ссылки внутри SVG не выполняются. Кнопки в шапке просмотра позволяют поделиться файлом или открыть его в другом приложении. В чатах с запретом пересылки эти кнопки скрыты.",
+            "PDFs and SVGs open offline: scripts and external links inside an SVG never run. Buttons in the viewer's header share the file or open it in another app. In chats that restrict forwarding these buttons are hidden.")));
         return fragmentView = NebulaSettingsLayout.wrap(c, actionBar, NebulaFormUi.scroll(c, column));
     }
 

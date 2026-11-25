@@ -24,6 +24,8 @@ public final class NebulaPdfViewer {
 
     /** Opens {@code file} in the viewer and returns true, or returns false to keep Telegram's behaviour. */
     public static boolean open(File file, String fileName, String mimeType, Activity activity, boolean restricted) {
+        // The three Telegram entry points already call this method; SVG drawings share them.
+        if (NebulaSvgViewer.open(file, fileName, mimeType, activity, restricted)) return true;
         if (!NebulaMediaPreferences.pdfViewer() || file == null || !file.exists() || !isPdf(fileName, mimeType) || !signature(file)) return false;
         BaseFragment host = LaunchActivity.getSafeLastFragment();
         if (host == null || activity == null) return false;
@@ -45,24 +47,26 @@ public final class NebulaPdfViewer {
         return FileProvider.getUriForFile(activity, ApplicationLoader.getApplicationId() + ".provider", file);
     }
 
-    static void openExternally(Activity activity, File file) {
+    static void openExternally(Activity activity, File file) { openExternally(activity, file, "application/pdf"); }
+    static void openExternally(Activity activity, File file, String mime) {
         if (activity == null) return;
         try {
             Intent intent = new Intent(Intent.ACTION_VIEW);
-            intent.setDataAndType(uri(activity, file), "application/pdf");
+            intent.setDataAndType(uri(activity, file), mime);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
             activity.startActivity(Intent.createChooser(intent, NebulaText.text("Открыть в приложении", "Open with")));
         } catch (Exception error) {
             FileLog.e(error);
-            Toast.makeText(activity, NebulaText.text("Нет приложения для PDF", "No app can open PDF files"), Toast.LENGTH_SHORT).show();
+            Toast.makeText(activity, "application/pdf".equals(mime) ? NebulaText.text("Нет приложения для PDF", "No app can open PDF files") : NebulaText.text("Нет приложения для этого файла", "No app can open this file"), Toast.LENGTH_SHORT).show();
         }
     }
 
-    static void share(Activity activity, File file, String title) {
+    static void share(Activity activity, File file, String title) { share(activity, file, title, "application/pdf"); }
+    static void share(Activity activity, File file, String title, String mime) {
         if (activity == null) return;
         try {
             Intent intent = new Intent(Intent.ACTION_SEND);
-            intent.setType("application/pdf");
+            intent.setType(mime);
             intent.putExtra(Intent.EXTRA_STREAM, uri(activity, file));
             intent.putExtra(Intent.EXTRA_TITLE, title);
             intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);

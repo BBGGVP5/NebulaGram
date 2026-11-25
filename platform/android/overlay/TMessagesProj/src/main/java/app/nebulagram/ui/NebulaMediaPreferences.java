@@ -17,5 +17,6 @@ public final class NebulaMediaPreferences {
     public static int playerStyle() { return prefs().getInt("player_style", STYLE_EXPRESSIVE); }
     public static void setPlayerStyle(int value) { prefs().edit().putInt("player_style", value).apply(); }
     public static boolean pdfViewer() { return prefs().getBoolean("pdf_viewer", true); }
+    public static boolean svgViewer() { return prefs().getBoolean("svg_viewer", false); }
     public static void set(String key, boolean value) { prefs().edit().putBoolean(key, value).apply(); }
 }
