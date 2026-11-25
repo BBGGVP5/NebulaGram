@@ -48,7 +48,7 @@ def configuration(env, bundle_id):
     if not re.fullmatch(r'[A-Za-z][A-Za-z0-9-]*(?:\.[A-Za-z][A-Za-z0-9-]*)+', bundle_id):
         raise ValueError('Invalid bundle identifier')
     return dict(bundle_id=bundle_id, api_id=api_id, api_hash=api_hash,
-                team_id='0000000000', app_center_id='0', is_internal_build='false',
+                team_id='0000000000', is_internal_build='false',
                 is_appstore_build='false', appstore_id='0', app_specific_url_scheme='nebulagram',
                 premium_iap_product_id='', enable_siri=False, enable_icloud=False)
 

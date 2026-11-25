@@ -105,7 +105,7 @@ def prepare(destination):
 
 def fixture_configuration():
     return dict(bundle_id='app.nebulagram.compilecheck', api_id='0', api_hash='0' * 32,
-                team_id='0000000000', app_center_id='0', is_internal_build='true',
+                team_id='0000000000', is_internal_build='true',
                 is_appstore_build='false', appstore_id='0', app_specific_url_scheme='nebulagram-compilecheck',
                 premium_iap_product_id='', enable_siri=False, enable_icloud=False)
 
