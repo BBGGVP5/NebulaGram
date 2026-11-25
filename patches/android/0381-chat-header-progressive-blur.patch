@@ -1,0 +1,25 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 952b65d0..a1b730a7 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -5466,6 +5466,20 @@ public class ChatActivity extends BaseFragment implements
+                 }
+             }
+ 
++            private final app.nebulagram.ui.NebulaProgressiveBlur nebulaHeaderBlur = new app.nebulagram.ui.NebulaProgressiveBlur();
++
++            @Override
++            protected void dispatchDraw(Canvas canvas) {
++                // NebulaGram "Header blur": the list is recorded once, then drawn with a blurred band under the header.
++                Canvas recording = isInPreviewMode() ? null : nebulaHeaderBlur.begin(this, canvas);
++                if (recording == null) {
++                    super.dispatchDraw(canvas);
++                    return;
++                }
++                super.dispatchDraw(recording);
++                nebulaHeaderBlur.end(this, canvas, chatListViewPaddingTop);
++            }
++
+             @Override
+             public void draw(Canvas canvas) {
+                 if ((startMessageAppearTransitionMs == 0 || System.currentTimeMillis() - startMessageAppearTransitionMs <= SKELETON_DISAPPEAR_MS) && !AndroidUtilities.isTablet() && !isComments && currentUser == null) {

@@ -246,6 +246,7 @@ jobs:
           python3 scripts/check-message-image.py vendor/telegram-android
           python3 scripts/check-pill-stack.py vendor/telegram-android
           python3 scripts/check-data-export.py
+          python3 scripts/check-header-blur.py vendor/telegram-android
           python3 scripts/check-ai-protocol.py
           python3 scripts/check-audio-protocol.py
           python3 scripts/check-draft-voice.py

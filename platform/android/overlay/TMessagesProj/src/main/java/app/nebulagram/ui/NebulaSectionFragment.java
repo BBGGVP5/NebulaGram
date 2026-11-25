@@ -482,6 +482,19 @@ public class NebulaSectionFragment extends BaseFragment {
         shareImage.subtitle(NebulaText.text("Пункт в меню сообщения: пузыри на градиенте, отправка фото, сохранение или «Поделиться»",
                 "A message menu item: bubbles on a gradient, sent as a photo, saved or shared"), false);
         behaviour.add(shareImage);
+        if (NebulaProgressiveBlur.supported()) {
+            NebulaRow headerBlur = new NebulaRow(context).icon(R.drawable.msg_photo_settings)
+                    .title(NebulaText.text("Размытие под шапкой", "Header blur"))
+                    .subtitle(NebulaProgressiveBlur.titles()[NebulaProgressiveBlur.style()], true).trailing(NebulaRow.TRAIL_CHEVRON);
+            headerBlur.withClick(v -> showDialog(new NebulaDialog.Builder(context)
+                    .setTitle(NebulaText.text("Размытие под шапкой", "Header blur"))
+                    .setSelectedIndex(NebulaProgressiveBlur.style())
+                    .setItems(NebulaProgressiveBlur.titles(), (dialog, which) -> {
+                        NebulaProgressiveBlur.setStyle(which);
+                        headerBlur.subtitle(NebulaProgressiveBlur.titles()[NebulaProgressiveBlur.style()], true);
+                    }).create()));
+            behaviour.add(headerBlur);
+        }
         behaviour.add(link(context, R.drawable.msg_list, R.string.NebulaMenuActions, R.string.NebulaMenuActionsInfo, SECTION_CHAT_ACTIONS));
         content.addView(behaviour, cardParams());
 
