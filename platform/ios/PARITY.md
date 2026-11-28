@@ -2,6 +2,16 @@
 
 This inventory distinguishes **wired source** from native build and device acceptance. A setting with a validated import format is not necessarily functional on iOS.
 
+## 2026-11-28: message-consumer and icon-pack audit
+
+Local Android regressions on the current tree `build/android-current` now pass completely: **134 checks, zero failures**, including `check-account-slots`, `check-selection-actions` and `check-home-button-contours` plus `check-icon-packs` (22 archive fixtures, including the bundled Remix pack). The earlier selection failure was a check-environment defect, not selection code: the real `NebulaFeatureSettings` references Telegram classes absent from `android.jar`, so `NebulaSelectionPolicy` is now compiled beside a minimal default-off settings stub. This is source-level evidence only; no APK was built or installed here.
+
+Icon packs, Android source audit: `NebulaIconPackStore.install` decodes and validates every icon before the `AtomicFile` write, so a rejected archive leaves the previous pack, metadata list and selection intact; `generation` is bumped on install/select/delete and `drawable()` returns an imported bitmap only while the loaded snapshot ID still equals the selected pack, so switching packs cannot serve a stale drawable. On-device rollback/switching acceptance and compiling the actual Resources overrides against the Android SDK remain open.
+
+iOS message/media consumers audited against the overlay sources: `forward_date`, `edited_pencil`, `direct_share` (default on), `delete_for_all` (native eligible unsend switch only), `premium_effects`/`reaction_effects` (native state callbacks) and `seek_interval` (5/10/15/20/25/30 s, default 15, chosen in `NebulaMessageControlsController`) all have identified consumers. Native consumers are confirmed by direct patch inspection: `0074-message-and-profile-controls.patch` gates automatic voice queue advancement in `SharedMediaPlayer`; `0077-video-playback-and-message-effects.patch` pauses the central gallery video on background entry while preserving picture-in-picture and removes its observer on deinit. The earlier overlay-only search missed these patches; it did not establish missing implementation. Device playback acceptance remains unverified.
+
+No macOS or Xcode exists on this machine, so Swift compilation, the full arm64 IPA and physical iPhone acceptance remain unverified for every item above.
+
 ## October 12: complete chat-list toolbar and explicit clipboard import
 
 Patch 0101 replaces the single rounded material covering status/title/folders with native edge treatment and visible, separate Edit/right-control capsules. Toolbar glyphs use the navigation text color. The Chats-title preference takes precedence over the active folder name; explicit compose/camera hiding and the configured AI shortcut remain. Patch 0100 story-ring geometry is retained. Native actions and expanded story scrolling remain.

@@ -82,5 +82,6 @@ with tempfile.TemporaryDirectory(prefix='nebula-home-contours-') as directory:
     subprocess.run(['javac','-encoding','UTF-8','-d',str(work),*[str(work/name) for name in files]],check=True)
     subprocess.run(['java','-cp',str(work),'ContoursCheck'],check=True)
 
-assert 'actionBar.setupGlass(iBlur3FactoryLiquidGlass, BlurredBackgroundProviderImpl.topPanelButtons(resourceProvider))' in dialogs
+assert 'topPanelButtons(resourceProvider)' in dialogs
+assert 'actionBar.setNebulaHomeGlass(homeMaterial)' in dialogs
 print('Home setup passes the contour-free provider to all header materials')

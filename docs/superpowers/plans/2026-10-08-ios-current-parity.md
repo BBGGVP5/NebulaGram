@@ -92,10 +92,11 @@ Tests: wildcard/domain/exception precedence, invalid hostnames, malformed select
 
 **Files:** `NebulaBehaviorPreferences.swift`, `NebulaSettingsStore.swift`, `NebulaBehaviorController.swift`; new focused message/filter policy files and XCTest coverage; native ChatController/ChatMessageItem/MediaPlayer/PeerInfoScreen hooks as ordered patches.
 
-- [ ] Audit each October 8 Android consumer against iOS native behavior before exposing it: forwarded date/edited marker/direct-share visibility, eligible delete defaults, reaction effects, voice queue progression, seek interval and pause-on-background.
+- [x] Source audit of the October 8 Android message/media consumers against the iOS overlay (28 ноября 2026): `forward_date`, `edited_pencil` and `direct_share` are carried by `NebulaMessagePreferences` (direct share is default-on) with the native consumers recorded in this inventory; `delete_for_all` drives only the native eligible unsend switch from patch 0082; `premium_effects`/`reaction_effects` keep native state callbacks; `seek_interval` is bounded to 5/10/15/20/25/30 seconds (default 15) and chosen in `NebulaMessageControlsController`.
+- [x] Direct patch inspection confirms the playback consumers: patch 0074 gates automatic voice queue advancement in `SharedMediaPlayer`; patch 0077 pauses the central gallery video on background entry, excludes picture-in-picture and removes the observer on deinit. The earlier overlay-only search missed the native patches. Physical-device acceptance remains unverified.
 - [x] Add reversible phrase filters with transliteration, whole-word matching, blocked peers and account-specific exceptions. Preserve native protected-content and pagination behavior.
 - [x] Add local phone hiding and accurately labelled photo DC metadata, plus current profile/menu previews.
-- [ ] Keep system-owned media controls native where a portable app override is unavailable; record these explicitly in PARITY.md.
+- [x] Keep system-owned media controls native where a portable app override is unavailable and record them as platform differences rather than inert switches: the message menu opens below the lifted message, hardware volume playback, keyboard scroll thresholds, Android font/emoji replacement, Predictive Back and Material You are not emulated on iOS. Imported Android emulation flags do not create redundant iOS switches.
 - [ ] Audit recent icon packs, settings sync, retained copies and account limits against source; port missing portable consumers with data migration and cancellation tests rather than merely importing their flags.
 
 ## Task 7 — Verification and delivery

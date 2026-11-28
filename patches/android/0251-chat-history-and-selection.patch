@@ -1,0 +1,62 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+index 0aeb30f..f3d1cd8 100644
+--- a/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
++++ b/TMessagesProj/src/main/java/org/telegram/ui/ChatActivity.java
+@@ -1807,7 +1807,7 @@ public class ChatActivity extends BaseFragment implements
+                         return;
+                     }
+                     if (messageObject.contentType == 0) {
+-                        if (selected && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) {
++                        if (selected && app.nebulagram.ui.NebulaSelectionPolicy.full(selectedMessagesIds[0].size() + selectedMessagesIds[1].size(), isReport())) {
+                             limitReached = true;
+                         } else {
+                             limitReached = false;
+@@ -3775,6 +3775,10 @@ public class ChatActivity extends BaseFragment implements
+                     nebulaSelectAllLoadedMessages();
+                     return;
+                 }
++                if (id == 0x4e4849) {
++                    presentFragment(new app.nebulagram.ui.NebulaChatHistoryFragment(currentAccount, dialog_id, getThreadId(), isPeerNoForwards()));
++                    return;
++                }
+                 if (id == 0x4e4753) {
+                     jumpToDate(1);
+                     return;
+@@ -4623,6 +4627,10 @@ public class ChatActivity extends BaseFragment implements
+                 headerItem.lazilyAddSubItem(0x4e4753, R.drawable.msg_go_up,
+                         app.nebulagram.ui.NebulaText.text("В начало", "Go to beginning"));
+             }
++            if (currentEncryptedChat == null && chatMode == MODE_DEFAULT) {
++                headerItem.lazilyAddSubItem(0x4e4849, R.drawable.msg_settings,
++                        app.nebulagram.ui.NebulaText.text("Инструменты чата", "Chat tools"));
++            }
+             headerItem.lazilyAddSubItem(0x4e4443, R.drawable.msg_clearcache,
+                     app.nebulagram.ui.NebulaText.text("Очистить удаленки", "Clear deleted messages"));
+         }
+@@ -10544,7 +10552,7 @@ public class ChatActivity extends BaseFragment implements
+         actionMode.setOnLayoutListener(actionBar::invalidate);
+         ActionBarMenuItem selectLoaded = actionMode.addItemWithWidth(0x4e5341,
+                 R.drawable.nebula_selection_all, dp(48),
+-                app.nebulagram.ui.NebulaText.text("Выбрать загруженные сообщения (до 100)", "Select loaded messages (up to 100)"));
++                app.nebulagram.ui.NebulaText.text("Выбрать загруженные сообщения", "Select loaded messages"));
+         selectLoaded.setVisibility(!isReport() && selectedMessagesIds[0].size() + selectedMessagesIds[1].size() > 1 ? View.VISIBLE : View.GONE);
+         actionModeViews.add(selectLoaded);
+ 
+@@ -19678,7 +19686,7 @@ public class ChatActivity extends BaseFragment implements
+     private void nebulaSelectAllLoadedMessages() {
+         if (!actionBar.isActionModeShowed() || isReport()) return;
+         for (MessageObject message : new ArrayList<>(messages)) {
+-            if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) break;
++            if (app.nebulagram.ui.NebulaSelectionPolicy.full(selectedMessagesIds[0].size() + selectedMessagesIds[1].size(), isReport())) break;
+             if (message == null || message.isDateObject || message.getId() == 0
+                     || message.isSending() || message.isEditing() || message.isAnyGift()
+                     || message.isWallpaperAction() || message.isSponsored() || message.isEphemeral()
+@@ -19772,7 +19780,7 @@ public class ChatActivity extends BaseFragment implements
+                     }
+                 }
+             } else {
+-                if (selectedMessagesIds[0].size() + selectedMessagesIds[1].size() >= 100) {
++                if (app.nebulagram.ui.NebulaSelectionPolicy.full(selectedMessagesIds[0].size() + selectedMessagesIds[1].size(), isReport())) {
+                     AndroidUtilities.shakeView(selectedMessagesCountTextView);
+                     Vibrator vibrator = (Vibrator) ApplicationLoader.applicationContext.getSystemService(Context.VIBRATOR_SERVICE);
+                     if (vibrator != null) {
