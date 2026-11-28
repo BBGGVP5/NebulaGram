@@ -111,6 +111,9 @@ jobs:
           # Force checkout only in this fresh CI tree and verify before Gradle.
           python3 tests/android/check-dependency-checkout.py vendor/telegram-android
 
+      - name: Проверка совместимости ревизии и патчей
+        run: python3 scripts/check-upstream-series.py android --tree vendor/telegram-android
+
       - name: Установка Go
         uses: actions/setup-go@v5
         with:
