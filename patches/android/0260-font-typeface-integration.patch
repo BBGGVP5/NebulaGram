@@ -1,0 +1,17 @@
+diff --git a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+--- a/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
++++ b/TMessagesProj/src/main/java/org/telegram/messenger/AndroidUtilities.java
+@@ -2392,3 +2392,13 @@
++    public static void nebulaClearTypefaces() {
++        synchronized (typefaceCache) {
++            typefaceCache.clear();
++            mediumTypeface = null;
++        }
++    }
++
+     public static Typeface getTypeface(String assetPath) {
++        Typeface substitute = app.nebulagram.ui.NebulaFont.substitute(assetPath);
++        if (substitute != null) return substitute;
++
+         synchronized (typefaceCache) {
+             if (!typefaceCache.containsKey(assetPath)) {
