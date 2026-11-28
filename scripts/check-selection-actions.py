@@ -60,7 +60,9 @@ class CheckSelectionActions {
 with tempfile.TemporaryDirectory(prefix='nebula-selection-actions-') as folder:
  p=Path(folder)/'CheckSelectionActions.java';p.write_text(java,encoding='utf-8')
  stub=Path(folder)/'app/nebulagram/ui/NebulaFeatureSettings.java';stub.parent.mkdir(parents=True,exist_ok=True)
- stub.write_text('package app.nebulagram.ui; public class NebulaFeatureSettings {public static boolean unlimited;public static boolean enabled(String key){return unlimited;}}',encoding='utf-8')
+ # Only storage is stubbed; the real selection policy is compiled below.
+ # This fixture does not establish integration with Android SharedPreferences.
+ stub.write_text('package app.nebulagram.ui; public class NebulaFeatureSettings {public static boolean unlimited;public static boolean enabled(String key){if (!key.equals("unlimited_selection")) throw new AssertionError(key);return unlimited;}}',encoding='utf-8')
  policy=root/'platform/android/overlay/TMessagesProj/src/main/java/app/nebulagram/ui/NebulaSelectionPolicy.java'
  subprocess.run(['javac','-encoding','UTF-8','-d',folder,str(stub),str(policy),str(p)],check=True)
  subprocess.run(['java','-cp',folder,'CheckSelectionActions'],check=True)
